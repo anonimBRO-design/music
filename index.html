@@ -2838,7 +2838,25 @@ function addToQueueFromSearch(idx) {
 /* ============================================================
    HOME SECTIONS
    ============================================================ */
-async function loadHomeSections() {
+/* SECTION FETCH STATE — shared by loadHomeSections + fetchSectionTracks */
+const _sectionLoaded  = {};   // key → true once data rendered
+const _sectionInFlight = {};  // key → Promise  (request lock)
+const _SECTION_CACHE_TTL = 3600000; // 1 hour
+
+function _lsGetSection(key){
+  try{
+    const raw = localStorage.getItem('yt_sec:' + key);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(Date.now() - obj.ts > _SECTION_CACHE_TTL){ localStorage.removeItem('yt_sec:' + key); return null; }
+    return obj.data;
+  }catch(e){ return null; }
+}
+function _lsSetSection(key, data){
+  try{ localStorage.setItem('yt_sec:' + key, JSON.stringify({ts: Date.now(), data})); }catch(e){}
+}
+
+function loadHomeSections() {
   const sections = [
     { key: 'trending', el: 'section-trending', query: 'trending music 2025' },
     { key: 'mfy',      el: 'section-mfy',      query: 'lofi hip hop beats study' },
@@ -2846,11 +2864,9 @@ async function loadHomeSections() {
     { key: 'phonk',    el: 'section-phonk',    query: 'phonk mix 2025' },
     { key: 'chill',    el: 'section-chill',    query: 'chill mix 2025 lofi' },
   ];
-
-  for (const s of sections) {
-    renderSkeletonCards(s.el, 6);
-    fetchSectionTracks(s);
-  }
+  // Render skeletons immediately, then stagger API calls 600ms apart
+  sections.forEach(s => renderSkeletonCards(s.el, 6));
+  sections.forEach((s, i) => setTimeout(() => fetchSectionTracks(s), i * 600));
 }
 
 function renderSkeletonCards(elId, count) {
@@ -2873,25 +2889,87 @@ async function fetchSectionTracks({ key, el, query }) {
     </div>`;
     return;
   }
-  try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=8&key=${YT_API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const tracks = (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
-      id: i.id.videoId, videoId: i.id.videoId,
-      title: decodeHtml(i.snippet.title),
-      artist: i.snippet.channelTitle,
-      genre: key, duration: '—',
-      cover: i.snippet.thumbnails?.medium?.url || '',
-      type: 'youtube',
-    }));
-    state.sections[key] = tracks;
-    renderCardSection(el, tracks, key);
-  } catch(e) {
-    const container = document.getElementById(el);
-    if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Failed to load — check API key in Settings</div>`;
+
+  // Already loaded this session — just re-render
+  if (_sectionLoaded[key] && state.sections[key]?.length) {
+    renderCardSection(el, state.sections[key], key);
+    return;
   }
+
+  // In-memory
+  if (state.sections[key]?.length) {
+    _sectionLoaded[key] = true;
+    renderCardSection(el, state.sections[key], key);
+    return;
+  }
+
+  // localStorage cache (1 hr TTL)
+  const lsCached = _lsGetSection(key);
+  if (lsCached) {
+    state.sections[key] = lsCached;
+    _sectionLoaded[key] = true;
+    renderCardSection(el, lsCached, key);
+    return;
+  }
+
+  // Request lock — prevent duplicate concurrent fetches for same section
+  if (_sectionInFlight[key]) {
+    await _sectionInFlight[key];
+    if (state.sections[key]?.length) renderCardSection(el, state.sections[key], key);
+    return;
+  }
+
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=8&key=${YT_API_KEY}`;
+
+  _sectionInFlight[key] = (async () => {
+    try {
+      const res = await fetch(url);
+
+      // Handle 429 / 400 explicitly before parsing
+      if (res.status === 429) {
+        showToast('Rate limited — sections will retry shortly');
+        console.warn('[YT] 429 on section:', key);
+        const container = document.getElementById(el);
+        if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Rate limited — reload to retry</div>`;
+        return;
+      }
+      if (res.status === 400) {
+        console.error('[YT] 400 Bad Request on section:', key);
+        const container = document.getElementById(el);
+        if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Bad request — check API key</div>`;
+        return;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const data = await res.json();
+      if (data.error) {
+        if (data.error.code === 429 || data.error.code === 403) { showToast('Rate limited'); return; }
+        if (data.error.code === 400) { console.error('[YT] section 400:', data.error.message); return; }
+        throw new Error(data.error.message);
+      }
+
+      const tracks = (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+        id: i.id.videoId, videoId: i.id.videoId,
+        title: decodeHtml(i.snippet.title),
+        artist: i.snippet.channelTitle,
+        genre: key, duration: '—',
+        cover: i.snippet.thumbnails?.medium?.url || '',
+        type: 'youtube',
+      }));
+
+      state.sections[key] = tracks;
+      _sectionLoaded[key] = true;
+      _lsSetSection(key, tracks);
+      renderCardSection(el, tracks, key);
+    } catch(e) {
+      const container = document.getElementById(el);
+      if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Failed to load — check API key in Settings</div>`;
+    } finally {
+      delete _sectionInFlight[key];
+    }
+  })();
+
+  await _sectionInFlight[key];
 }
 
 function renderCardSection(elId, tracks, contextKey) {
