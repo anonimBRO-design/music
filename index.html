@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Nonimid</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%230a0a0f'/><circle cx='16' cy='16' r='14' fill='%231fdf64'/><polygon points='13,10 24,16 13,22' fill='%230a0a0f'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Clash+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Fallback if Clash Display unavailable -->
@@ -2132,9 +2134,10 @@ a { text-decoration: none; color: inherit; }
    YouTube-powered · Spotify-inspired
    ============================================================ */
 
-// === API KEY (replace with yours) ===
-// Persisted in localStorage; can also be set via Settings panel
-let YT_API_KEY = localStorage.getItem('nonimid_apikey') || 'AIzaSyBugNc_8pm_TcnKg7cGJ2_5nyrnuFCFKoM';
+// === API KEY ===
+// Set via Settings panel → saved to localStorage. No default key (avoids quota errors).
+const _STORED_KEY = localStorage.getItem('nonimid_apikey') || '';
+let YT_API_KEY = _STORED_KEY;
 
 /* ============================================================
    STATE
@@ -2193,7 +2196,7 @@ let ytPollId = null, fakeVizId = null;
 window.onYouTubeIframeAPIReady = function() {
   ytPlayer = new YT.Player('yt-player', {
     height: '1', width: '1',
-    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0 },
+    playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, enablejsapi: 1, origin: window.location.origin || 'null' },
     events: {
       onReady: () => { ytReady = true; ytPlayer.setVolume(state.isMuted ? 0 : state.volume); },
       onStateChange: onYTState,
@@ -2683,6 +2686,17 @@ async function searchYouTube(query) {
   if (!query) return;
   state.searchQuery = query;
 
+  if (!YT_API_KEY) {
+    document.getElementById('search-results-container').innerHTML =
+      `<div style="text-align:center;padding:3rem;color:var(--text-2)">
+        No API key set.<br>
+        <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Open Settings</span>
+        to add your YouTube Data API v3 key.
+      </div>`;
+    document.getElementById('api-notice').classList.add('show');
+    return;
+  }
+
   // Cache check
   if (state.searchCache[query]) {
     state.ytTracks = state.searchCache[query];
@@ -2831,6 +2845,14 @@ function renderSkeletonCards(elId, count) {
 }
 
 async function fetchSectionTracks({ key, el, query }) {
+  if (!YT_API_KEY) {
+    const container = document.getElementById(el);
+    if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem 0">
+      <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Add an API key</span>
+      <span> in Settings to load music.</span>
+    </div>`;
+    return;
+  }
   try {
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=8&key=${YT_API_KEY}`;
     const res = await fetch(url);
@@ -3139,7 +3161,7 @@ function saveApiKey() {
   document.getElementById('api-notice').classList.remove('show');
   state.searchCache = {};
   closeSettings();
-  showToast('✅ API key saved! Reloading sections...');
+  showToast('✅ API key saved! Loading music...');
   loadHomeSections();
 }
 
@@ -3324,8 +3346,24 @@ function init() {
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-liked').style.display = 'none';
 
-  // Start loading home sections (needs API key)
-  setTimeout(loadHomeSections, 300);
+  // Start loading home sections only if user has saved a real API key
+  if (YT_API_KEY) {
+    setTimeout(loadHomeSections, 300);
+  } else {
+    // Show API key prompt on all home sections
+    setTimeout(() => {
+      const sectionIds = ['section-trending','section-mfy','section-night','section-phonk','section-chill'];
+      sectionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem 0">
+          <span>Enter your YouTube API key in </span>
+          <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Settings</span>
+          <span> to load music.</span>
+        </div>`;
+      });
+      document.getElementById('api-notice').classList.add('show');
+    }, 300);
+  }
 
   // Hide splash
   setTimeout(() => {
