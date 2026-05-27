@@ -2632,10 +2632,15 @@ document.getElementById('search-input').addEventListener('input', function() {
   // Show suggestions
   showSuggestions(q);
 
-  if (state.view !== 'search') navigateTo('search');
+  // Navigate to search view first (directly, without transition delay issue)
+  if (state.view !== 'search') {
+    state.view = 'search';
+    showView('search');
+  }
 
   searchTimer = setTimeout(() => {
     setEls('search-heading', `Results for "${q}"`);
+    state.searchQuery = q;
     searchYouTube(q);
   }, 400);
 });
@@ -2670,15 +2675,19 @@ function showSuggestions(q) {
 function applySearch(q) {
   document.getElementById('search-input').value = q;
   document.getElementById('search-suggestions').classList.remove('show');
-  navigateTo('search');
+  state.view = 'search';
+  showView('search');
   setEls('search-heading', `Results for "${q}"`);
+  state.searchQuery = q;
   searchYouTube(q);
 }
 
 function searchAndGo(q) {
   document.getElementById('search-input').value = q;
-  navigateTo('search');
+  state.view = 'search';
+  showView('search');
   setEls('search-heading', `Results for "${q}"`);
+  state.searchQuery = q;
   searchYouTube(q);
 }
 
@@ -2751,25 +2760,35 @@ function renderSearchLoading() {
 
 function renderSearchResults(tracks) {
   const container = document.getElementById('search-results-container');
-  if (!tracks.length) {
+  if (!container) return;
+  // safeArray: handle null/undefined/non-array
+  const safeArr = Array.isArray(tracks) ? tracks.filter(t => t && t.id) : [];
+  if (!safeArr.length) {
     container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-2)">No results found.</div>`;
     return;
   }
+  // Always sync activeTracks so click-to-play works
+  state.ytTracks = safeArr;
+  state.activeTracks = safeArr;
   container.innerHTML = '';
   const list = document.createElement('div');
   list.className = 'search-results-list';
 
-  tracks.forEach((t, i) => {
+  safeArr.forEach((t, i) => {
     const active = state.currentTrack?.id === t.id;
     const el = document.createElement('div');
     el.className = 'search-result-item' + (active ? ' active' : '');
     el.dataset.id = t.id;
+    const cover = t.cover || '';
+    const title = escHtml(t.title || 'Unknown Title');
+    const artist = escHtml(t.artist || 'Unknown Artist');
+    const dur = t.duration || '—';
     el.innerHTML = `
       <div class="sr-num">${active && state.isPlaying ? '▶' : (i+1)}</div>
-      <div class="sr-thumb"><img src="${t.cover}" alt="" loading="lazy" onerror="this.style.background='var(--bg-active)'"></div>
+      <div class="sr-thumb"><img src="${cover}" alt="" loading="lazy" onerror="this.style.background='var(--bg-active)'"></div>
       <div class="sr-info">
-        <div class="sr-title">${escHtml(t.title)}</div>
-        <div class="sr-artist">${escHtml(t.artist)}</div>
+        <div class="sr-title">${title}</div>
+        <div class="sr-artist">${artist}</div>
       </div>
       <div class="sr-actions">
         <button class="sr-act-btn" title="Like" onclick="event.stopPropagation(); quickLike(${i})">
@@ -2779,9 +2798,10 @@ function renderSearchResults(tracks) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
-      <div class="sr-duration">${t.duration}</div>`;
+      <div class="sr-duration">${dur}</div>`;
     el.addEventListener('click', () => {
-      state.activeTracks = tracks;
+      state.activeTracks = safeArr;
+      state.ytTracks = safeArr;
       loadTrack(i, true);
     });
     list.appendChild(el);
@@ -2961,7 +2981,8 @@ function renderQuickGrid() {
 function renderLikedView() {
   const container = document.getElementById('liked-list');
   if (!container) return;
-  const tracks = state.likedTracks;
+  const tracks = Array.isArray(state.likedTracks) ? state.likedTracks : [];
+  updateLikedCount();
   if (!tracks.length) {
     container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-2)">Songs you like will appear here.<br>Click the ❤️ next to any song.</div>`;
     return;
@@ -2970,18 +2991,21 @@ function renderLikedView() {
     <div class="track-list-header">
       <span>#</span><span>Title</span><span>Artist</span><span style="text-align:right">Duration</span>
     </div>` +
-    tracks.map((t, i) => `
+    tracks.map((t, i) => {
+      if (!t) return '';
+      return `
       <div class="track-list-row ${state.currentTrack?.id === t.id ? 'active' : ''}" onclick="playFromLiked(${i})">
         <div class="tl-num">${i+1}</div>
         <div class="tl-title-wrap">
-          <div class="tl-thumb"><img src="${t.cover}" alt="" loading="lazy"></div>
+          <div class="tl-thumb"><img src="${t.cover || ''}" alt="" loading="lazy" onerror="this.style.background='var(--bg-active)'"></div>
           <div>
-            <div class="tl-title">${escHtml(t.title)}</div>
+            <div class="tl-title">${escHtml(t.title || 'Unknown')}</div>
           </div>
         </div>
-        <div class="tl-album" style="font-size:0.8rem;color:var(--text-2)">${escHtml(t.artist)}</div>
-        <div class="tl-duration">${t.duration}</div>
-      </div>`).join('');
+        <div class="tl-album" style="font-size:0.8rem;color:var(--text-2)">${escHtml(t.artist || '')}</div>
+        <div class="tl-duration">${t.duration || '—'}</div>
+      </div>`;
+    }).join('');
 }
 
 function playFromLiked(idx) {
@@ -3010,27 +3034,32 @@ function navigateTo(view) {
 }
 
 function showView(view) {
-  // Hide all views
-  document.getElementById('view-home').style.display = 'none';
-  document.getElementById('view-search').style.display = 'none';
-  document.getElementById('view-liked').style.display = 'none';
+  // Hide all views — always use explicit none
+  ['view-home','view-search','view-liked'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 
   // Update nav items
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
   if (view === 'home') {
-    document.getElementById('view-home').style.display = '';
+    const el = document.getElementById('view-home');
+    if (el) el.style.display = 'block';
     document.getElementById('nav-home')?.classList.add('active');
   } else if (view === 'search') {
-    document.getElementById('view-search').style.display = '';
+    const el = document.getElementById('view-search');
+    if (el) el.style.display = 'block';
     document.getElementById('nav-search')?.classList.add('active');
-    document.getElementById('search-input').focus();
+    setTimeout(() => document.getElementById('search-input')?.focus(), 50);
   } else if (view === 'liked') {
-    document.getElementById('view-liked').style.display = '';
+    const el = document.getElementById('view-liked');
+    if (el) el.style.display = 'block';
     renderLikedView();
   }
 
-  document.getElementById('content').scrollTop = 0;
+  const content = document.getElementById('content');
+  if (content) content.scrollTop = 0;
 }
 
 function historyBack() {
@@ -3342,7 +3371,7 @@ function init() {
   document.getElementById('vol-fill').style.width = state.volume + '%';
 
   // Hide all views then show home
-  document.getElementById('view-home').style.display = '';
+  document.getElementById('view-home').style.display = 'block';
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-liked').style.display = 'none';
 
