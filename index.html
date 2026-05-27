@@ -2642,7 +2642,7 @@ document.getElementById('search-input').addEventListener('input', function() {
     setEls('search-heading', `Results for "${q}"`);
     state.searchQuery = q;
     searchYouTube(q);
-  }, 400);
+  }, 800);
 });
 
 document.getElementById('search-input').addEventListener('focus', function() {
@@ -4031,63 +4031,228 @@ window._nonimidPatchApplied = true;
   });
 })();
 
-/* ── 6. FIX SEARCH 429 — exponential backoff + IDB cache ── */
+/* ── 6. FIX SEARCH 400 + 429 — validation, AbortController, dual cache, request lock ── */
 (function(){
-  const origSearch = window.searchYouTube;
-  let searchAbort = null;
+  /* ---- Shared cache helpers (in-memory + localStorage, 1 hr TTL) ---- */
+  const CACHE_TTL = 3600000; // 1 hour ms
+  const _memCache = {};
+
+  function lsGet(key){
+    try{
+      const raw = localStorage.getItem('yt_cache:' + key);
+      if(!raw) return null;
+      const obj = JSON.parse(raw);
+      if(Date.now() - obj.ts > CACHE_TTL){ localStorage.removeItem('yt_cache:' + key); return null; }
+      return obj.data;
+    }catch(e){ return null; }
+  }
+  function lsSet(key, data){
+    try{ localStorage.setItem('yt_cache:' + key, JSON.stringify({ts: Date.now(), data})); }catch(e){}
+  }
+
+  /* ---- Request lock: prevent concurrent identical fetches ---- */
+  const _inFlight = {};   // key → Promise
+  function withLock(key, fn){
+    if(_inFlight[key]) return _inFlight[key];
+    const p = fn().finally(()=>{ delete _inFlight[key]; });
+    _inFlight[key] = p;
+    return p;
+  }
+
+  /* ---- Safe fetch wrapper ---- */
+  async function safeFetch(url, signal){
+    let res;
+    try{
+      res = await fetch(url, { signal });
+    }catch(err){
+      if(err.name === 'AbortError') return null; // silently cancelled
+      throw err;
+    }
+    if(res.status === 429){
+      showToast('Rate limited — try again in a moment');
+      console.warn('[YT] 429 Too Many Requests');
+      return null;
+    }
+    if(res.status === 400){
+      console.error('[YT] 400 Bad Request — check query params');
+      return null;
+    }
+    if(!res.ok){
+      console.error('[YT] HTTP error', res.status);
+      return null;
+    }
+    return res;
+  }
+
+  /* ---- AbortController for search (cancel previous on new call) ---- */
+  let _searchAbort = null;
+
+  /* ---- Patch searchYouTube ---- */
   window.searchYouTube = async function(query){
-    if(!query) return;
+    // 400 prevention: validate query
+    if(!query || typeof query !== 'string') return [];
+    const q = query.trim();
+    if(q.length < 2) return [];
+
     if(!YT_API_KEY){
       document.getElementById('search-results-container').innerHTML=
         `<div style="text-align:center;padding:3rem;color:var(--text-2)">
           No API key.<br><span onclick="openSettings()" style="color:var(--green);cursor:pointer">Open Settings →</span>
         </div>`;
-      return;
+      return [];
     }
-    // In-memory cache first
-    if(state.searchCache[query]){ renderSearchResults(state.searchCache[query]); return; }
-    // IDB cache second
-    const cached = await NDB.get('searches', query);
-    if(cached && (Date.now()-cached.ts) < 1800000){
-      state.searchCache[query] = cached.tracks;
-      renderSearchResults(cached.tracks);
-      return;
+
+    // In-memory cache
+    if(_memCache[q]){ renderSearchResults(_memCache[q]); return _memCache[q]; }
+    // localStorage cache
+    const lsCached = lsGet(q);
+    if(lsCached){ _memCache[q] = lsCached; renderSearchResults(lsCached); return lsCached; }
+    // IDB cache
+    const idbCached = await NDB.get('searches', q);
+    if(idbCached && (Date.now() - idbCached.ts) < CACHE_TTL){
+      _memCache[q] = idbCached.tracks;
+      renderSearchResults(idbCached.tracks);
+      return idbCached.tracks;
     }
+
+    // Cancel any previous in-flight search fetch
+    if(_searchAbort){ _searchAbort.abort(); }
+    _searchAbort = new AbortController();
+    const signal = _searchAbort.signal;
+
     renderSearchLoading();
-    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query+' music')}&type=video&videoCategoryId=10&maxResults=20&key=${YT_API_KEY}`;
-    let tries=0, delay=600;
-    async function attempt(){
+
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q + ' music')}&type=video&maxResults=20&key=${YT_API_KEY}`;
+
+    return withLock('search:' + q, async ()=>{
       try{
-        const res = await fetch(url);
+        const res = await safeFetch(url, signal);
+        if(!res){
+          // aborted or rate-limited — clear spinner quietly
+          const c = document.getElementById('search-results-container');
+          if(c && c.querySelector('.search-loading')) c.innerHTML='';
+          return [];
+        }
         const data = await res.json();
         if(data.error){
-          if(data.error.code===429 && tries<3){
-            tries++; await new Promise(r=>setTimeout(r,delay)); delay*=2; return attempt();
-          }
+          if(data.error.code === 429){ showToast('Rate limited — try again in a moment'); return []; }
+          if(data.error.code === 400){ console.error('[YT] 400:', data.error.message); return []; }
           throw new Error(data.error.message);
         }
-        const tracks=(data.items||[]).filter(i=>i.id?.videoId).map(i=>({
-          id:i.id.videoId, videoId:i.id.videoId,
-          title:decodeHtml(i.snippet.title), artist:i.snippet.channelTitle,
-          genre:'YouTube', duration:'—',
-          cover:i.snippet.thumbnails?.medium?.url||i.snippet.thumbnails?.default?.url||'',
-          type:'youtube',
+        const tracks = (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+          id: i.id.videoId, videoId: i.id.videoId,
+          title: decodeHtml(i.snippet.title), artist: i.snippet.channelTitle,
+          genre: 'YouTube', duration: '—',
+          cover: i.snippet.thumbnails?.medium?.url || i.snippet.thumbnails?.default?.url || '',
+          type: 'youtube',
         }));
-        state.ytTracks=tracks;
-        state.searchCache[query]=tracks;
-        state.activeTracks=tracks;
-        await NDB.put('searches',{q:query,tracks,ts:Date.now()});
+        state.ytTracks = tracks;
+        state.searchCache[q] = tracks;
+        _memCache[q] = tracks;
+        state.activeTracks = tracks;
+        lsSet(q, tracks);
+        NDB.put('searches', {q, tracks, ts: Date.now()});
         renderSearchResults(tracks);
+        return tracks;
       }catch(err){
-        console.warn('Search error:',err);
+        if(err.name === 'AbortError') return [];
+        console.warn('[YT] Search error:', err);
         document.getElementById('search-results-container').innerHTML=
           `<div style="text-align:center;padding:3rem;color:var(--text-2)">
             Search failed: ${escHtml(err.message)}<br>
             <small style="color:var(--text-3)">Check API key in Settings.</small>
           </div>`;
+        return [];
       }
+    });
+  };
+
+  /* ---- Patch fetchSectionTracks — cache + lock + safe fetch + lazy guard ---- */
+  const _sectionLoaded = {};  // key → true once rendered
+
+  window.fetchSectionTracks = async function({ key, el, query }){
+    if(!YT_API_KEY){
+      const container = document.getElementById(el);
+      if(container) container.innerHTML=
+        `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem 0">
+          <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Add an API key</span>
+          <span> in Settings to load music.</span>
+        </div>`;
+      return;
     }
-    attempt();
+
+    // Prevent repeated fetches for the same section
+    if(_sectionLoaded[key] && state.sections[key]?.length){
+      renderCardSection(el, state.sections[key], key);
+      return;
+    }
+
+    // In-memory section cache
+    if(state.sections[key]?.length){
+      _sectionLoaded[key] = true;
+      renderCardSection(el, state.sections[key], key);
+      return;
+    }
+
+    // localStorage cache
+    const lsCached = lsGet('section:' + key);
+    if(lsCached){
+      state.sections[key] = lsCached;
+      _sectionLoaded[key] = true;
+      renderCardSection(el, lsCached, key);
+      return;
+    }
+
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=8&key=${YT_API_KEY}`;
+
+    await withLock('section:' + key, async ()=>{
+      // re-check after acquiring lock (another call may have just filled it)
+      if(state.sections[key]?.length){
+        _sectionLoaded[key] = true;
+        renderCardSection(el, state.sections[key], key);
+        return;
+      }
+      try{
+        const res = await safeFetch(url, null);
+        if(!res) return;
+        const data = await res.json();
+        if(data.error){
+          if(data.error.code === 429){ showToast('Rate limited'); return; }
+          if(data.error.code === 400){ console.error('[YT] section 400:', data.error.message); return; }
+          throw new Error(data.error.message);
+        }
+        const tracks = (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+          id: i.id.videoId, videoId: i.id.videoId,
+          title: decodeHtml(i.snippet.title), artist: i.snippet.channelTitle,
+          genre: key, duration: '—',
+          cover: i.snippet.thumbnails?.medium?.url || '',
+          type: 'youtube',
+        }));
+        state.sections[key] = tracks;
+        _sectionLoaded[key] = true;
+        lsSet('section:' + key, tracks);
+        renderCardSection(el, tracks, key);
+      }catch(e){
+        const container = document.getElementById(el);
+        if(container) container.innerHTML=
+          `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Failed to load — check API key in Settings</div>`;
+      }
+    });
+  };
+
+  /* ---- Patch loadHomeSections to stagger section fetches (prevent burst) ---- */
+  const _origLoadHomeSections = window.loadHomeSections;
+  window.loadHomeSections = function(){
+    const sections = [
+      { key: 'trending', el: 'section-trending', query: 'trending music 2025' },
+      { key: 'mfy',      el: 'section-mfy',      query: 'lofi hip hop beats study' },
+      { key: 'night',    el: 'section-night',    query: 'night drive synthwave 2025' },
+      { key: 'phonk',    el: 'section-phonk',    query: 'phonk mix 2025' },
+      { key: 'chill',    el: 'section-chill',    query: 'chill mix 2025 lofi' },
+    ];
+    sections.forEach(s => renderSkeletonCards(s.el, 6));
+    // Stagger fetches 400ms apart to avoid burst-firing 5 simultaneous API calls
+    sections.forEach((s, i) => setTimeout(() => fetchSectionTracks(s), i * 400));
   };
 })();
 
