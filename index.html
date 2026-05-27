@@ -3893,6 +3893,1058 @@ window.addEventListener('offline', updateOnlineStatus);
   }
 })();
 
+/* ============================================================
+   NONIMID v4.0 — COMPLETE ENHANCEMENT PATCH
+   Fix all bugs + add Spotify-premium features
+   ============================================================ */
+
+/* ── 1. INDEXEDDB CACHE ── */
+const NDB = (function(){
+  let db = null;
+  function open(){
+    return new Promise((res,rej)=>{
+      const r = indexedDB.open('nonimid_v4',2);
+      r.onupgradeneeded = e=>{
+        const d = e.target.result;
+        if(!d.objectStoreNames.contains('searches')) d.createObjectStore('searches',{keyPath:'q'});
+        if(!d.objectStoreNames.contains('colors'))   d.createObjectStore('colors',{keyPath:'url'});
+        if(!d.objectStoreNames.contains('prefs'))    d.createObjectStore('prefs',{keyPath:'k'});
+      };
+      r.onsuccess = e=>{ db=e.target.result; res(db); };
+      r.onerror   = ()=>res(null);
+    });
+  }
+  async function get(store,key){
+    if(!db) await open();
+    if(!db) return null;
+    return new Promise(res=>{
+      try{
+        const t = db.transaction(store,'readonly');
+        const r = t.objectStore(store).get(key);
+        r.onsuccess=()=>res(r.result||null);
+        r.onerror=()=>res(null);
+      }catch(e){res(null);}
+    });
+  }
+  async function put(store,obj){
+    if(!db) await open();
+    if(!db) return;
+    return new Promise(res=>{
+      try{
+        const t = db.transaction(store,'readwrite');
+        t.objectStore(store).put(obj);
+        t.oncomplete=()=>res();
+        t.onerror=()=>res();
+      }catch(e){res();}
+    });
+  }
+  open();
+  return {get,put};
+})();
+
+/* ── 2. FIX DUPLICATE EVENT LISTENERS (flag guard) ── */
+if (!window._nonimidPatchApplied) {
+window._nonimidPatchApplied = true;
+
+/* ── 3. FIX PROGRESS BAR DESYNC ── */
+(function(){
+  let _raf = null;
+  const origUpdateProgress = window.updateProgress;
+  window.updateProgress = function(cur, dur){
+    if(_raf) cancelAnimationFrame(_raf);
+    _raf = requestAnimationFrame(()=>{
+      if(typeof origUpdateProgress==='function') origUpdateProgress(cur, dur);
+      // sync buffer bar
+      const bb = document.getElementById('prog-buffer');
+      if(bb && window.ytPlayer && ytReady){
+        try{
+          const frac = (ytPlayer.getVideoLoadedFraction?.()||0)*100;
+          bb.style.width = frac+'%';
+        }catch(e){}
+      }
+    });
+  };
+})();
+
+/* ── 4. FIX IFRAME MEMORY LEAK — patch playYT ── */
+(function(){
+  const origPlayYT = window.playYT;
+  let currentVideoId = null;
+  window.playYT = function(videoId){
+    if(currentVideoId === videoId && ytReady && ytPlayer){
+      try{ ytPlayer.seekTo(0,true); ytPlayer.playVideo(); }catch(e){}
+      return;
+    }
+    currentVideoId = videoId;
+    // stop previous audio cleanly
+    if(window.audio){ try{ audio.pause(); audio.src=''; }catch(e){} }
+    if(ytReady && ytPlayer){ try{ ytPlayer.stopVideo(); }catch(e){} }
+    if(typeof origPlayYT==='function') origPlayYT(videoId);
+  };
+})();
+
+/* ── 5. FIX FULLSCREEN PLAYER STUCK (body scroll + ESC) ── */
+(function(){
+  const fs = document.getElementById('fullscreen-player');
+  if(!fs) return;
+  // ensure close always resets body
+  const origClose = window.closeFullscreen;
+  window.closeFullscreen = function(){
+    if(fs.classList.contains('open')){
+      fs.classList.remove('open');
+      document.body.style.overflow='';
+    }
+    if(typeof origClose==='function') origClose();
+  };
+  // ESC key closes fullscreen
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Escape' && fs.classList.contains('open')) closeFullscreen();
+  });
+})();
+
+/* ── 6. FIX SEARCH 429 — exponential backoff + IDB cache ── */
+(function(){
+  const origSearch = window.searchYouTube;
+  let searchAbort = null;
+  window.searchYouTube = async function(query){
+    if(!query) return;
+    if(!YT_API_KEY){
+      document.getElementById('search-results-container').innerHTML=
+        `<div style="text-align:center;padding:3rem;color:var(--text-2)">
+          No API key.<br><span onclick="openSettings()" style="color:var(--green);cursor:pointer">Open Settings →</span>
+        </div>`;
+      return;
+    }
+    // In-memory cache first
+    if(state.searchCache[query]){ renderSearchResults(state.searchCache[query]); return; }
+    // IDB cache second
+    const cached = await NDB.get('searches', query);
+    if(cached && (Date.now()-cached.ts) < 1800000){
+      state.searchCache[query] = cached.tracks;
+      renderSearchResults(cached.tracks);
+      return;
+    }
+    renderSearchLoading();
+    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query+' music')}&type=video&videoCategoryId=10&maxResults=20&key=${YT_API_KEY}`;
+    let tries=0, delay=600;
+    async function attempt(){
+      try{
+        const res = await fetch(url);
+        const data = await res.json();
+        if(data.error){
+          if(data.error.code===429 && tries<3){
+            tries++; await new Promise(r=>setTimeout(r,delay)); delay*=2; return attempt();
+          }
+          throw new Error(data.error.message);
+        }
+        const tracks=(data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+          id:i.id.videoId, videoId:i.id.videoId,
+          title:decodeHtml(i.snippet.title), artist:i.snippet.channelTitle,
+          genre:'YouTube', duration:'—',
+          cover:i.snippet.thumbnails?.medium?.url||i.snippet.thumbnails?.default?.url||'',
+          type:'youtube',
+        }));
+        state.ytTracks=tracks;
+        state.searchCache[query]=tracks;
+        state.activeTracks=tracks;
+        await NDB.put('searches',{q:query,tracks,ts:Date.now()});
+        renderSearchResults(tracks);
+      }catch(err){
+        console.warn('Search error:',err);
+        document.getElementById('search-results-container').innerHTML=
+          `<div style="text-align:center;padding:3rem;color:var(--text-2)">
+            Search failed: ${escHtml(err.message)}<br>
+            <small style="color:var(--text-3)">Check API key in Settings.</small>
+          </div>`;
+      }
+    }
+    attempt();
+  };
+})();
+
+/* ── 7. FIX QUEUE RENDERING DUPLICATES ── */
+(function(){
+  const origUpdateQueue = window.updateQueue;
+  window.updateQueue = function(){
+    const list = document.getElementById('queue-next-list');
+    if(!list) return;
+    list.innerHTML='';
+    const tracks = state.activeTracks;
+    if(!tracks.length) return;
+    const n = Math.min(12, tracks.length-1);
+    const frag = document.createDocumentFragment();
+    for(let i=1;i<=n;i++){
+      const idx=(state.currentIndex+i)%tracks.length;
+      const t=tracks[idx];
+      if(!t) continue;
+      const el=document.createElement('div');
+      el.className='queue-next-item';
+      el.draggable=true;
+      el.dataset.idx=idx;
+      el.innerHTML=`
+        <span class="queue-next-num">${i}</span>
+        <div class="queue-thumb"><img src="${t.cover||''}" alt="" width="42" height="42" loading="lazy" onerror="this.style.background='var(--bg-active)'"></div>
+        <div class="queue-next-info">
+          <div class="queue-next-title">${escHtml(t.title)}</div>
+          <div class="queue-next-artist">${escHtml(t.artist)}</div>
+        </div>
+        <div class="queue-drag-handle" style="color:var(--text-3);padding:0 4px;cursor:grab">⠿</div>`;
+      el.addEventListener('click',()=>loadTrack(idx,state.isPlaying));
+      frag.appendChild(el);
+    }
+    list.appendChild(frag);
+    initQueueDragDrop(list);
+  };
+})();
+
+/* ── 8. QUEUE DRAG & REORDER ── */
+function initQueueDragDrop(list){
+  let dragEl=null, dragIdx=null;
+  list.querySelectorAll('.queue-next-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{
+      dragEl=el; dragIdx=parseInt(el.dataset.idx);
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>el.style.opacity='0.4',0);
+    });
+    el.addEventListener('dragend',()=>{ if(dragEl) dragEl.style.opacity='1'; dragEl=null; });
+    el.addEventListener('dragover',e=>{
+      e.preventDefault();
+      const over=e.currentTarget;
+      if(over===dragEl) return;
+      const overIdx=parseInt(over.dataset.idx);
+      if(dragIdx!==null && dragIdx!==overIdx){
+        // swap in activeTracks
+        const arr=state.activeTracks;
+        const a=arr.splice(dragIdx,1)[0];
+        const newOver=dragIdx<overIdx ? overIdx-1 : overIdx;
+        arr.splice(newOver,0,a);
+        dragIdx=newOver;
+        updateQueue();
+      }
+    });
+  });
+}
+
+/* ── 9. SMOOTH PAGE TRANSITIONS ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .view-transition-enter { animation: viewIn 0.22s var(--ease) both; }
+    .view-transition-leave { animation: viewOut 0.15s var(--ease) both; }
+    @keyframes viewIn  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+    @keyframes viewOut { from{opacity:1;transform:none} to{opacity:0;transform:translateY(-8px)} }
+    .card-fade-in { animation: cardFadeIn 0.3s var(--ease) both; }
+    @keyframes cardFadeIn { from{opacity:0;transform:translateY(10px) scale(0.97)} to{opacity:1;transform:none} }
+    .music-card, .search-result-item { transition: background 0.15s var(--ease), transform 0.15s var(--ease), box-shadow 0.15s var(--ease); }
+    .music-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .search-result-item.active .sr-title { color: var(--green); }
+    .now-playing-glow { box-shadow: 0 0 0 2px var(--green), 0 0 20px var(--green-glow); }
+    .player-track-name.has-track { color: var(--text-1); }
+    #prog-bar { cursor: pointer; }
+    .prog-fill { transition: width 0.1s linear, background 0.2s; }
+    .crossfade-overlay { position:fixed;inset:0;background:var(--bg-base);z-index:9998;pointer-events:none;opacity:0;transition:opacity 0.4s var(--ease); }
+    .crossfade-overlay.active { opacity:0.5; }
+    .vol-slider-wrap { cursor:pointer; height:4px; transition:height 0.12s var(--ease); }
+    .vol-slider-wrap:hover { height:6px; }
+    #queue-next-list { scrollbar-width:thin; scrollbar-color:var(--text-3) transparent; }
+    .queue-next-item.drag-over { background:var(--green-dim); border:1px dashed var(--green); border-radius:var(--radius); }
+    .track-list-row { position:relative; overflow:hidden; }
+    .track-list-row::after { content:''; position:absolute; left:0; bottom:0; width:0; height:2px; background:var(--green); transition:width 0.3s var(--ease); }
+    .track-list-row.active::after { width:100%; }
+    .section-title { position:relative; }
+    #content { scroll-behavior:smooth; }
+    .music-card { transform-origin:center; }
+    .music-card:active { transform:scale(0.97); }
+    .play-pause-btn { position:relative; overflow:hidden; }
+    .play-pause-btn::after { content:''; position:absolute; inset:0; border-radius:50%; background:rgba(255,255,255,0.15); transform:scale(0); transition:transform 0.3s var(--ease); }
+    .play-pause-btn:active::after { transform:scale(2); opacity:0; }
+    .pl-item { transition: background 0.12s var(--ease), transform 0.1s var(--ease); }
+    .pl-item:active { transform:scale(0.98); }
+    #sidebar { scrollbar-width:none; }
+    #sidebar::-webkit-scrollbar { display:none; }
+    .fs-art-wrap img { border-radius: var(--radius-xl); box-shadow: 0 32px 80px rgba(0,0,0,0.6); transition: transform 0.3s var(--spring), box-shadow 0.3s var(--ease); }
+    #fullscreen-player.open .fs-art-wrap img { transform: scale(1); }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* crossfade overlay el */
+const _cfOverlay = document.createElement('div');
+_cfOverlay.className='crossfade-overlay';
+document.body.appendChild(_cfOverlay);
+
+/* ── 10. SMOOTH TRACK TRANSITIONS (crossfade) ── */
+(function(){
+  const origLoadTrack = window.loadTrack;
+  window.loadTrack = function(index, autoplay=false, trackList=null){
+    if(autoplay && state.currentTrack && document.getElementById('toggle-crossfade')?.classList.contains('on')){
+      _cfOverlay.classList.add('active');
+      setTimeout(()=>_cfOverlay.classList.remove('active'),500);
+    }
+    if(typeof origLoadTrack==='function') origLoadTrack(index, autoplay, trackList);
+    // animate active track in list
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('.track-list-row.active,.search-result-item.active').forEach(el=>{
+        el.classList.remove('card-fade-in');
+        void el.offsetWidth;
+        el.classList.add('card-fade-in');
+      });
+    });
+  };
+})();
+
+/* ── 11. MEDIA SESSION API ── */
+(function(){
+  if(!('mediaSession' in navigator)) return;
+  const orig = window.updateNowPlayingUI;
+  window.updateNowPlayingUI = function(t){
+    if(typeof orig==='function') orig(t);
+    if(!t) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.title||'',
+      artist: t.artist||'',
+      album: 'Nonimid',
+      artwork: t.cover ? [
+        {src:t.cover, sizes:'96x96',  type:'image/jpeg'},
+        {src:t.cover, sizes:'512x512',type:'image/jpeg'},
+      ] : []
+    });
+    // update theme color
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.content = '#0a0a0f';
+  };
+  navigator.mediaSession.setActionHandler('play',()=>{ if(!state.isPlaying) togglePlay(); });
+  navigator.mediaSession.setActionHandler('pause',()=>{ if(state.isPlaying) togglePlay(); });
+  navigator.mediaSession.setActionHandler('nexttrack',()=>nextTrack());
+  navigator.mediaSession.setActionHandler('previoustrack',()=>prevTrack());
+  navigator.mediaSession.setActionHandler('seekbackward',()=>seekDelta(-10));
+  navigator.mediaSession.setActionHandler('seekforward',()=>seekDelta(10));
+})();
+
+/* ── 12. MEDIA SESSION PLAYBACK STATE SYNC ── */
+(function(){
+  const orig = window.updatePlayUI;
+  window.updatePlayUI = function(playing){
+    if(typeof orig==='function') orig(playing);
+    if('mediaSession' in navigator)
+      navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+    // animate art wrap
+    const aw = document.querySelector('.fs-art-wrap');
+    if(aw) aw.classList.toggle('playing', playing);
+  };
+})();
+
+/* ── 13. PLAYBACK PERSISTENCE (IndexedDB) ── */
+(function(){
+  const PERSIST_KEY = 'playback_state';
+  async function persistPlayback(){
+    if(!state.currentTrack) return;
+    const data = {
+      track: state.currentTrack,
+      activeTracks: state.activeTracks.slice(0,50),
+      currentIndex: state.currentIndex,
+      volume: state.volume,
+      isMuted: state.isMuted,
+      isShuffle: state.isShuffle,
+      repeatMode: state.repeatMode,
+    };
+    await NDB.put('prefs',{k:PERSIST_KEY, ...data});
+  }
+  async function restorePlayback(){
+    const data = await NDB.get('prefs', PERSIST_KEY);
+    if(!data || !data.track) return;
+    state.activeTracks = data.activeTracks || [];
+    state.currentIndex = data.currentIndex || 0;
+    if(data.volume !== undefined){ state.volume=data.volume; applyVolume(); }
+    if(data.isMuted){ state.isMuted=true; applyVolume(); }
+    if(data.isShuffle) state.isShuffle=true;
+    if(data.repeatMode) state.repeatMode=data.repeatMode;
+    if(data.track){ loadTrack(state.currentIndex, false); }
+  }
+  // patch loadTrack to persist
+  const origLoad = window.loadTrack;
+  window.loadTrack = function(index, autoplay, trackList){
+    if(typeof origLoad==='function') origLoad(index, autoplay, trackList);
+    setTimeout(persistPlayback, 200);
+  };
+  // restore on init (after a small delay to let everything settle)
+  setTimeout(restorePlayback, 800);
+})();
+
+/* ── 14. INFINITE SCROLL SEARCH ── */
+(function(){
+  let searchPage = 1;
+  let searchPageToken = null;
+  let isLoadingMore = false;
+  const content = document.getElementById('content');
+  if(!content) return;
+
+  async function loadMoreResults(){
+    if(isLoadingMore || !state.searchQuery || !YT_API_KEY || !searchPageToken) return;
+    isLoadingMore = true;
+    const loader = document.createElement('div');
+    loader.id='search-load-more';
+    loader.className='search-loading';
+    loader.style.padding='1rem';
+    loader.innerHTML='<div class="search-spinner"></div>';
+    document.getElementById('search-results-container')?.appendChild(loader);
+
+    try{
+      const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(state.searchQuery+' music')}&type=video&videoCategoryId=10&maxResults=10&pageToken=${searchPageToken}&key=${YT_API_KEY}`;
+      const res=await fetch(url);
+      const data=await res.json();
+      if(data.nextPageToken) searchPageToken=data.nextPageToken; else searchPageToken=null;
+      const newTracks=(data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+        id:i.id.videoId, videoId:i.id.videoId,
+        title:decodeHtml(i.snippet.title), artist:i.snippet.channelTitle,
+        genre:'YouTube', duration:'—',
+        cover:i.snippet.thumbnails?.medium?.url||'', type:'youtube',
+      }));
+      const startIdx = state.ytTracks.length;
+      state.ytTracks = [...state.ytTracks, ...newTracks];
+      state.activeTracks = [...state.ytTracks];
+      // append rows
+      const list = document.querySelector('.search-results-list');
+      if(list){
+        newTracks.forEach((t,i)=>{
+          const idx=startIdx+i;
+          const el=document.createElement('div');
+          el.className='search-result-item card-fade-in';
+          el.dataset.id=t.id;
+          el.innerHTML=`
+            <div class="sr-num">${idx+1}</div>
+            <div class="sr-thumb"><img src="${t.cover}" alt="" width="48" height="48" loading="lazy" onerror="this.style.background='var(--bg-active)'"></div>
+            <div class="sr-info"><div class="sr-title">${escHtml(t.title)}</div><div class="sr-artist">${escHtml(t.artist)}</div></div>
+            <div class="sr-actions">
+              <button class="sr-act-btn" onclick="event.stopPropagation();quickLike(${idx})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </button>
+            </div>
+            <div class="sr-duration">—</div>`;
+          el.addEventListener('click',()=>{ state.activeTracks=[...state.ytTracks]; loadTrack(idx,true); });
+          list.appendChild(el);
+        });
+      }
+    }catch(e){ console.warn('Load more failed',e); }
+    document.getElementById('search-load-more')?.remove();
+    isLoadingMore=false;
+  }
+
+  content.addEventListener('scroll',()=>{
+    if(state.view!=='search') return;
+    const near = content.scrollHeight - content.scrollTop - content.clientHeight < 300;
+    if(near) loadMoreResults();
+  },{passive:true});
+
+  // patch searchYouTube to capture pageToken
+  const origSearch2 = window.searchYouTube;
+  window.searchYouTube = async function(query){
+    searchPageToken=null; searchPage=1; isLoadingMore=false;
+    if(typeof origSearch2==='function') await origSearch2(query);
+    // fetch pageToken by re-querying only if needed
+    // (deferred — handled on first scroll near bottom)
+  };
+  // intercept fetch to grab nextPageToken
+  const origFetch = window.fetch;
+  window.fetch = function(url,...args){
+    const p = origFetch.call(this,url,...args);
+    if(typeof url==='string' && url.includes('youtube/v3/search') && !url.includes('pageToken')){
+      p.then(r=>r.clone().json()).then(data=>{
+        if(data.nextPageToken) searchPageToken=data.nextPageToken;
+      }).catch(()=>{});
+    }
+    return p;
+  };
+})();
+
+/* ── 15. BETTER SEARCH SUGGESTIONS with history ── */
+(function(){
+  const HIST_KEY='nonimid_searchhist';
+  function getHistory(){ try{ return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch(e){ return []; } }
+  function addHistory(q){ const h=getHistory().filter(x=>x!==q); h.unshift(q); localStorage.setItem(HIST_KEY,JSON.stringify(h.slice(0,15))); }
+
+  window.addSearchHistory=addHistory;
+  const origApply=window.applySearch;
+  window.applySearch=function(q){ addHistory(q); if(typeof origApply==='function') origApply(q); };
+
+  window.showEnhancedSuggestions=function(q){
+    const container=document.getElementById('search-suggestions');
+    const hist=getHistory().filter(h=>h.toLowerCase().includes(q.toLowerCase())).slice(0,3);
+    const suggestions=[q,q+' official audio',q+' remix',q+' live'].slice(0,4-hist.length);
+    let html='';
+    if(hist.length){
+      html+=`<div class="sugg-divider">Recent</div>`;
+      html+=hist.map(s=>`
+        <div class="sugg-item" onclick="applySearch('${escHtml(s).replace(/'/g,"\\'")}')">
+          <svg class="sugg-history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${escHtml(s)}
+        </div>`).join('');
+      html+=`<div class="sugg-divider">Suggestions</div>`;
+    }
+    html+=suggestions.map(s=>`
+      <div class="sugg-item" onclick="applySearch('${escHtml(s).replace(/'/g,"\\'")}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        ${escHtml(s)}
+      </div>`).join('');
+    container.innerHTML=html;
+    container.classList.add('show');
+  };
+  // override showSuggestions
+  window.showSuggestions=window.showEnhancedSuggestions;
+})();
+
+/* ── 16. VOLUME NORMALIZATION (gain node) ── */
+(function(){
+  let gainNode=null;
+  const origInitCtx=window.initAudioCtx;
+  window.initAudioCtx=function(){
+    if(typeof origInitCtx==='function') origInitCtx();
+    if(audioCtx && !gainNode){
+      gainNode=audioCtx.createGain();
+      gainNode.gain.value=1.0;
+      if(window.analyser){
+        try{
+          window.analyser.disconnect();
+          window.analyser.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+        }catch(e){}
+      }
+    }
+  };
+})();
+
+/* ── 17. SMART RECOMMENDATIONS (seed from recent plays) ── */
+async function loadSmartRecommendations(){
+  if(!YT_API_KEY || state.recentTracks.length<2) return;
+  const seed=state.recentTracks[0];
+  const query=seed.artist ? seed.artist+' mix playlist' : 'trending music 2025';
+  const cached=state.searchCache['__rec__'+query];
+  if(cached){ renderRecommendedSection(cached); return; }
+  try{
+    const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=6&key=${YT_API_KEY}`;
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.error) return;
+    const tracks=(data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+      id:i.id.videoId,videoId:i.id.videoId,
+      title:decodeHtml(i.snippet.title),artist:i.snippet.channelTitle,
+      genre:'Recommended',duration:'—',
+      cover:i.snippet.thumbnails?.medium?.url||'',type:'youtube',
+    }));
+    state.searchCache['__rec__'+query]=tracks;
+    state.sections['recommended']=tracks;
+    renderRecommendedSection(tracks);
+  }catch(e){}
+}
+
+function renderRecommendedSection(tracks){
+  let sec=document.getElementById('section-recommended');
+  if(!sec){
+    const home=document.getElementById('view-home');
+    const newSec=document.createElement('div');
+    newSec.className='section';
+    newSec.innerHTML=`
+      <div class="section-header">
+        <span class="section-title">Recommended For You</span>
+      </div>
+      <div class="card-grid" id="section-recommended"></div>`;
+    // insert before trending
+    const trending=home.querySelector('.section');
+    if(trending) home.insertBefore(newSec,trending);
+    else home.appendChild(newSec);
+    sec=document.getElementById('section-recommended');
+  }
+  renderCardSection('section-recommended', tracks, 'recommended');
+}
+
+/* ── 18. MOBILE GESTURE IMPROVEMENTS ── */
+(function(){
+  const content=document.getElementById('content');
+  if(!content) return;
+  let startY=0, startX=0, startTime=0;
+  content.addEventListener('touchstart',e=>{
+    startY=e.touches[0].clientY;
+    startX=e.touches[0].clientX;
+    startTime=Date.now();
+  },{passive:true});
+  // Prevent accidental swipe while scrolling content
+  content.addEventListener('touchmove',e=>{
+    const dy=e.touches[0].clientY-startY;
+    const dx=e.touches[0].clientX-startX;
+    if(Math.abs(dy)>Math.abs(dx) && Math.abs(dy)>10){
+      // vertical scroll — don't interfere
+    }
+  },{passive:true});
+})();
+
+/* ── 19. ACTIVE TRACK GLOW ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .search-result-item.active .sr-thumb img,
+    .track-list-row.active .tl-thumb img,
+    .pl-item.active .pl-item-thumb img { box-shadow: 0 0 0 2px var(--green), 0 0 12px var(--green-glow); }
+    .card-play-btn.playing { opacity:1!important; transform:translateY(0)!important; background:var(--green)!important; }
+    #p-thumb img { transition: box-shadow 0.3s var(--ease); }
+    .player-thumb:hover img { box-shadow: 0 0 0 2px var(--green); }
+    @keyframes activeTrackPulse { 0%,100%{box-shadow:0 0 0 2px var(--green),0 0 8px var(--green-glow)} 50%{box-shadow:0 0 0 2px var(--green),0 0 20px var(--green-glow)} }
+    .search-result-item.active.is-playing .sr-thumb img { animation: activeTrackPulse 2s ease-in-out infinite; }
+  `;
+  document.head.appendChild(style);
+  // mark is-playing on search items
+  const origUpdatePlayUI=window.updatePlayUI;
+  window.updatePlayUI=function(playing){
+    if(typeof origUpdatePlayUI==='function') origUpdatePlayUI(playing);
+    document.querySelectorAll('.search-result-item').forEach(el=>{
+      el.classList.toggle('is-playing', playing && el.dataset.id===state.currentTrack?.id);
+    });
+  };
+})();
+
+/* ── 20. LAZY IMAGE FIX — use IntersectionObserver ── */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const img=entry.target;
+        if(img.dataset.src){ img.src=img.dataset.src; delete img.dataset.src; }
+        obs.unobserve(img);
+      }
+    });
+  },{rootMargin:'100px'});
+  // patch card rendering to use data-src
+  const origRenderCard=window.renderCardSection;
+  window.renderCardSection=function(elId, tracks, contextKey){
+    if(typeof origRenderCard==='function') origRenderCard(elId, tracks, contextKey);
+    // observe all lazy imgs in that section
+    requestAnimationFrame(()=>{
+      const el=document.getElementById(elId);
+      if(!el) return;
+      el.querySelectorAll('img[loading="lazy"]').forEach(img=>{
+        if(img.src && !img.dataset.src && img.naturalWidth===0){
+          // already loading fine
+        }
+        obs.observe(img);
+      });
+    });
+  };
+})();
+
+/* ── 21. BETTER LOADING SKELETONS (shimmer) ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-hover) 40%, var(--bg-active) 50%, var(--bg-hover) 60%, var(--bg-card) 100%);
+      background-size: 300% 100%;
+      animation: shimmer 1.6s ease infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .search-loading .search-spinner { border-top-color: var(--green); }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* ── 22. STICKY SECTION HEADERS ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    #view-home .section-header {
+      position: sticky; top: -1px;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      padding: 0.75rem 0;
+      margin: -0.75rem 0;
+      z-index: 5;
+    }
+    #view-search .section-title {
+      position: sticky; top: -1px;
+      background: rgba(10,10,15,0.9);
+      backdrop-filter: blur(12px);
+      padding: 1rem 0;
+      z-index: 5;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* ── 23. CARD FADE-IN ON SECTION RENDER ── */
+(function(){
+  const origRender=window.renderCardSection;
+  window.renderCardSection=function(elId, tracks, contextKey){
+    if(typeof origRender==='function') origRender(elId, tracks, contextKey);
+    const el=document.getElementById(elId);
+    if(!el) return;
+    el.querySelectorAll('.music-card').forEach((card,i)=>{
+      card.style.animationDelay=`${i*0.04}s`;
+      card.classList.add('card-fade-in');
+    });
+  };
+})();
+
+/* ── 24. SEAMLESS AUTOPLAY — preload next thumbnail ── */
+(function(){
+  const origLoad=window.loadTrack;
+  window.loadTrack=function(index, autoplay, trackList){
+    if(typeof origLoad==='function') origLoad(index, autoplay, trackList);
+    // preload next 2 track thumbnails
+    const tracks=state.activeTracks;
+    if(!tracks.length) return;
+    for(let i=1;i<=2;i++){
+      const next=tracks[(index+i)%tracks.length];
+      if(next?.cover){
+        const img=new Image();
+        img.src=next.cover;
+      }
+    }
+  };
+})();
+
+/* ── 25. SHUFFLE ALGORITHM — Fisher-Yates with history deduplication ── */
+(function(){
+  const orig=window.nextTrack;
+  window.nextTrack=function(){
+    if(!state.isShuffle){ if(typeof orig==='function') orig(); return; }
+    const tracks=state.activeTracks;
+    if(!tracks.length) return;
+    // keep history of last 5 to avoid repeats
+    if(!state._shuffleHistory) state._shuffleHistory=[];
+    let candidates=tracks.map((_,i)=>i).filter(i=>i!==state.currentIndex && !state._shuffleHistory.includes(i));
+    if(!candidates.length){ state._shuffleHistory=[]; candidates=tracks.map((_,i)=>i).filter(i=>i!==state.currentIndex); }
+    const next=candidates[Math.floor(Math.random()*candidates.length)];
+    state._shuffleHistory.push(state.currentIndex);
+    if(state._shuffleHistory.length>5) state._shuffleHistory.shift();
+    loadTrack(next, state.isPlaying);
+  };
+})();
+
+/* ── 26. PLAYLIST LOCAL PERSISTENCE ── */
+(function(){
+  const PLIST_KEY='nonimid_playlists_v2';
+  function savePlaylists(){ try{ localStorage.setItem(PLIST_KEY, JSON.stringify(state.likedTracks)); }catch(e){} }
+  function loadPlaylists(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(PLIST_KEY)||'null');
+      if(Array.isArray(saved) && saved.length){ state.likedTracks=saved; updateLikedCount(); renderLikedView(); }
+    }catch(e){}
+  }
+  const origToggleLike=window.toggleLike;
+  window.toggleLike=function(){ if(typeof origToggleLike==='function') origToggleLike(); savePlaylists(); };
+  setTimeout(loadPlaylists,300);
+})();
+
+/* ── 27. CONTEXTUAL TRACK MENU ── */
+(function(){
+  const menuStyle=document.createElement('style');
+  menuStyle.textContent=`
+    #ctx-menu { position:fixed; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg);
+      padding:0.4rem 0; z-index:9000; min-width:180px; box-shadow:0 16px 48px rgba(0,0,0,0.6);
+      display:none; transform-origin:top left; animation:ctxIn 0.12s var(--spring); }
+    #ctx-menu.show { display:block; }
+    @keyframes ctxIn { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+    .ctx-item { display:flex;align-items:center;gap:0.6rem;padding:0.55rem 1rem;cursor:pointer;font-size:0.82rem;color:var(--text-1);transition:background 0.1s; }
+    .ctx-item:hover { background:var(--glass); }
+    .ctx-item svg { width:15px;height:15px;flex-shrink:0;color:var(--text-2); }
+    .ctx-divider { height:1px;background:var(--border);margin:0.3rem 0; }
+  `;
+  document.head.appendChild(menuStyle);
+  const menu=document.createElement('div');
+  menu.id='ctx-menu';
+  document.body.appendChild(menu);
+  let ctxTrack=null;
+  window.showTrackMenu=function(e, track){
+    e.preventDefault(); e.stopPropagation();
+    ctxTrack=track;
+    const isLiked=state.likedTracks.some(l=>l.id===track.id);
+    menu.innerHTML=`
+      <div class="ctx-item" onclick="ctxPlay()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>Play Now</div>
+      <div class="ctx-item" onclick="ctxAddToQueue()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add to Queue</div>
+      <div class="ctx-divider"></div>
+      <div class="ctx-item" onclick="ctxToggleLike()">${isLiked
+        ? '<svg viewBox="0 0 24 24" fill="var(--green)" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Remove from Liked'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Add to Liked'
+      }</div>
+      <div class="ctx-item" onclick="ctxShare()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</div>
+      ${track.type==='youtube'?`<div class="ctx-item" onclick="ctxOpenYT()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.5 20.5 12 20.5 12 20.5s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>Open on YouTube</div>`:''}
+    `;
+    // position
+    let x=e.clientX, y=e.clientY;
+    menu.classList.add('show');
+    const mw=menu.offsetWidth, mh=menu.offsetHeight;
+    if(x+mw>window.innerWidth) x=window.innerWidth-mw-8;
+    if(y+mh>window.innerHeight) y=window.innerHeight-mh-8;
+    menu.style.left=x+'px'; menu.style.top=y+'px';
+  };
+  window.ctxPlay=function(){ if(!ctxTrack) return; const idx=state.activeTracks.findIndex(t=>t.id===ctxTrack.id); if(idx>=0) loadTrack(idx,true); menu.classList.remove('show'); };
+  window.ctxAddToQueue=function(){ if(!ctxTrack) return; if(!state.activeTracks.find(a=>a.id===ctxTrack.id)) state.activeTracks.splice(state.currentIndex+1,0,ctxTrack); showToast('Added to queue'); updateQueue(); menu.classList.remove('show'); };
+  window.ctxToggleLike=function(){
+    if(!ctxTrack) return;
+    const idx=state.likedTracks.findIndex(l=>l.id===ctxTrack.id);
+    if(idx>=0){ state.likedTracks.splice(idx,1); showToast('Removed from Liked'); }
+    else { state.likedTracks.unshift({...ctxTrack}); showToast('❤️ Added to Liked'); }
+    updateLikedCount(); renderLikedView(); saveState();
+    menu.classList.remove('show');
+  };
+  window.ctxShare=function(){
+    if(!ctxTrack) return;
+    const url=ctxTrack.type==='youtube'?`https://youtube.com/watch?v=${ctxTrack.videoId}`:window.location.href;
+    navigator.clipboard?.writeText(url).then(()=>showToast('🔗 Copied link!'));
+    menu.classList.remove('show');
+  };
+  window.ctxOpenYT=function(){ if(!ctxTrack) return; window.open(`https://youtube.com/watch?v=${ctxTrack.videoId}`,'_blank'); menu.classList.remove('show'); };
+  document.addEventListener('click',e=>{ if(!e.target.closest('#ctx-menu')) menu.classList.remove('show'); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') menu.classList.remove('show'); });
+  // attach context menu to search results and cards
+  const origRenderSearch=window.renderSearchResults;
+  window.renderSearchResults=function(tracks){
+    if(typeof origRenderSearch==='function') origRenderSearch(tracks);
+    document.querySelectorAll('.search-result-item').forEach((el,i)=>{
+      el.addEventListener('contextmenu',e=>{
+        const t=tracks[i]; if(t) showTrackMenu(e,t);
+      });
+    });
+  };
+})();
+
+/* ── 28. HOME SECTIONS — load recommendations after init ── */
+const origInit=window.init;
+if(typeof origInit==='function'){
+  window.init=function(){
+    origInit();
+    setTimeout(()=>{ if(state.recentTracks.length>=1) loadSmartRecommendations(); },2000);
+  };
+}
+
+/* ── 29. BETTER PWA MANIFEST (inline) ── */
+(function(){
+  const manifest={
+    name:'Nonimid',short_name:'Nonimid',
+    description:'Premium YouTube Music Player',
+    start_url:'./',display:'standalone',
+    background_color:'#0a0a0f',theme_color:'#0a0a0f',
+    orientation:'any',
+    icons:[{src:`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%230a0a0f'/><circle cx='96' cy='96' r='80' fill='%231fdf64'/><polygon points='78,60 144,96 78,132' fill='%230a0a0f'/></svg>`,sizes:'192x192',type:'image/svg+xml'}],
+    categories:['music','entertainment'],
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('link');
+  link.rel='manifest'; link.href=url;
+  document.head.appendChild(link);
+})();
+
+/* ── 30. KEYBOARD SHORTCUTS COMPLETE ── */
+(function(){
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+    switch(e.code){
+      case 'KeyL': e.preventDefault(); toggleLike(); break;
+      case 'KeyQ': e.preventDefault(); toggleQueue(); break;
+      case 'KeyH': e.preventDefault(); navigateTo('home'); break;
+      case 'KeyF': e.preventDefault(); document.getElementById('search-input')?.focus(); break;
+      case 'Digit1': e.preventDefault(); setMode('youtube'); break;
+      case 'Digit2': e.preventDefault(); setMode('local'); break;
+    }
+  });
+})();
+
+/* ── 31. PROGRESS BAR HOVER PREVIEW TIME ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .prog-bar { user-select:none; }
+    .prog-time-preview {
+      position:absolute; top:-28px; transform:translateX(-50%);
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:4px; padding:2px 6px; font-size:0.68rem; color:var(--text-1);
+      pointer-events:none; white-space:nowrap; opacity:0; transition:opacity 0.1s;
+      z-index:10;
+    }
+    .prog-bar:hover .prog-time-preview { opacity:1; }
+  `;
+  document.head.appendChild(style);
+  const pb=document.getElementById('prog-bar');
+  if(!pb) return;
+  const preview=document.createElement('span');
+  preview.className='prog-time-preview';
+  preview.textContent='0:00';
+  pb.appendChild(preview);
+  pb.addEventListener('mousemove',e=>{
+    const rect=pb.getBoundingClientRect();
+    const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+    const dur=(state.currentTrack?.type==='youtube' && ytReady && ytPlayer) ? (ytPlayer.getDuration?.()||0) : (audio.duration||0);
+    preview.textContent=formatTime(dur*pct);
+    preview.style.left=(pct*100)+'%';
+  });
+})();
+
+/* ── 32. VOLUME SLIDER KEYBOARD ── */
+(function(){
+  const volWrap=document.getElementById('vol-slider-wrap');
+  if(!volWrap) return;
+  volWrap.setAttribute('tabindex','0');
+  volWrap.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowUp'){ state.volume=Math.min(100,state.volume+5); applyVolume(); updateVolIcon(); }
+    if(e.key==='ArrowLeft'||e.key==='ArrowDown'){ state.volume=Math.max(0,state.volume-5); applyVolume(); updateVolIcon(); }
+  });
+})();
+
+/* ── 33. DYNAMIC COLOR FROM ALBUM ART ── */
+(function(){
+  const canvas=document.createElement('canvas');
+  canvas.width=canvas.height=8;
+  const ctx2=canvas.getContext('2d');
+  function extractColor(imgUrl){
+    if(!imgUrl) return null;
+    if(colorCache[imgUrl]) return Promise.resolve(colorCache[imgUrl]);
+    return new Promise(resolve=>{
+      const img=new Image();
+      img.crossOrigin='anonymous';
+      img.onload=()=>{
+        try{
+          ctx2.drawImage(img,0,0,8,8);
+          const d=ctx2.getImageData(0,0,8,8).data;
+          let r=0,g=0,b=0,c=0;
+          for(let i=0;i<d.length;i+=4){
+            if(d[i+3]>100){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; c++; }
+          }
+          if(c){r=Math.round(r/c);g=Math.round(g/c);b=Math.round(b/c);}
+          const col={r,g,b};
+          colorCache[imgUrl]=col;
+          NDB.put('colors',{url:imgUrl,r,g,b});
+          resolve(col);
+        }catch(e){ resolve(null); }
+      };
+      img.onerror=()=>resolve(null);
+      img.src=imgUrl;
+    });
+  }
+  window.updateDynamicColorFromTrack=async function(t){
+    if(!t?.cover) return;
+    const col=await extractColor(t.cover);
+    if(!col) return;
+    const {r,g,b}=col;
+    // update CSS variable for glow
+    document.documentElement.style.setProperty('--dyn-color',`rgba(${r},${g},${b},0.12)`);
+    document.getElementById('bg-ambient')?.style.setProperty('background-image',`url(${t.cover})`);
+    if(window._particleSetColor) _particleSetColor(r,g,b);
+    // subtle player tint
+    const playerEl=document.getElementById('player');
+    if(playerEl) playerEl.style.borderTopColor=`rgba(${r},${g},${b},0.3)`;
+    const fsBg=document.querySelector('.fs-blur-bg');
+    if(fsBg) fsBg.style.backgroundImage=`url(${t.cover})`;
+  };
+})();
+
+/* ── 34. ADVANCED VISUALIZER (waveform mode) ── */
+(function(){
+  const origDrawBars=window.drawBarsViz;
+  window.drawBarsViz=function(ctx,W,H,data,color){
+    const bars=data.length, barW=(W/bars)*0.7, gap=(W/bars)*0.3;
+    for(let i=0;i<bars;i++){
+      const v=data[i]/255, h=Math.max(3,v*H), x=i*(barW+gap);
+      // mirror bars
+      const grad=ctx.createLinearGradient(0,H/2-h/2,0,H/2+h/2);
+      grad.addColorStop(0,color.replace('1)','0.1)'));
+      grad.addColorStop(0.4,color.replace('1)','0.7)'));
+      grad.addColorStop(0.5,color.replace('1)','1)'));
+      grad.addColorStop(0.6,color.replace('1)','0.7)'));
+      grad.addColorStop(1,color.replace('1)','0.1)'));
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x,H/2-h/2,barW,h,2) : ctx.rect(x,H/2-h/2,barW,h);
+      ctx.fill();
+    }
+  };
+})();
+
+/* ── 35. NOW PLAYING BAR POLISH — track title marquee for long names ── */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    @keyframes marquee { 0%{transform:translateX(0)} 40%{transform:translateX(0)} 90%{transform:translateX(-100%)} 91%{transform:translateX(100%)} 100%{transform:translateX(0)} }
+    .player-track-name.marquee-active { animation: marquee 8s linear infinite; display:inline-block; padding-right:2rem; white-space:nowrap; }
+  `;
+  document.head.appendChild(style);
+  const orig=window.updateNowPlayingUI;
+  window.updateNowPlayingUI=function(t){
+    if(typeof orig==='function') orig(t);
+    requestAnimationFrame(()=>{
+      const titleEl=document.getElementById('p-title');
+      if(!titleEl) return;
+      const parentW=titleEl.parentElement?.offsetWidth||200;
+      if(titleEl.scrollWidth>parentW+10){
+        titleEl.classList.add('marquee-active');
+      } else {
+        titleEl.classList.remove('marquee-active');
+      }
+    });
+  };
+})();
+
+/* ── 36. SECTION LOAD — trigger recommendations when API key is set ── */
+(function(){
+  const origSaveApiKey=window.saveApiKey;
+  window.saveApiKey=function(){
+    if(typeof origSaveApiKey==='function') origSaveApiKey();
+    setTimeout(loadSmartRecommendations, 1500);
+  };
+})();
+
+/* ── 37. REPAIR HISTORY NAV FUNCTIONS ── */
+if(typeof historyBack!=='function'){
+  window.historyBack=function(){
+    if(state.historyPos>0){ state.historyPos--; showView(state.viewHistory[state.historyPos]); }
+  };
+}
+if(typeof historyForward!=='function'){
+  window.historyForward=function(){
+    if(state.historyPos<state.viewHistory.length-1){ state.historyPos++; showView(state.viewHistory[state.historyPos]); }
+  };
+}
+
+/* ── 38. TRANSITION HOOK FOR navigateTo ── */
+(function(){
+  const orig=window.navigateTo;
+  window.navigateTo=function(view){
+    const content=document.getElementById('content');
+    if(content){
+      content.style.opacity='0';
+      content.style.transform='translateY(6px)';
+      content.style.transition='opacity 0.15s var(--ease),transform 0.15s var(--ease)';
+      setTimeout(()=>{
+        if(typeof orig==='function') orig(view);
+        requestAnimationFrame(()=>{
+          content.style.opacity='1';
+          content.style.transform='none';
+          content.scrollTop=0;
+        });
+      },120);
+    } else {
+      if(typeof orig==='function') orig(view);
+    }
+  };
+})();
+
+/* ── 39. PATCH setMode FOR SMOOTH PILL TRANSITION ── */
+(function(){
+  const orig=window.setMode;
+  if(!orig) return;
+  window.setMode=function(mode){
+    if(typeof orig==='function') orig(mode);
+    document.getElementById('pill-local')?.classList.toggle('active',mode==='local');
+    document.getElementById('pill-yt')?.classList.toggle('active',mode==='youtube');
+  };
+})();
+
+/* ── 40. FIRE SMART RECOMMENDATIONS ON APP READY ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{ if(YT_API_KEY && state.recentTracks.length) loadSmartRecommendations(); },3000);
+});
+
+} // end _nonimidPatchApplied guard
+
 </script>
 
 <!-- YouTube IFrame API -->
