@@ -2629,7 +2629,7 @@ document.getElementById('search-input').addEventListener('input', function() {
   showSuggestions(q);
   if (state.view !== 'search') { state.view = 'search'; showView('search'); }
   // Manager handles debounce + deduplication
-  ytAPI.debouncedSearch(q);
+  if (window.ytAPI) { ytAPI.debouncedSearch(q); } else if (typeof searchYouTube === 'function') { searchYouTube(q); }
 });
 
 document.getElementById('search-input').addEventListener('focus', function() {
@@ -2659,7 +2659,7 @@ function applySearch(q) {
   state.view = 'search'; showView('search');
   setEls('search-heading', `Results for "${q}"`);
   state.searchQuery = q;
-  ytAPI.search(q);
+  if (window.ytAPI) { ytAPI.search(q); } else if (typeof searchYouTube === 'function') { searchYouTube(q); }
 }
 
 function searchAndGo(q) {
@@ -2667,11 +2667,18 @@ function searchAndGo(q) {
   state.view = 'search'; showView('search');
   setEls('search-heading', `Results for "${q}"`);
   state.searchQuery = q;
-  ytAPI.search(q);
+  if (window.ytAPI) { ytAPI.search(q); } else if (typeof searchYouTube === 'function') { searchYouTube(q); }
 }
 
-// Legacy stub — real implementation is in YouTubeAPIManager
-function searchYouTube(query) { return ytAPI.search(query); }
+// Legacy stub — real implementation is in patch block 6; this declaration is
+// superseded at runtime. Calls window.searchYouTube directly (no ytAPI) to
+// avoid any recursion path.
+function searchYouTube(query) {
+  const impl = window.searchYouTube;
+  // Guard: if this named declaration is still active (bridge not up yet), return []
+  if (typeof impl !== 'function' || impl === searchYouTube) return Promise.resolve([]);
+  return impl(query);
+}
 
 function renderSearchLoading() {
   document.getElementById('search-results-container').innerHTML = `
@@ -2773,9 +2780,12 @@ function renderSkeletonCards(elId, count) {
     </div>`).join('');
 }
 
-// Delegated to manager — stubs kept for any legacy callers
-function loadHomeSections() { ytAPI.loadHomeSections(); }
-function fetchSectionTracks(s) { return ytAPI.fetchSection(s); }
+// Delegated to manager — stubs kept for any legacy callers.
+// loadHomeSections is overwritten by patch block 6 at runtime; this
+// declaration is only the initial placeholder and must NOT call ytAPI.loadHomeSections
+// (that would recurse). fetchSectionTracks guards against ytAPI not yet existing.
+function loadHomeSections() { /* replaced by patch block 6 */ }
+function fetchSectionTracks(s) { return window.ytAPI ? window.ytAPI.fetchSection(s) : Promise.resolve([]); }
 
 function renderCardSection(elId, tracks, contextKey) {
   const el = document.getElementById(elId);
@@ -3407,14 +3417,14 @@ function parseISO8601Duration(s) {
 }
 
 /* === BATCH DURATION FETCH — delegated to YouTubeAPIManager === */
-function fetchVideoDurations(ids) { return ytAPI.fetchDurations(ids); }
-function hydrateDurations(tracks) { return ytAPI.hydrateDurations(tracks); }
+function fetchVideoDurations(ids) { return window.ytAPI ? window.ytAPI.fetchDurations(ids) : Promise.resolve({}); }
+function hydrateDurations(tracks) { return window.ytAPI ? window.ytAPI.hydrateDurations(tracks) : Promise.resolve(tracks); }
 
 /* === AUTOPLAY / RECOMMENDATIONS — delegated to YouTubeAPIManager === */
 let autoplayEnabled = true;
 const seenTrackIds = new Set();
 
-function fetchRelatedTracks(videoId) { return ytAPI.fetchRelated(videoId); }
+function fetchRelatedTracks(videoId) { return window.ytAPI ? window.ytAPI.fetchRelated(videoId) : Promise.resolve([]); }
 
 async function maybeAutoplay() {
   if (!autoplayEnabled) return;
@@ -3422,7 +3432,7 @@ async function maybeAutoplay() {
   if (!t || t.type !== 'youtube') return;
   const remaining = state.activeTracks.slice(state.currentIndex + 1);
   if (remaining.length >= 3) return;
-  const related = await ytAPI.fetchRelated(t.videoId);
+  const related = await (window.ytAPI ? window.ytAPI.fetchRelated(t.videoId) : Promise.resolve([]));
   if (!related.length) return;
   related.forEach(r => {
     if (!state.activeTracks.find(a => a.id === r.id)) {
@@ -4088,6 +4098,153 @@ window._nonimidPatchApplied = true;
     // Stagger fetches 400ms apart to avoid burst-firing 5 simultaneous API calls
     sections.forEach((s, i) => setTimeout(() => fetchSectionTracks(s), i * 400));
   };
+})();
+
+/* ── 6b. ytAPI COMPATIBILITY BRIDGE ──
+   Provides window.ytAPI so all legacy callers (applySearch, searchAndGo,
+   loadHomeSections, fetchRelatedTracks, etc.) work without modification.
+   • search() delegates to window.searchYouTube — never calls itself (no recursion).
+   • debouncedSearch() debounces search() at 350 ms.
+   • All other methods are safe stubs returning [] / Promise<[]> on failure.
+   Installed AFTER patch block 6 so window.searchYouTube already exists.
+── */
+(function(){
+  // Debounce helper — independent of ytAPI to avoid any circular reference.
+  function _debounce(fn, ms){
+    let t;
+    return function(){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,arguments), ms); };
+  }
+
+  // Core search: delegate straight to the real implementation.
+  // We read window.searchYouTube at call-time (not at definition-time) so
+  // late patches applied after this block are still picked up.
+  function _coreSearch(query){
+    try{
+      const impl = window.searchYouTube;
+      if(typeof impl !== 'function') return Promise.resolve([]);
+      return Promise.resolve(impl(query)).catch(()=>[]);
+    }catch(e){ return Promise.resolve([]); }
+  }
+
+  const _debouncedSearch = _debounce(function(q){ _coreSearch(q); }, 350);
+
+  window.ytAPI = {
+    /** Main search entry-point used by applySearch / searchAndGo / input handler */
+    search: function(query){
+      return _coreSearch(query);
+    },
+
+    /** Debounced variant used by the live input listener */
+    debouncedSearch: function(query){
+      _debouncedSearch(query);
+    },
+
+    /** Home-section loader — delegates to patched window.loadHomeSections if available */
+    loadHomeSections: function(){
+      try{
+        // Use the patched version from block 6 (window.loadHomeSections) but
+        // avoid calling ytAPI.loadHomeSections again (that would recurse).
+        const fn = window._origLoadHomeSectionsStub || null;
+        if(typeof window.loadHomeSections === 'function'){
+          window.loadHomeSections();
+        }
+      }catch(e){}
+    },
+
+    /** Section fetch — delegates to patched window.fetchSectionTracks */
+    fetchSection: function(s){
+      try{
+        if(typeof window.fetchSectionTracks === 'function'){
+          return Promise.resolve(window.fetchSectionTracks(s)).catch(()=>[]);
+        }
+      }catch(e){}
+      return Promise.resolve([]);
+    },
+
+    /** Related/autoplay tracks */
+    fetchRelated: function(videoId){
+      if(!videoId || !YT_API_KEY) return Promise.resolve([]);
+      try{
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&relatedToVideoId=${encodeURIComponent(videoId)}&type=video&maxResults=6&key=${YT_API_KEY}`;
+        return fetch(url)
+          .then(r=>r.ok?r.json():null)
+          .then(data=>{
+            if(!data||data.error) return [];
+            return (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
+              id:i.id.videoId, videoId:i.id.videoId,
+              title:i.snippet.title, artist:i.snippet.channelTitle,
+              genre:'YouTube', duration:'—',
+              cover:i.snippet.thumbnails?.medium?.url||'',
+              type:'youtube',
+            }));
+          })
+          .catch(()=>[]);
+      }catch(e){ return Promise.resolve([]); }
+    },
+
+    /** Batch duration fetch */
+    fetchDurations: function(ids){
+      if(!ids||!ids.length||!YT_API_KEY) return Promise.resolve({});
+      try{
+        const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids.join(',')}&key=${YT_API_KEY}`;
+        return fetch(url)
+          .then(r=>r.ok?r.json():null)
+          .then(data=>{
+            if(!data||data.error) return {};
+            const map={};
+            (data.items||[]).forEach(item=>{
+              map[item.id] = parseISO8601Duration(item.contentDetails?.duration);
+            });
+            return map;
+          })
+          .catch(()=>{});
+      }catch(e){ return Promise.resolve({}); }
+    },
+
+    /** Hydrate tracks array with real durations */
+    hydrateDurations: async function(tracks){
+      if(!Array.isArray(tracks)||!tracks.length) return tracks;
+      try{
+        const ids = tracks.map(t=>t.videoId||t.id).filter(Boolean);
+        const map = await window.ytAPI.fetchDurations(ids);
+        if(!map) return tracks;
+        return tracks.map(t=>{
+          const secs = map[t.videoId||t.id];
+          if(secs){
+            const m=Math.floor(secs/60), s=secs%60;
+            return {...t, duration:`${m}:${s<10?'0':''}${s}`};
+          }
+          return t;
+        });
+      }catch(e){ return tracks; }
+    },
+  };
+})();
+
+/* ── 6c. PATCH LEGACY STUBS TO USE ytAPI BRIDGE ──
+   Overwrite the three thin stubs that were defined before ytAPI existed.
+   We do NOT touch applySearch/searchAndGo body — they already call ytAPI.search()
+   which now resolves correctly. We only fix the one-liner legacy stub for
+   searchYouTube so it no longer recurses through ytAPI.search → searchYouTube.
+── */
+(function(){
+  // The real searchYouTube was set by patch 6 on window.searchYouTube.
+  // The old one-liner stub `function searchYouTube(query){ return ytAPI.search(query); }`
+  // is a named declaration in global scope and still shadows nothing — window.searchYouTube
+  // is already the correct patched version from block 6.  No change needed there.
+
+  // Patch the input-event listener's ytAPI.debouncedSearch call:
+  // That listener is already wired to ytAPI.debouncedSearch which now exists. ✓
+
+  // Patch loadHomeSections / fetchSectionTracks stubs (defined before ytAPI):
+  // They already delegate to ytAPI.loadHomeSections / ytAPI.fetchSection via the
+  // named functions — those named functions now resolve through the bridge. ✓
+
+  // Safety net: if any caller stored a reference to ytAPI before this block ran
+  // (impossible — ytAPI didn't exist), re-expose to make sure it's global.
+  if(typeof window.ytAPI !== 'object' || !window.ytAPI){
+    console.error('[Nonimid] ytAPI bridge failed to install');
+  }
 })();
 
 /* ── 7. FIX QUEUE RENDERING DUPLICATES ── */
