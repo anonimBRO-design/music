@@ -2134,10 +2134,9 @@ a { text-decoration: none; color: inherit; }
    YouTube-powered · Spotify-inspired
    ============================================================ */
 
-// === API KEY ===
-// Set via Settings panel → saved to localStorage. No default key (avoids quota errors).
-const _STORED_KEY = localStorage.getItem('nonimid_apikey') || '';
-let YT_API_KEY = _STORED_KEY;
+// === API KEY — managed exclusively by YouTubeAPIManager ===
+// YT_API_KEY is kept as a legacy alias; real key lives in the manager.
+let YT_API_KEY = localStorage.getItem('nonimid_apikey') || '';
 
 /* ============================================================
    STATE
@@ -2615,34 +2614,22 @@ function updateQueue() {
 }
 
 /* ============================================================
-   YOUTUBE SEARCH
+   YOUTUBE SEARCH — handled by YouTubeAPIManager (injected below)
    ============================================================ */
 let searchTimer = null;
 
 document.getElementById('search-input').addEventListener('input', function() {
   const q = this.value.trim();
-  clearTimeout(searchTimer);
-
+  // Delegate entirely to the manager's debounced search
   if (!q) {
     document.getElementById('search-suggestions').classList.remove('show');
     if (state.view === 'search') renderSearchResults([]);
     return;
   }
-
-  // Show suggestions
   showSuggestions(q);
-
-  // Navigate to search view first (directly, without transition delay issue)
-  if (state.view !== 'search') {
-    state.view = 'search';
-    showView('search');
-  }
-
-  searchTimer = setTimeout(() => {
-    setEls('search-heading', `Results for "${q}"`);
-    state.searchQuery = q;
-    searchYouTube(q);
-  }, 800);
+  if (state.view !== 'search') { state.view = 'search'; showView('search'); }
+  // Manager handles debounce + deduplication
+  ytAPI.debouncedSearch(q);
 });
 
 document.getElementById('search-input').addEventListener('focus', function() {
@@ -2657,13 +2644,7 @@ document.addEventListener('click', (e) => {
 
 function showSuggestions(q) {
   const container = document.getElementById('search-suggestions');
-  const suggestions = [
-    q,
-    q + ' official audio',
-    q + ' lyrics',
-    q + ' remix',
-    q + ' live',
-  ].slice(0, 5);
+  const suggestions = [q, q + ' official audio', q + ' lyrics', q + ' remix', q + ' live'].slice(0, 5);
   container.innerHTML = suggestions.map(s => `
     <div class="sugg-item" onclick="applySearch('${escHtml(s).replace(/'/g,"\\'")}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2675,80 +2656,22 @@ function showSuggestions(q) {
 function applySearch(q) {
   document.getElementById('search-input').value = q;
   document.getElementById('search-suggestions').classList.remove('show');
-  state.view = 'search';
-  showView('search');
+  state.view = 'search'; showView('search');
   setEls('search-heading', `Results for "${q}"`);
   state.searchQuery = q;
-  searchYouTube(q);
+  ytAPI.search(q);
 }
 
 function searchAndGo(q) {
   document.getElementById('search-input').value = q;
-  state.view = 'search';
-  showView('search');
+  state.view = 'search'; showView('search');
   setEls('search-heading', `Results for "${q}"`);
   state.searchQuery = q;
-  searchYouTube(q);
+  ytAPI.search(q);
 }
 
-async function searchYouTube(query) {
-  if (!query) return;
-  state.searchQuery = query;
-
-  if (!YT_API_KEY) {
-    document.getElementById('search-results-container').innerHTML =
-      `<div style="text-align:center;padding:3rem;color:var(--text-2)">
-        No API key set.<br>
-        <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Open Settings</span>
-        to add your YouTube Data API v3 key.
-      </div>`;
-    document.getElementById('api-notice').classList.add('show');
-    return;
-  }
-
-  // Cache check
-  if (state.searchCache[query]) {
-    state.ytTracks = state.searchCache[query];
-    renderSearchResults(state.ytTracks);
-    return;
-  }
-
-  renderSearchLoading();
-
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query + ' music')}&type=video&videoCategoryId=10&maxResults=20&key=${YT_API_KEY}`;
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data.error) throw new Error(data.error.message);
-
-    const tracks = (data.items || [])
-      .filter(i => i.id?.videoId)
-      .map(i => ({
-        id: i.id.videoId,
-        videoId: i.id.videoId,
-        title: decodeHtml(i.snippet.title),
-        artist: i.snippet.channelTitle,
-        genre: 'YouTube',
-        duration: '—',
-        cover: i.snippet.thumbnails?.medium?.url || i.snippet.thumbnails?.default?.url || '',
-        type: 'youtube',
-      }));
-
-    state.ytTracks = tracks;
-    state.searchCache[query] = tracks;
-    state.activeTracks = tracks;
-    renderSearchResults(tracks);
-  } catch(err) {
-    console.error('Search error:', err);
-    document.getElementById('search-results-container').innerHTML =
-      `<div style="text-align:center;padding:3rem;color:var(--text-2)">Search failed: ${escHtml(err.message)}<br><small style="color:var(--text-3)">Check your API key in Settings.</small></div>`;
-    if (YT_API_KEY === 'AIzaSyBugNc_8pm_TcnKg7cGJ2_5nyrnuFCFKoM' || !YT_API_KEY) {
-      document.getElementById('api-notice').classList.add('show');
-    }
-  }
-}
+// Legacy stub — real implementation is in YouTubeAPIManager
+function searchYouTube(query) { return ytAPI.search(query); }
 
 function renderSearchLoading() {
   document.getElementById('search-results-container').innerHTML = `
@@ -2836,38 +2759,8 @@ function addToQueueFromSearch(idx) {
 }
 
 /* ============================================================
-   HOME SECTIONS
+   HOME SECTIONS — delegated to YouTubeAPIManager
    ============================================================ */
-/* SECTION FETCH STATE — shared by loadHomeSections + fetchSectionTracks */
-const _sectionLoaded  = {};   // key → true once data rendered
-const _sectionInFlight = {};  // key → Promise  (request lock)
-const _SECTION_CACHE_TTL = 3600000; // 1 hour
-
-function _lsGetSection(key){
-  try{
-    const raw = localStorage.getItem('yt_sec:' + key);
-    if(!raw) return null;
-    const obj = JSON.parse(raw);
-    if(Date.now() - obj.ts > _SECTION_CACHE_TTL){ localStorage.removeItem('yt_sec:' + key); return null; }
-    return obj.data;
-  }catch(e){ return null; }
-}
-function _lsSetSection(key, data){
-  try{ localStorage.setItem('yt_sec:' + key, JSON.stringify({ts: Date.now(), data})); }catch(e){}
-}
-
-function loadHomeSections() {
-  const sections = [
-    { key: 'trending', el: 'section-trending', query: 'trending music 2025' },
-    { key: 'mfy',      el: 'section-mfy',      query: 'lofi hip hop beats study' },
-    { key: 'night',    el: 'section-night',    query: 'night drive synthwave 2025' },
-    { key: 'phonk',    el: 'section-phonk',    query: 'phonk mix 2025' },
-    { key: 'chill',    el: 'section-chill',    query: 'chill mix 2025 lofi' },
-  ];
-  // Render skeletons immediately, then stagger API calls 600ms apart
-  sections.forEach(s => renderSkeletonCards(s.el, 6));
-  sections.forEach((s, i) => setTimeout(() => fetchSectionTracks(s), i * 600));
-}
 
 function renderSkeletonCards(elId, count) {
   const el = document.getElementById(elId);
@@ -2880,97 +2773,9 @@ function renderSkeletonCards(elId, count) {
     </div>`).join('');
 }
 
-async function fetchSectionTracks({ key, el, query }) {
-  if (!YT_API_KEY) {
-    const container = document.getElementById(el);
-    if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem 0">
-      <span onclick="openSettings()" style="color:var(--green);cursor:pointer;text-decoration:underline">Add an API key</span>
-      <span> in Settings to load music.</span>
-    </div>`;
-    return;
-  }
-
-  // Already loaded this session — just re-render
-  if (_sectionLoaded[key] && state.sections[key]?.length) {
-    renderCardSection(el, state.sections[key], key);
-    return;
-  }
-
-  // In-memory
-  if (state.sections[key]?.length) {
-    _sectionLoaded[key] = true;
-    renderCardSection(el, state.sections[key], key);
-    return;
-  }
-
-  // localStorage cache (1 hr TTL)
-  const lsCached = _lsGetSection(key);
-  if (lsCached) {
-    state.sections[key] = lsCached;
-    _sectionLoaded[key] = true;
-    renderCardSection(el, lsCached, key);
-    return;
-  }
-
-  // Request lock — prevent duplicate concurrent fetches for same section
-  if (_sectionInFlight[key]) {
-    await _sectionInFlight[key];
-    if (state.sections[key]?.length) renderCardSection(el, state.sections[key], key);
-    return;
-  }
-
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=8&key=${YT_API_KEY}`;
-
-  _sectionInFlight[key] = (async () => {
-    try {
-      const res = await fetch(url);
-
-      // Handle 429 / 400 explicitly before parsing
-      if (res.status === 429) {
-        showToast('Rate limited — sections will retry shortly');
-        console.warn('[YT] 429 on section:', key);
-        const container = document.getElementById(el);
-        if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Rate limited — reload to retry</div>`;
-        return;
-      }
-      if (res.status === 400) {
-        console.error('[YT] 400 Bad Request on section:', key);
-        const container = document.getElementById(el);
-        if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Bad request — check API key</div>`;
-        return;
-      }
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-
-      const data = await res.json();
-      if (data.error) {
-        if (data.error.code === 429 || data.error.code === 403) { showToast('Rate limited'); return; }
-        if (data.error.code === 400) { console.error('[YT] section 400:', data.error.message); return; }
-        throw new Error(data.error.message);
-      }
-
-      const tracks = (data.items||[]).filter(i=>i.id?.videoId).map(i=>({
-        id: i.id.videoId, videoId: i.id.videoId,
-        title: decodeHtml(i.snippet.title),
-        artist: i.snippet.channelTitle,
-        genre: key, duration: '—',
-        cover: i.snippet.thumbnails?.medium?.url || '',
-        type: 'youtube',
-      }));
-
-      state.sections[key] = tracks;
-      _sectionLoaded[key] = true;
-      _lsSetSection(key, tracks);
-      renderCardSection(el, tracks, key);
-    } catch(e) {
-      const container = document.getElementById(el);
-      if (container) container.innerHTML = `<div style="color:var(--text-3);font-size:0.8rem;padding:1rem">Failed to load — check API key in Settings</div>`;
-    } finally {
-      delete _sectionInFlight[key];
-    }
-  })();
-
-  await _sectionInFlight[key];
-}
+// Delegated to manager — stubs kept for any legacy callers
+function loadHomeSections() { ytAPI.loadHomeSections(); }
+function fetchSectionTracks(s) { return ytAPI.fetchSection(s); }
 
 function renderCardSection(elId, tracks, contextKey) {
   const el = document.getElementById(elId);
@@ -3601,64 +3406,15 @@ function parseISO8601Duration(s) {
   return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
 }
 
-/* === BATCH DURATION FETCH === */
-const durationCache = {};
+/* === BATCH DURATION FETCH — delegated to YouTubeAPIManager === */
+function fetchVideoDurations(ids) { return ytAPI.fetchDurations(ids); }
+function hydrateDurations(tracks) { return ytAPI.hydrateDurations(tracks); }
 
-async function fetchVideoDurations(videoIds) {
-  const missing = videoIds.filter(id => !durationCache[id]);
-  if (!missing.length) return;
-  for (let i = 0; i < missing.length; i += 50) {
-    const batch = missing.slice(i, i + 50);
-    try {
-      const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${YT_API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.items) {
-        data.items.forEach(item => {
-          const sec = parseISO8601Duration(item.contentDetails?.duration);
-          durationCache[item.id] = formatTime(sec);
-        });
-      }
-    } catch(e) {}
-  }
-}
-
-async function hydrateDurations(tracks) {
-  const ytTracks = tracks.filter(t => t.type === 'youtube');
-  if (!ytTracks.length || !YT_API_KEY) return;
-  const ids = ytTracks.map(t => t.videoId);
-  await fetchVideoDurations(ids);
-  tracks.forEach(t => {
-    if (t.type === 'youtube' && durationCache[t.videoId]) {
-      t.duration = durationCache[t.videoId];
-    }
-  });
-  return tracks;
-}
-
-/* === AUTOPLAY / RECOMMENDATIONS === */
+/* === AUTOPLAY / RECOMMENDATIONS — delegated to YouTubeAPIManager === */
 let autoplayEnabled = true;
 const seenTrackIds = new Set();
 
-async function fetchRelatedTracks(videoId) {
-  if (!YT_API_KEY || !videoId) return [];
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&relatedToVideoId=${videoId}&type=video&videoCategoryId=10&maxResults=10&key=${YT_API_KEY}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.error) return [];
-    return (data.items||[])
-      .filter(i => i.id?.videoId && !seenTrackIds.has(i.id.videoId))
-      .map(i => ({
-        id: i.id.videoId, videoId: i.id.videoId,
-        title: decodeHtml(i.snippet.title),
-        artist: i.snippet.channelTitle,
-        genre: 'Related', duration: '--',
-        cover: i.snippet.thumbnails?.medium?.url || '',
-        type: 'youtube',
-      }));
-  } catch(e) { return []; }
-}
+function fetchRelatedTracks(videoId) { return ytAPI.fetchRelated(videoId); }
 
 async function maybeAutoplay() {
   if (!autoplayEnabled) return;
@@ -3666,7 +3422,7 @@ async function maybeAutoplay() {
   if (!t || t.type !== 'youtube') return;
   const remaining = state.activeTracks.slice(state.currentIndex + 1);
   if (remaining.length >= 3) return;
-  const related = await fetchRelatedTracks(t.videoId);
+  const related = await ytAPI.fetchRelated(t.videoId);
   if (!related.length) return;
   related.forEach(r => {
     if (!state.activeTracks.find(a => a.id === r.id)) {
