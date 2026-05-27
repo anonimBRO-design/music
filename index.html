@@ -1333,9 +1333,298 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 380px) {
   .quick-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   NONIMID v3.0 — ENHANCED CSS ADDITIONS
+   ============================================================ */
+
+/* === PARTICLE CANVAS === */
+#particle-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* === DYNAMIC COLOR GLOW === */
+#dynamic-glow {
+  position: fixed; inset: -100px; z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 60% 40% at 50% 60%, var(--dyn-color, rgba(31,223,100,0.08)) 0%, transparent 70%);
+  pointer-events: none;
+  transition: background 2s ease;
+  filter: blur(80px);
+}
+
+/* === VISUALIZER ENHANCED === */
+#visualizer-canvas {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.visualizer-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.viz-mode-btn {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  background: var(--glass-md); border: 1px solid var(--border);
+  border-radius: 50px; padding: 0.2rem 0.5rem;
+  font-size: 0.65rem; color: var(--text-2); cursor: pointer;
+  z-index: 5; transition: all var(--fast) var(--ease);
+}
+.viz-mode-btn:hover { color: var(--text-1); background: var(--glass-hi); }
+
+/* === SEARCH AUTOCOMPLETE ENHANCED === */
+#search-suggestions {
+  animation: suggSlide 0.15s var(--spring);
+}
+@keyframes suggSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sugg-item {
+  animation: suggItem 0.1s var(--ease) both;
+}
+.sugg-item:nth-child(1) { animation-delay: 0.02s; }
+.sugg-item:nth-child(2) { animation-delay: 0.04s; }
+.sugg-item:nth-child(3) { animation-delay: 0.06s; }
+.sugg-item:nth-child(4) { animation-delay: 0.08s; }
+.sugg-item:nth-child(5) { animation-delay: 0.1s; }
+@keyframes suggItem {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.sugg-item.focused { background: var(--glass-md); }
+.sugg-history-icon { color: var(--text-3); }
+.sugg-divider {
+  padding: 0.35rem 0.9rem 0.2rem;
+  font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+/* === LIKE BUTTON ANIMATION === */
+.heart-pop {
+  animation: heartPop 0.35s var(--spring);
+}
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.5); }
+  70%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+
+/* === DURATION BADGE === */
+.sr-duration-badge {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  background: var(--glass);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  flex-shrink: 0;
+}
+
+/* === INSTALL BANNER === */
+#install-banner {
+  position: fixed; bottom: calc(var(--player-h) + 12px); left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  z-index: 300;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px var(--green-glow);
+  transition: transform 0.5s var(--spring), opacity 0.5s var(--ease);
+  opacity: 0;
+  pointer-events: none;
+  min-width: 280px;
+  max-width: 90vw;
+}
+#install-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+.install-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--green); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px var(--green-glow);
+  animation: installPulse 2s ease-in-out infinite;
+}
+@keyframes installPulse {
+  0%,100% { box-shadow: 0 4px 16px var(--green-glow); }
+  50%     { box-shadow: 0 4px 32px var(--green-glow); }
+}
+.install-icon svg { width: 22px; height: 22px; fill: var(--bg-base); }
+.install-text { flex: 1; }
+.install-text strong { font-size: 0.87rem; color: var(--text-1); display: block; }
+.install-text span { font-size: 0.75rem; color: var(--text-2); }
+.install-btn {
+  background: var(--green); border: none; border-radius: 50px;
+  padding: 0.45rem 1rem; font-size: 0.8rem; font-weight: 700;
+  color: var(--bg-base); cursor: pointer;
+  transition: all 0.15s var(--spring); flex-shrink: 0;
+}
+.install-btn:hover { transform: scale(1.05); }
+.install-dismiss {
+  background: none; border: none; color: var(--text-3);
+  cursor: pointer; padding: 0.25rem; font-size: 1rem;
+  flex-shrink: 0; transition: color var(--fast) var(--ease);
+}
+.install-dismiss:hover { color: var(--text-1); }
+
+/* === SWIPE GESTURE HINT === */
+.swipe-hint {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 36px; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,0.2);
+}
+
+/* === TRENDING TABS === */
+.trend-tabs {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+  overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.trend-tabs::-webkit-scrollbar { display: none; }
+.trend-tab {
+  padding: 0.35rem 0.85rem; border-radius: 50px;
+  font-size: 0.78rem; font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--glass); color: var(--text-2);
+  cursor: pointer; white-space: nowrap;
+  transition: all var(--fast) var(--ease); flex-shrink: 0;
+}
+.trend-tab:hover { color: var(--text-1); }
+.trend-tab.active { background: var(--green); border-color: var(--green); color: var(--bg-base); }
+
+/* === ADVANCED PROGRESS BAR === */
+.prog-bar {
+  position: relative;
+}
+.prog-buffer {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px; pointer-events: none;
+  transition: width 0.8s linear;
+}
+
+/* === FULLSCREEN ENHANCED === */
+#fullscreen-player {
+  background: var(--bg-base);
+}
+.fs-blur-bg {
+  position: absolute; inset: 0; z-index: -1;
+  background-size: cover; background-position: center;
+  filter: blur(60px) saturate(1.5) brightness(0.3);
+  transform: scale(1.1);
+  transition: background-image 1s ease;
+}
+.fs-art-wrap {
+  position: relative;
+  transition: transform 0.3s var(--spring);
+}
+.fs-art-wrap.playing {
+  animation: artFloat 4s ease-in-out infinite;
+}
+@keyframes artFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%     { transform: translateY(-6px) scale(1.015); }
+}
+.fs-vinyl-ring {
+  position: absolute; inset: -4px;
+  border-radius: var(--radius-xl);
+  border: 2px solid transparent;
+  background: linear-gradient(var(--bg-base), var(--bg-base)) padding-box,
+              linear-gradient(135deg, var(--green), transparent 50%, var(--green)) border-box;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  animation: vinylSpin 8s linear infinite paused;
+}
+.playing .fs-vinyl-ring {
+  opacity: 0.4;
+  animation-play-state: running;
+}
+@keyframes vinylSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* === AUTOPLAY INDICATOR === */
+.autoplay-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--green);
+  background: var(--green-dim);
+  border: 1px solid var(--green-glow);
+  border-radius: 50px; padding: 0.2rem 0.6rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.autoplay-badge::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: autoBlink 1.2s ease-in-out infinite;
+}
+@keyframes autoBlink {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.2; }
+}
+
+/* === PWA OFFLINE INDICATOR === */
+#offline-banner {
+  position: fixed; top: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: #f43f8f; border-radius: 50px;
+  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 600;
+  color: #fff; z-index: 9999;
+  display: none; align-items: center; gap: 0.4rem;
+  box-shadow: 0 4px 16px rgba(244,63,143,0.4);
+}
+#offline-banner.show { display: flex; }
+
+/* === RESPONSIVE ENHANCEMENTS === */
+@media (max-width: 600px) {
+  #install-banner {
+    bottom: calc(70px + 12px);
+  }
+  .fs-art-wrap {
+    width: min(100%, 300px);
+  }
+}
+
 </style>
 </head>
 <body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+<!-- DYNAMIC GLOW -->
+<div id="dynamic-glow"></div>
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div class="install-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-7 2h14v2H5v-2z"/></svg>
+  </div>
+  <div class="install-text">
+    <strong>Install Nonimid</strong>
+    <span>Add to home screen for the best experience</span>
+  </div>
+  <button class="install-btn" onclick="installApp()">Install</button>
+  <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+</div>
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+  You're offline
+</div>
+
 
 <!-- SPLASH SCREEN -->
 <div id="splash">
@@ -3047,6 +3336,525 @@ function init() {
 }
 
 init();
+
+/* ============================================================
+   NONIMID v3.0 — ENHANCED JS ENGINE
+   ============================================================ */
+
+/* === PARTICLE ENGINE === */
+(function() {
+  const canvas = document.getElementById('particle-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, particles = [];
+  const MAX_PARTICLES = window.innerWidth < 600 ? 25 : 50;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * W, y: H + 10,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: -(Math.random() * 0.6 + 0.2),
+      size: Math.random() * 2 + 0.5,
+      alpha: Math.random() * 0.4 + 0.1,
+      life: 0,
+      maxLife: Math.random() * 300 + 150
+    };
+  }
+
+  let dynR = 31, dynG = 223, dynB = 100;
+
+  function animParticles() {
+    ctx.clearRect(0, 0, W, H);
+    if (particles.length < MAX_PARTICLES && Math.random() < 0.3) {
+      particles.push(createParticle());
+    }
+    particles = particles.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.life++;
+      const fade = 1 - p.life / p.maxLife;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${dynR},${dynG},${dynB},${p.alpha * fade})`;
+      ctx.fill();
+      return p.life < p.maxLife && p.y > -10;
+    });
+    requestAnimationFrame(animParticles);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  animParticles();
+  window._particleSetColor = (r, g, b) => { dynR = r; dynG = g; dynB = b; };
+})();
+
+/* === DYNAMIC COLOR EXTRACTION === */
+const colorCache = {};
+
+async function extractDominantColor(imgUrl) {
+  if (!imgUrl) return null;
+  if (colorCache[imgUrl]) return colorCache[imgUrl];
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      try {
+        const c = document.createElement('canvas');
+        c.width = c.height = 16;
+        const ctx2 = c.getContext('2d');
+        ctx2.drawImage(img, 0, 0, 16, 16);
+        const d = ctx2.getImageData(0, 0, 16, 16).data;
+        let r = 0, g = 0, b = 0, count = 0;
+        for (let i = 0; i < d.length; i += 16) {
+          const br = (d[i] + d[i+1] + d[i+2]) / 3;
+          if (br > 30 && br < 220) { r += d[i]; g += d[i+1]; b += d[i+2]; count++; }
+        }
+        if (count > 0) {
+          r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
+          const max = Math.max(r,g,b), min = Math.min(r,g,b);
+          if (max - min < 30) {
+            const boost = 1.6, mid = (r+g+b)/3;
+            r = Math.min(255, Math.round(mid + (r-mid)*boost));
+            g = Math.min(255, Math.round(mid + (g-mid)*boost));
+            b = Math.min(255, Math.round(mid + (b-mid)*boost));
+          }
+          const color = { r, g, b };
+          colorCache[imgUrl] = color;
+          resolve(color);
+        } else resolve(null);
+      } catch(e) { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = imgUrl;
+    setTimeout(() => resolve(null), 3000);
+  });
+}
+
+function applyDynamicColor(color) {
+  if (!color) return;
+  const { r, g, b } = color;
+  const glow = document.getElementById('dynamic-glow');
+  if (glow) glow.style.background = `radial-gradient(ellipse 60% 40% at 50% 70%, rgba(${r},${g},${b},0.12) 0%, transparent 70%)`;
+  if (window._particleSetColor) window._particleSetColor(r, g, b);
+  document.documentElement.style.setProperty('--dyn-color', `rgba(${r},${g},${b},0.08)`);
+}
+
+async function updateDynamicColorFromTrack(track) {
+  if (!track?.cover) return;
+  const color = await extractDominantColor(track.cover);
+  if (color) applyDynamicColor(color);
+}
+
+/* === ISO 8601 DURATION PARSER === */
+function parseISO8601Duration(s) {
+  if (!s) return 0;
+  const m = s.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+}
+
+/* === BATCH DURATION FETCH === */
+const durationCache = {};
+
+async function fetchVideoDurations(videoIds) {
+  const missing = videoIds.filter(id => !durationCache[id]);
+  if (!missing.length) return;
+  for (let i = 0; i < missing.length; i += 50) {
+    const batch = missing.slice(i, i + 50);
+    try {
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${YT_API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.items) {
+        data.items.forEach(item => {
+          const sec = parseISO8601Duration(item.contentDetails?.duration);
+          durationCache[item.id] = formatTime(sec);
+        });
+      }
+    } catch(e) {}
+  }
+}
+
+async function hydrateDurations(tracks) {
+  const ytTracks = tracks.filter(t => t.type === 'youtube');
+  if (!ytTracks.length || !YT_API_KEY) return;
+  const ids = ytTracks.map(t => t.videoId);
+  await fetchVideoDurations(ids);
+  tracks.forEach(t => {
+    if (t.type === 'youtube' && durationCache[t.videoId]) {
+      t.duration = durationCache[t.videoId];
+    }
+  });
+  return tracks;
+}
+
+/* === AUTOPLAY / RECOMMENDATIONS === */
+let autoplayEnabled = true;
+const seenTrackIds = new Set();
+
+async function fetchRelatedTracks(videoId) {
+  if (!YT_API_KEY || !videoId) return [];
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&relatedToVideoId=${videoId}&type=video&videoCategoryId=10&maxResults=10&key=${YT_API_KEY}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) return [];
+    return (data.items||[])
+      .filter(i => i.id?.videoId && !seenTrackIds.has(i.id.videoId))
+      .map(i => ({
+        id: i.id.videoId, videoId: i.id.videoId,
+        title: decodeHtml(i.snippet.title),
+        artist: i.snippet.channelTitle,
+        genre: 'Related', duration: '--',
+        cover: i.snippet.thumbnails?.medium?.url || '',
+        type: 'youtube',
+      }));
+  } catch(e) { return []; }
+}
+
+async function maybeAutoplay() {
+  if (!autoplayEnabled) return;
+  const t = state.currentTrack;
+  if (!t || t.type !== 'youtube') return;
+  const remaining = state.activeTracks.slice(state.currentIndex + 1);
+  if (remaining.length >= 3) return;
+  const related = await fetchRelatedTracks(t.videoId);
+  if (!related.length) return;
+  related.forEach(r => {
+    if (!state.activeTracks.find(a => a.id === r.id)) {
+      state.activeTracks.push(r);
+      seenTrackIds.add(r.id);
+    }
+  });
+  if (typeof updateQueue === 'function') updateQueue();
+  related.slice(0,3).forEach(r => { if (r.cover) { const img = new Image(); img.src = r.cover; } });
+}
+
+/* === SEARCH HISTORY === */
+const MAX_HISTORY = 8;
+function getSearchHistory() {
+  try { return JSON.parse(localStorage.getItem('nonimid_history') || '[]'); } catch(e) { return []; }
+}
+function addSearchHistory(q) {
+  let hist = getSearchHistory().filter(h => h !== q);
+  hist.unshift(q);
+  hist = hist.slice(0, MAX_HISTORY);
+  localStorage.setItem('nonimid_history', JSON.stringify(hist));
+}
+function clearSearchHistory() {
+  localStorage.removeItem('nonimid_history');
+  showToast('Search history cleared');
+}
+
+/* === ENHANCED SUGGESTIONS === */
+let suggFocusIdx = -1;
+
+function showEnhancedSuggestions(q) {
+  const container = document.getElementById('search-suggestions');
+  if (!container) return;
+  const history = getSearchHistory();
+  suggFocusIdx = -1;
+  let html = '';
+  const histMatches = history.filter(h => h.toLowerCase().includes(q.toLowerCase()) && h !== q);
+  if (histMatches.length) {
+    html += `<div class="sugg-divider">Recent</div>`;
+    html += histMatches.slice(0,3).map(s => `<div class="sugg-item" onclick="applySearch(${JSON.stringify(s)})"><svg class="sugg-history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escHtml(s)}</div>`).join('');
+  }
+  const suggestions = [q, q+' official audio', q+' lyrics', q+' remix', q+' live'];
+  if (histMatches.length) html += `<div class="sugg-divider">Suggestions</div>`;
+  html += suggestions.slice(0,4).map(s => `<div class="sugg-item" onclick="applySearch(${JSON.stringify(s)})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>${escHtml(s)}</div>`).join('');
+  if (history.length > 0) {
+    html += `<div style="padding:0.4rem 0.9rem;text-align:right"><span onclick="clearSearchHistory()" style="font-size:0.68rem;color:var(--text-3);cursor:pointer">Clear history</span></div>`;
+  }
+  container.innerHTML = html;
+  container.classList.add('show');
+}
+
+/* === KEYBOARD NAVIGATION FOR SUGGESTIONS === */
+(function() {
+  const inp = document.getElementById('search-input');
+  if (!inp) return;
+  inp.addEventListener('keydown', function(e) {
+    const container = document.getElementById('search-suggestions');
+    if (!container) return;
+    const items = container.querySelectorAll('.sugg-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      suggFocusIdx = Math.min(suggFocusIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('focused', i === suggFocusIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      suggFocusIdx = Math.max(suggFocusIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('focused', i === suggFocusIdx));
+    } else if (e.key === 'Enter') {
+      if (suggFocusIdx >= 0 && items[suggFocusIdx]) items[suggFocusIdx].click();
+    } else if (e.key === 'Escape') {
+      container.classList.remove('show'); this.blur();
+    }
+  });
+})();
+
+/* === SWIPE GESTURES === */
+(function() {
+  let touchStartX = 0, touchStartY = 0, touchStartTime = 0, swipeLock = false;
+  const SWIPE_THRESHOLD = 60, VELOCITY_THRESHOLD = 0.3;
+  const fullscreen = document.getElementById('fullscreen-player');
+  const miniPlayer = document.getElementById('mini-player');
+
+  function onTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+    swipeLock = false;
+  }
+
+  function onTouchEnd(e) {
+    if (swipeLock) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dt = Date.now() - touchStartTime;
+    const vx = Math.abs(dx) / dt, vy = Math.abs(dy) / dt;
+    if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) return;
+    if (fullscreen && fullscreen.classList.contains('open')) {
+      if (dy > SWIPE_THRESHOLD && vy > VELOCITY_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+        swipeLock = true;
+        if (typeof closeFullscreen === 'function') closeFullscreen();
+        return;
+      }
+    }
+    if (e.target.closest('input, button, .vol-slider-wrap, .prog-bar, #fs-prog-bar')) return;
+    if (Math.abs(dx) > SWIPE_THRESHOLD && vx > VELOCITY_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      swipeLock = true;
+      if (dx < 0) { if (typeof nextTrack === 'function') nextTrack(); showToast('Next'); }
+      else { if (typeof prevTrack === 'function') prevTrack(); showToast('Previous'); }
+    }
+  }
+
+  if (miniPlayer) {
+    miniPlayer.addEventListener('touchstart', onTouchStart, { passive: true });
+    miniPlayer.addEventListener('touchend', onTouchEnd, { passive: true });
+  }
+  if (fullscreen) {
+    fullscreen.addEventListener('touchstart', onTouchStart, { passive: true });
+    fullscreen.addEventListener('touchend', onTouchEnd, { passive: true });
+  }
+})();
+
+/* === ENHANCED VISUALIZER === */
+let vizMode = 0;
+const VIZ_MODES = ['bars', 'circle', 'wave', 'spectrum'];
+let fakeVizPhase = 0;
+
+function cycleVizMode() {
+  vizMode = (vizMode + 1) % VIZ_MODES.length;
+  const btn = document.getElementById('viz-mode-btn');
+  if (btn) btn.textContent = VIZ_MODES[vizMode].charAt(0).toUpperCase() + VIZ_MODES[vizMode].slice(1);
+  showToast(`Visualizer: ${VIZ_MODES[vizMode]}`);
+}
+
+function getAudioData() {
+  if (!state.isPlaying) return null;
+  if (state.currentTrack?.type === 'local' && typeof analyser !== 'undefined' && analyser) {
+    const d = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(d);
+    return d;
+  }
+  const bars = 64;
+  const d = new Uint8Array(bars);
+  fakeVizPhase += 0.05;
+  for (let i = 0; i < bars; i++) {
+    const freq = i / bars;
+    d[i] = Math.max(0, Math.min(255,
+      120 * (Math.sin(fakeVizPhase*2+i*0.3)*0.3 + Math.sin(fakeVizPhase*1.3+i*0.15)*0.35 + Math.sin(fakeVizPhase*0.7+i*0.08)*0.35)
+      + 80*(1-freq)
+    ));
+  }
+  return d;
+}
+
+function drawBarsViz(ctx, W, H, data, color) {
+  const bars = data.length, barW = (W/bars)*0.8, gap = (W/bars)*0.2;
+  for (let i = 0; i < bars; i++) {
+    const v = data[i]/255, h = v*H, x = i*(barW+gap);
+    const grad = ctx.createLinearGradient(0, H-h, 0, H);
+    grad.addColorStop(0, color.replace('1)','0.9)')); grad.addColorStop(1, color.replace('1)','0.2)'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, H-h, barW, h);
+  }
+}
+
+function drawCircleViz(ctx, W, H, data, color) {
+  const cx = W/2, cy = H/2, R = Math.min(W,H)*0.3, bars = data.length;
+  ctx.strokeStyle = color.replace('1)','0.5)'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, R*0.5, 0, Math.PI*2); ctx.stroke();
+  for (let i = 0; i < bars; i++) {
+    const angle = (i/bars)*Math.PI*2 - Math.PI/2, v = data[i]/255;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(angle)*R*0.5, cy+Math.sin(angle)*R*0.5);
+    ctx.lineTo(cx+Math.cos(angle)*(R*0.5+v*R*0.9), cy+Math.sin(angle)*(R*0.5+v*R*0.9));
+    ctx.strokeStyle = color.replace('1)',`${0.3+v*0.7})`);
+    ctx.lineWidth = (W/bars)*1.2; ctx.stroke();
+  }
+}
+
+function drawWaveViz(ctx, W, H, data, color) {
+  const mid = H*0.5;
+  ctx.beginPath(); ctx.moveTo(0, mid);
+  for (let i = 0; i < data.length; i++) {
+    ctx.lineTo((i/data.length)*W, mid + (data[i]/255-0.5)*H*0.8);
+  }
+  ctx.strokeStyle = color.replace('1)','0.8)'); ctx.lineWidth = 2; ctx.stroke();
+  ctx.lineTo(W, mid); ctx.lineTo(0, mid);
+  ctx.fillStyle = color.replace('1)','0.1)'); ctx.fill();
+}
+
+function drawSpectrumViz(ctx, W, H, data) {
+  for (let i = 0; i < data.length; i++) {
+    const v = data[i]/255, x = (i/data.length)*W, w = W/data.length+1, h = v*H;
+    ctx.fillStyle = `hsla(${(i/data.length)*200+120},80%,60%,${0.1+v*0.7})`;
+    ctx.fillRect(x, H-h, w, h);
+  }
+}
+
+function renderVisualizerFrame(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const data = getAudioData();
+  if (!data) return;
+  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#1fdf64';
+  const r = parseInt(accentColor.slice(1,3),16)||31;
+  const g = parseInt(accentColor.slice(3,5),16)||223;
+  const b = parseInt(accentColor.slice(5,7),16)||100;
+  const color = `rgba(${r},${g},${b},1)`;
+  if (vizMode===0) drawBarsViz(ctx,W,H,data,color);
+  else if (vizMode===1) drawCircleViz(ctx,W,H,data,color);
+  else if (vizMode===2) drawWaveViz(ctx,W,H,data,color);
+  else drawSpectrumViz(ctx,W,H,data);
+}
+
+let vizAnimId = null;
+function startVizLoop() {
+  if (vizAnimId) return;
+  function loop() {
+    renderVisualizerFrame('visualizer-canvas');
+    renderVisualizerFrame('fs-visualizer-canvas');
+    vizAnimId = requestAnimationFrame(loop);
+  }
+  vizAnimId = requestAnimationFrame(loop);
+}
+startVizLoop();
+
+function resizeVisualizerCanvases() {
+  ['visualizer-canvas','fs-visualizer-canvas'].forEach(id => {
+    const c = document.getElementById(id);
+    if (!c) return;
+    c.width = c.offsetWidth;
+    c.height = c.offsetHeight;
+  });
+}
+window.addEventListener('resize', resizeVisualizerCanvases);
+setTimeout(resizeVisualizerCanvases, 500);
+
+/* === DYNAMIC COLOR ON TRACK CHANGE HOOK === */
+(function() {
+  const _orig = typeof updateNowPlayingUI === 'function' ? updateNowPlayingUI : null;
+  if (!_orig) return;
+  window.updateNowPlayingUI = function(t) {
+    _orig(t);
+    if (t?.cover) updateDynamicColorFromTrack(t);
+    const fsBg = document.querySelector('.fs-blur-bg');
+    if (fsBg && t?.cover) fsBg.style.backgroundImage = `url(${t.cover})`;
+    if (t?.id) seenTrackIds.add(t.id);
+  };
+})();
+
+/* === HEART ANIMATION HOOK === */
+(function() {
+  const _orig = typeof toggleLike === 'function' ? toggleLike : null;
+  if (!_orig) return;
+  window.toggleLike = function() {
+    const wasLiked = state.currentTrack && state.likedTracks.some(l => l.id === state.currentTrack.id);
+    _orig();
+    if (!wasLiked) {
+      ['p-like-btn','fs-like-btn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.add('heart-pop'); setTimeout(() => el.classList.remove('heart-pop'), 400); }
+      });
+    }
+  };
+})();
+
+/* === SEARCH HISTORY HOOK === */
+(function() {
+  const _orig = typeof applySearch === 'function' ? applySearch : null;
+  if (!_orig) return;
+  window.applySearch = function(q) { addSearchHistory(q); _orig(q); };
+  // Override showSuggestions if it exists
+  if (typeof showSuggestions === 'function') window.showSuggestions = showEnhancedSuggestions;
+})();
+
+/* === PWA INSTALL PROMPT === */
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  setTimeout(() => {
+    const banner = document.getElementById('install-banner');
+    if (banner && !localStorage.getItem('nonimid_install_dismissed')) banner.classList.add('show');
+  }, 8000);
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner')?.classList.remove('show');
+  showToast('Nonimid installed!');
+  deferredInstallPrompt = null;
+});
+function installApp() {
+  if (!deferredInstallPrompt) { showToast('Open in browser to install'); return; }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(r => {
+    if (r.outcome === 'accepted') showToast('Installing...');
+    deferredInstallPrompt = null;
+    document.getElementById('install-banner')?.classList.remove('show');
+  });
+}
+function dismissInstall() {
+  document.getElementById('install-banner')?.classList.remove('show');
+  localStorage.setItem('nonimid_install_dismissed', '1');
+}
+
+/* === OFFLINE DETECTION === */
+function updateOnlineStatus() {
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.classList.toggle('show', !navigator.onLine);
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+/* === AUTOPLAY HOOK === */
+(function() {
+  const _origNext = typeof nextTrack === 'function' ? nextTrack : null;
+  if (!_origNext) return;
+  window.nextTrack = function() {
+    const atEnd = state.currentIndex >= state.activeTracks.length - 2;
+    _origNext();
+    if (atEnd && autoplayEnabled) setTimeout(maybeAutoplay, 1000);
+  };
+  const _origYTState = typeof onYTState === 'function' ? onYTState : null;
+  if (_origYTState) {
+    window.onYTState = function(e) {
+      _origYTState(e);
+      if (e.data === 0) setTimeout(maybeAutoplay, 800);
+    };
+  }
+})();
+
 </script>
 
 <!-- YouTube IFrame API -->
