@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<<<<<<< HEAD
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+=======
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
 <title>NONIMID — Music</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -359,6 +363,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .toggle.on{background:var(--neon-green)}
 .toggle::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform var(--transition)}
 .toggle.on::after{transform:translateX(20px)}
+<<<<<<< HEAD
 
 /* MOBILE BUG FIX */
 html,body{
@@ -411,6 +416,8 @@ html,body{
   }
 }
 
+=======
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
 </style>
 </head>
 <body>
@@ -950,7 +957,11 @@ class YouTubeAPIManager {
   }
 
   async _fetchSearch(q, maxResults, cacheKey, signal) {
+<<<<<<< HEAD
     const url = `http://localhost:3000/search?part=snippet&type=video&videoCategoryId=10&maxResults=${maxResults}&q=${encodeURIComponent(q)}&key=${this.apiKey}`;
+=======
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=${maxResults}&q=${encodeURIComponent(q)}&key=${this.apiKey}`;
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
     try {
       this.requestCount++;
       const r = await fetch(url, { signal });
@@ -1996,7 +2007,11 @@ const Settings = {
     if (key.startsWith('•')) key = Store.get(KEYS.API, '');
     if (!key) { this.showResult('Enter an API key first', false); return; }
     this.showResult('Testing…', null);
+<<<<<<< HEAD
     const url = `http://localhost:3000/search?part=snippet&type=video&maxResults=1&q=test&key=${key}`;
+=======
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=test&key=${key}`;
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
     try {
       const r = await fetch(url);
       const d = await r.json();
@@ -2187,6 +2202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   border-radius:16px;
   backdrop-filter:blur(20px);
 }
+<<<<<<< HEAD
 
 /* MOBILE BUG FIX */
 html,body{
@@ -2239,6 +2255,8 @@ html,body{
   }
 }
 
+=======
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
 </style>
 
 <script>
@@ -2352,6 +2370,7 @@ window.addEventListener("load", () => {
 });
 </script>
 
+<<<<<<< HEAD
 
 <!-- NONIMID BACKEND CONNECTED -->
 <script>
@@ -2370,5 +2389,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+=======
+>>>>>>> 4c73703ebb581c415929a18745388fb8e11c8528
 </body>
 </html>
