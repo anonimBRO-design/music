@@ -409,7 +409,37 @@ html,body{
     width:100%;
   }
 }
+
+/* ===== SPOTIFY MOBILE UI UPGRADE ===== */
+@media(max-width:900px){
+:root{--player-h:72px;--navbar-h:56px}
+body{background:#000}
+#sidebar{display:none!important}
+#topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
+.nav-arrows{display:none}
+.search-container{max-width:none;width:100%}
+.search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
+#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage{padding:16px 14px 120px}
+.greeting-time{font-size:30px}
+.quick-grid{grid-template-columns:1fr 1fr;gap:10px}
+.quick-card{height:64px;border-radius:10px;background:#181818}
+.music-card{width:150px;padding:12px;border-radius:14px;background:#181818}
+#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120}
+.player-right{display:none}
+.ctrl-btn{display:none}
+.btn-play-pause{width:42px;height:42px}
+.mobile-nav{height:58px;background:#000;border-top:1px solid rgba(255,255,255,.08)}
+.fullscreen-art{width:84vw;height:84vw;border-radius:20px}
+}
+
 </style>
+
+<style>
+#apiStatus,#noKeyBanner{
+display:none!important;
+}
+</style>
+
 </head>
 <body>
 
@@ -2235,6 +2265,29 @@ html,body{
     width:100%;
   }
 }
+
+/* ===== SPOTIFY MOBILE UI UPGRADE ===== */
+@media(max-width:900px){
+:root{--player-h:72px;--navbar-h:56px}
+body{background:#000}
+#sidebar{display:none!important}
+#topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
+.nav-arrows{display:none}
+.search-container{max-width:none;width:100%}
+.search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
+#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage{padding:16px 14px 120px}
+.greeting-time{font-size:30px}
+.quick-grid{grid-template-columns:1fr 1fr;gap:10px}
+.quick-card{height:64px;border-radius:10px;background:#181818}
+.music-card{width:150px;padding:12px;border-radius:14px;background:#181818}
+#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120}
+.player-right{display:none}
+.ctrl-btn{display:none}
+.btn-play-pause{width:42px;height:42px}
+.mobile-nav{height:58px;background:#000;border-top:1px solid rgba(255,255,255,.08)}
+.fullscreen-art{width:84vw;height:84vw;border-radius:20px}
+}
+
 </style>
 
 <script>
@@ -2365,5 +2418,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+
+<script>
+localStorage.setItem('youtube_api_key', 'AIzaSyAqcB95yqKUJigmvAgqwej1Ox-ySlRtQFE');
+</script>
+
 </body>
 </html>
