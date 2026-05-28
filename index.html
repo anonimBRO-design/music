@@ -978,7 +978,7 @@ class YouTubeAPIManager {
   }
 
   async _fetchSearch(q, maxResults, cacheKey, signal) {
-const url = `http://localhost:3000/search?part=snippet&type=video&videoCategoryId=10&maxResults=${maxResults}&q=${encodeURIComponent(q)}&key=${this.apiKey}`;
+const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=${maxResults}&q=${encodeURIComponent(q)}&key=${this.apiKey}`;
     try {
       this.requestCount++;
       const r = await fetch(url, { signal });
@@ -2024,7 +2024,7 @@ const Settings = {
     if (key.startsWith('•')) key = Store.get(KEYS.API, '');
     if (!key) { this.showResult('Enter an API key first', false); return; }
     this.showResult('Testing…', null);
-const url = `http://localhost:3000/search?part=snippet&type=video&maxResults=1&q=test&key=${key}`;
+const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=test&key=${key}`;
     try {
       const r = await fetch(url);
       const d = await r.json();
