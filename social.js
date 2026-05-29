@@ -39,7 +39,7 @@
 
   /* ── Config ─────────────────────────────────────────── */
   var SUPABASE_URL  = 'https://qfloggalcslkifakbybb.supabase.co';
-  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmbG9nZ2FsY3Nsa2lmYWtieWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzI2NTksImV4cCI6MjA2NDA0ODY1OX0.hrgCnl7TlxBLOd2eH3tEsMfqotjKbFhxQsMzIB3OWoc';
+  var SUPABASE_ANON = 'sb_publishable_iSXk_pq-XfRXmKFEOU3Hmw_uRIZd5eE';
 
   /* ── CSS injected once ──────────────────────────────── */
   var STYLES = `
