@@ -506,6 +506,17 @@ display:none!important;
 }
 </style>
 
+
+<style>
+.mobile-menu-btn,.sidebar-overlay{display:none}
+@media(max-width:900px){
+.mobile-menu-btn{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border:none;border-radius:12px;background:#181818;color:#fff;font-size:24px;cursor:pointer}
+#sidebar{display:flex!important;position:fixed;top:0;left:0;bottom:0;width:280px;z-index:9999;transform:translateX(-100%);transition:.3s ease}
+#sidebar.open{transform:translateX(0)}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998}
+.sidebar-overlay.show{display:block}
+}
+</style>
 </head>
 <body>
 
@@ -577,7 +588,7 @@ display:none!important;
   <!-- MAIN -->
   <main id="main">
     <!-- Topbar -->
-    <div id="topbar">
+    <div id="topbar"><button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
       <div class="nav-arrows">
         <button class="btn-nav" onclick="history.back()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
@@ -3102,5 +3113,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="social.js"></script>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+<script>
+function toggleMobileMenu(){
+document.getElementById('sidebar').classList.toggle('open');
+document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+</script>
 </body>
 </html>
