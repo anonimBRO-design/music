@@ -557,6 +557,8 @@ display:none!important;
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
         Profile
       </button>
+      <button class="nav-item" id="nav-friends" onclick="App.navigate('friends')">👥 Friends</button>
+      <button class="nav-item" id="nav-collab" onclick="App.navigate('collab')">🤝 Collab</button>
     </nav>
 
     <div class="sidebar-playlists">
@@ -774,7 +776,9 @@ display:none!important;
         <div id="profileContent"></div>
       </div>
 
-    </div><!-- /pageContent -->
+    <div class="page" id="friendsPage"></div>
+<div class="page" id="collabPage"></div>
+</div><!-- /pageContent -->
   </main>
 
   <!-- PLAYER BAR -->
@@ -1282,7 +1286,7 @@ function shuffle(arr) {
 // ── App Core ───────────────────────────────────
 const App = {
   currentPage: 'home',
-  pages: ['home','search','library','liked','history','playlist','profile'],
+  pages: ['home','search','library','liked','history','playlist','profile','friends','collab'],
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
@@ -3096,5 +3100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="social.js"></script>
 </body>
 </html>
