@@ -1,6 +1,12 @@
 /* ============================================================
    NONIMID — Social Module  (social.js)
    Supabase Auth · Profiles · Friends · Collaborative Playlists
+   Online Presence · People Discovery
+
+   REQUIRED: Run this SQL in your Supabase SQL editor once:
+   ──────────────────────────────────────────────────────────
+   ALTER TABLE profiles ADD COLUMN IF NOT EXISTS last_seen_at timestamptz;
+   ──────────────────────────────────────────────────────────
 
    HOW TO INTEGRATE INTO index.html:
    ─────────────────────────────────
@@ -242,6 +248,60 @@
 }
 @keyframes sbSpin{to{transform:rotate(360deg)}}
 
+/* Online / presence dots */
+.sb-dot-online{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+  background:#1db954;box-shadow:0 0 6px rgba(29,185,84,.7);
+  position:absolute;bottom:1px;right:1px;
+  border:2px solid var(--bg-card);
+}
+.sb-dot-offline{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  position:absolute;bottom:1px;right:1px;
+  border:2px solid var(--bg-card);
+}
+
+/* Section label */
+.sb-section-label{
+  font-size:11px;font-weight:800;letter-spacing:.1em;
+  color:var(--text-muted);text-transform:uppercase;
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.sb-online-count{
+  font-size:11px;color:var(--neon-green);font-weight:700;letter-spacing:.02em;
+}
+.sb-friend-badge{
+  font-size:11px;color:var(--neon-green);font-weight:700;white-space:nowrap;
+}
+
+/* Online strip (chips for collab page) */
+.sb-online-strip{
+  display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;
+}
+.sb-online-chip{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:24px;padding:6px 10px 6px 6px;
+  transition:background .2s;
+}
+.sb-online-chip:hover{background:rgba(255,255,255,.07)}
+.sb-avatar-sm{
+  width:28px!important;height:28px!important;
+  font-size:12px!important;
+}
+.sb-online-name{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.sb-chip-add{
+  background:var(--neon-green);color:#000;border:none;border-radius:50%;
+  width:18px;height:18px;font-size:13px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s;padding:0;line-height:1;
+}
+.sb-chip-add:hover{opacity:.85}
+.sb-chip-friends{
+  font-size:11px;color:var(--neon-green);font-weight:700;
+}
+
 /* Signin indicator in topbar */
 .sb-topbar-status{
   display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
@@ -262,6 +322,8 @@
   var _collabs   = [];     // playlists I own + I collaborate on
   var _friendSeg = 'friends';   // active segment on friends page
   var _collabSeg = 'mine';      // active segment on collab page
+  var _allUsers  = [];          // all profiles for "people online" section
+  var _onlinePresence = {};     // uid -> last_seen timestamp
 
   /* ── Boot ──────────────────────────────────────────── */
   function boot() {
@@ -427,7 +489,11 @@
     removeAuthOverlay();
     loadProfile().then(function () {
       injectTopbarStatus();
+      pingPresence();
       refreshSocialData();
+      // Ping presence every 2 minutes
+      if (window._sbPresenceInterval) clearInterval(window._sbPresenceInterval);
+      window._sbPresenceInterval = setInterval(pingPresence, 2 * 60 * 1000);
       // Sync username with existing NONIMID ProfilePage if loaded
       if (window.ProfilePage && _profile) {
         var existing = window.Store && window.Store.get && window.Store.get('nonimid_profile', null);
@@ -449,6 +515,8 @@
     _incoming = [];
     _outgoing = [];
     _collabs  = [];
+    _allUsers = [];
+    _onlinePresence = {};
     removeTopbarStatus();
     showAuthOverlay();
   }
@@ -511,7 +579,33 @@
   }
 
   function refreshSocialData() {
-    return Promise.all([loadFriendsData(), loadCollabData()]);
+    return Promise.all([loadFriendsData(), loadCollabData(), loadAllUsers()]);
+  }
+
+  /* ── All users (for "people on NONIMID") ───────────── */
+  function loadAllUsers() {
+    if (!_session) return Promise.resolve();
+    return db.from('profiles')
+      .select('id,username,display_name,last_seen_at')
+      .neq('id', _session.user.id)
+      .order('last_seen_at', { ascending: false })
+      .limit(50)
+      .then(function (r) {
+        _allUsers = r.data || [];
+      });
+  }
+
+  function pingPresence() {
+    if (!_session) return;
+    db.from('profiles')
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq('id', _session.user.id)
+      .then(function () {});
+  }
+
+  function isOnline(last_seen_at) {
+    if (!last_seen_at) return false;
+    return (Date.now() - new Date(last_seen_at).getTime()) < 5 * 60 * 1000; // 5 min
   }
 
   /* ── Topbar status ──────────────────────────────────── */
@@ -552,6 +646,7 @@
           '<button class="sb-btn-sm green" onclick="Social._searchUsers()">Search</button>' +
         '</div>' +
         '<div id="sbSearchResults" style="margin-bottom:20px"></div>' +
+        '<div id="sbOnlineSection">' + renderOnlineUsersHtml() + '</div>' +
         '<div class="sb-segs">' +
           '<button class="sb-seg' + (_friendSeg==='friends'  ? ' active':'') + '" onclick="Social._friendSeg(\'friends\')">Friends<span class="sb-badge">' + _friends.length + '</span></button>' +
           '<button class="sb-seg' + (_friendSeg==='incoming' ? ' active':'') + '" onclick="Social._friendSeg(\'incoming\')">Requests<span class="sb-badge">' + _incoming.length + '</span></button>' +
@@ -566,6 +661,56 @@
     });
 
     renderFriendList();
+  }
+
+  function renderOnlineUsersHtml() {
+    if (!_allUsers.length) return '';
+
+    var friendIds   = _friends.map(function (f) { return f.friend_id; });
+    var outgoingIds = _outgoing.map(function (o) { return o.receiver_id; });
+    var incomingMap = {};
+    _incoming.forEach(function (r) {
+      var sid = r.profile && r.profile.id;
+      if (sid) incomingMap[sid] = r.id;
+    });
+
+    var online  = _allUsers.filter(function (u) { return isOnline(u.last_seen_at); });
+    var offline = _allUsers.filter(function (u) { return !isOnline(u.last_seen_at); });
+    var display = online.concat(offline).slice(0, 20);
+
+    if (!display.length) return '';
+
+    var html = '<div class="sb-section-label">People on NONIMID' +
+      (online.length ? '<span class="sb-online-count">🟢 ' + online.length + ' online</span>' : '') +
+      '</div>' +
+      '<div class="sb-card-list" style="margin-bottom:24px">' +
+      display.map(function (u) {
+        var isFriend   = friendIds.indexOf(u.id) !== -1;
+        var isPending  = outgoingIds.indexOf(u.id) !== -1;
+        var incomingId = incomingMap[u.id];
+        var onlineNow  = isOnline(u.last_seen_at);
+        var action = isFriend
+          ? '<span class="sb-friend-badge">Friends ✓</span>'
+          : isPending
+            ? '<span style="font-size:11px;color:var(--text-muted);font-weight:700">Pending…</span>'
+            : incomingId
+              ? '<button class="sb-btn-sm green" style="font-size:11px" onclick="Social._respondRequest(\'' + incomingId + '\',\'accepted\')">Accept</button>'
+              : '<button class="sb-btn-sm green" style="font-size:11px" onclick="Social._addFromOnline(\'' + u.id + '\', this)">+ Add</button>';
+        return '<div class="sb-card">' +
+          '<div style="position:relative;display:inline-block;flex-shrink:0">' +
+            avatarHtml(u.display_name || u.username, '') +
+            '<span class="' + (onlineNow ? 'sb-dot-online' : 'sb-dot-offline') + '"></span>' +
+          '</div>' +
+          '<div class="sb-card-body">' +
+            '<div class="sb-card-name">' + esc(u.display_name || u.username || '?') + '</div>' +
+            '<div class="sb-card-sub">@' + esc(u.username || '') + (onlineNow ? ' · <span style="color:#1db954;font-weight:700">Online</span>' : '') + '</div>' +
+          '</div>' +
+          '<div class="sb-card-actions">' + action + '</div>' +
+        '</div>';
+      }).join('') +
+      '</div>';
+
+    return html;
   }
 
   function renderFriendList() {
@@ -634,8 +779,28 @@
     if (!el) return;
     if (!_session) { el.innerHTML = needLoginHtml('collab'); return; }
 
+    var online = _allUsers.filter(function (u) { return isOnline(u.last_seen_at); });
+    var onlineHtml = '';
+    if (online.length) {
+      onlineHtml = '<div class="sb-section-label">Who\'s Online<span class="sb-online-count">🟢 ' + online.length + '</span></div>' +
+        '<div class="sb-online-strip">' +
+        online.slice(0, 12).map(function (u) {
+          var isFriend = _friends.some(function (f) { return f.friend_id === u.id; });
+          return '<div class="sb-online-chip">' +
+            '<div style="position:relative;display:inline-block">' +
+              avatarHtml(u.display_name || u.username, 'sb-avatar-sm') +
+              '<span class="sb-dot-online" style="position:absolute;bottom:0;right:0"></span>' +
+            '</div>' +
+            '<span class="sb-online-name">' + esc((u.display_name || u.username || '?').slice(0, 10)) + '</span>' +
+            (!isFriend ? '<button class="sb-chip-add" onclick="Social._addFromOnline(\'' + u.id + '\', this)" title="Add friend">+</button>' : '<span class="sb-chip-friends">✓</span>') +
+          '</div>';
+        }).join('') +
+        '</div>';
+    }
+
     el.innerHTML =
       '<div class="sb-page">' +
+        onlineHtml +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
           '<div class="sb-page-title">Collab Playlists</div>' +
           '<button class="sb-btn-sm green" onclick="Social._newPlaylist()">+ New</button>' +
@@ -880,6 +1045,25 @@
       });
   }
 
+  /* public */ function _addFromOnline(toId, btnEl) {
+    if (!_session) return;
+    if (btnEl && btnEl.tagName) {
+      btnEl.disabled = true;
+      btnEl.textContent = 'Sending…';
+    }
+    db.from('friend_requests')
+      .insert({ sender_id: _session.user.id, receiver_id: toId })
+      .then(function (r) {
+        if (r.error) { showToast(r.error.message, 'error'); if (btnEl && btnEl.tagName) { btnEl.disabled = false; btnEl.textContent = '+ Add'; } return; }
+        showToast('Friend request sent! 🎉', 'success');
+        loadFriendsData().then(function () {
+          var sec = document.getElementById('sbOnlineSection');
+          if (sec) sec.innerHTML = renderOnlineUsersHtml();
+          renderFriendList();
+        });
+      });
+  }
+
   /* public */ function _respondRequest(requestId, status) {
     db.from('friend_requests')
       .update({ status: status })
@@ -1063,6 +1247,7 @@
     _friendSeg:       _friendSeg,
     _searchUsers:     _searchUsers,
     _sendRequest:     _sendRequest,
+    _addFromOnline:   _addFromOnline,
     _respondRequest:  _respondRequest,
     _removeFriend:    _removeFriend,
 

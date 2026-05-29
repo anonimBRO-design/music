@@ -2957,7 +2957,8 @@ html,body{
 @media(max-width:900px){
 :root{--player-h:72px;--navbar-h:56px}
 body{background:#000}
-#sidebar{display:none!important}
+#sidebar{display:flex!important;position:fixed;top:0;left:0;bottom:0;width:280px;z-index:9999;transform:translateX(-100%);transition:.3s ease}
+#sidebar.open{transform:translateX(0)!important}
 #app{grid-template-columns:1fr;grid-template-rows:1fr}
 #main{grid-column:1!important;grid-row:1!important;width:100%}
 #topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
