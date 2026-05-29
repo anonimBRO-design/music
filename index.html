@@ -397,7 +397,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
   .page-hero-title{font-size:32px}
 }
 /* Mobile bottom nav */
-.mobile-nav{display:none;position:fixed;bottom:var(--player-h);left:0;right:0;background:rgba(5,5,8,.98);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:40;padding:8px 0 4px}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(5,5,8,.98);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:40;padding:8px 0 4px}
 @media(max-width:900px){.mobile-nav{display:flex;justify-content:space-around}}
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;color:var(--text-muted);font-size:10px;font-weight:700;cursor:pointer;transition:all var(--transition);border:none;background:none;font-family:'Syne',sans-serif}
 .mobile-nav-item svg{width:22px;height:22px}
@@ -478,7 +478,8 @@ body{background:#000}
 #sidebar{display:none!important}
 #topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
 .nav-arrows{display:none}
-.search-container{max-width:none;width:100%}
+.search-container{max-width:none;flex:1;min-width:0}
+.topbar-actions{flex-shrink:0}
 .search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
 #homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage,#profilePage{padding:16px 14px 120px}
 .greeting-time{font-size:30px}
@@ -1331,7 +1332,7 @@ const App = {
   },
 
   renderSidebarPlaylists() {
-    const playlists = Store.get(KEYS.PLAYLISTS, Playlists.defaults());
+    const playlists = Playlists.getAll();
     const el = document.getElementById('sidebarPlaylists');
     el.innerHTML = playlists.map((pl) => `
       <div class="playlist-item" onclick="Playlists.openPlaylist('${pl.id}')">
@@ -1672,6 +1673,9 @@ const Search = {
         <button class="track-like-btn ${liked?'liked':''}" onclick="event.stopPropagation();LikedSongs.toggle(${JSON.stringify(t).replace(/"/g,'&quot;')},this)">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </button>
+        <button class="track-like-btn" title="Add to playlist" onclick="event.stopPropagation();Playlists.showPicker(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
         <button class="track-more-btn" onclick="event.stopPropagation();ContextMenu.show(event,${JSON.stringify(t).replace(/"/g,'&quot;')})">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </button>
@@ -1766,7 +1770,7 @@ const HistoryPage = {
 // ── Library Page ───────────────────────────────
 const LibraryPage = {
   render() {
-    const playlists = Store.get(KEYS.PLAYLISTS, Playlists.defaults());
+    const playlists = Playlists.getAll();
     const el = document.getElementById('libraryContent');
     el.innerHTML = `
       <div class="search-track-list">
@@ -2016,7 +2020,27 @@ const Queue = {
     }
 
     if (!this.list.length) {
-      listEl.innerHTML = '<div class="queue-empty">Queue is empty</div>';
+      // Show upcoming collection tracks if available
+      const col = Player.collection;
+      const colIdx = Player.collectionIndex;
+      if (col && col.length && colIdx >= 0 && colIdx < col.length - 1) {
+        const upcoming = col.slice(colIdx + 1, colIdx + 21);
+        const count = upcoming.length;
+        listEl.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px 8px">
+            <div class="queue-section-label" style="margin:0">Up next <span style="background:var(--neon-green-dim);color:var(--neon-green);border-radius:999px;padding:1px 8px;font-size:11px;margin-left:4px">${count}</span></div>
+          </div>` +
+          upcoming.map((t, i) => `
+          <div class="queue-item" onclick="Player.skipToCollectionIndex(${colIdx + 1 + i})" title="Click to play">
+            <img class="queue-item-thumb" src="${t.thumbnail}" alt=""/>
+            <div class="queue-item-info">
+              <div class="queue-item-title">${t.title.length>30?t.title.slice(0,30)+'…':t.title}</div>
+              <div class="queue-item-artist">${t.artist}</div>
+            </div>
+          </div>`).join('');
+      } else {
+        listEl.innerHTML = '<div class="queue-empty">Queue is empty</div>';
+      }
       return;
     }
 
@@ -2095,6 +2119,24 @@ const Player = {
     Home.renderRecentCards();
     Queue.renderPanel();
     LikedSongs.updatePlayerBtn();
+    this.updateTrackHighlights();
+  },
+
+  updateTrackHighlights() {
+    // Remove playing class from all track rows
+    document.querySelectorAll('.track-row.playing').forEach(el => {
+      el.classList.remove('playing');
+      const titleEl = el.querySelector('.track-title');
+      if (titleEl) titleEl.style.color = '';
+      const numEl = el.querySelector('.track-num');
+      if (numEl) numEl.style.color = '';
+    });
+    if (!this.current) return;
+    // Add playing class to matching rows
+    const row = document.getElementById('trow-' + this.current.id);
+    if (row) {
+      row.classList.add('playing');
+    }
   },
 
   updateUI(track, playing) {
@@ -2267,6 +2309,13 @@ const Player = {
     this.isShuffle = true;
     document.getElementById('btnShuffle').classList.add('active');
     this.play(this.collection[0]);
+  },
+
+  skipToCollectionIndex(idx) {
+    if (this.collection && idx >= 0 && idx < this.collection.length) {
+      this.collectionIndex = idx;
+      this.play(this.collection[idx]);
+    }
   },
 
   addToHistory(track) {
@@ -2926,7 +2975,8 @@ body{background:#000}
 #sidebar{display:none!important}
 #topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
 .nav-arrows{display:none}
-.search-container{max-width:none;width:100%}
+.search-container{max-width:none;flex:1;min-width:0}
+.topbar-actions{flex-shrink:0}
 .search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
 #homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage,#profilePage{padding:16px 14px 120px}
 .greeting-time{font-size:30px}
