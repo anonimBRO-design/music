@@ -320,8 +320,8 @@
   var _incoming  = [];     // friend_requests pending for me
   var _outgoing  = [];     // friend_requests I sent
   var _collabs   = [];     // playlists I own + I collaborate on
-  var _friendSeg = 'friends';   // active segment on friends page
-  var _collabSeg = 'mine';      // active segment on collab page
+  var _friendTab = 'friends';   // active segment on friends page
+  var _collabTab = 'mine';      // active segment on collab page
   var _allUsers  = [];          // all profiles for "people online" section
   var _onlinePresence = {};     // uid -> last_seen timestamp
 
@@ -490,7 +490,17 @@
     loadProfile().then(function () {
       injectTopbarStatus();
       pingPresence();
-      refreshSocialData();
+      refreshSocialData().then(function () {
+        // Re-render active social page if it is currently visible
+        var fp = document.getElementById('friendsPage');
+        if (fp && fp.classList.contains('active')) renderFriendsPage();
+        var cp = document.getElementById('collabPage');
+        if (cp && cp.classList.contains('active')) renderCollabPage();
+      }).catch(function () {
+        // Still render pages with empty state on total failure
+        var fp = document.getElementById('friendsPage');
+        if (fp && fp.classList.contains('active')) renderFriendsPage();
+      });
       // Ping presence every 2 minutes
       if (window._sbPresenceInterval) clearInterval(window._sbPresenceInterval);
       window._sbPresenceInterval = setInterval(pingPresence, 2 * 60 * 1000);
@@ -545,17 +555,26 @@
     return Promise.all([
       db.from('friends')
         .select('*, profile:profiles!friends_friend_id_fkey(id,username,display_name,bio,created_at)')
-        .eq('user_id', uid),
+        .eq('user_id', uid)
+        .then(function (r) { return r.data || []; })
+        .catch(function () { return []; }),
       db.from('friend_requests')
         .select('*, profile:profiles!friend_requests_sender_id_fkey(id,username,display_name)')
-        .eq('receiver_id', uid).eq('status', 'pending'),
+        .eq('receiver_id', uid).eq('status', 'pending')
+        .then(function (r) { return r.data || []; })
+        .catch(function () { return []; }),
       db.from('friend_requests')
         .select('*, profile:profiles!friend_requests_receiver_id_fkey(id,username,display_name)')
         .eq('sender_id', uid).eq('status', 'pending')
+        .then(function (r) { return r.data || []; })
+        .catch(function () { return []; })
     ]).then(function (results) {
-      _friends  = results[0].data || [];
-      _incoming = results[1].data || [];
-      _outgoing = results[2].data || [];
+      _friends  = results[0];
+      _incoming = results[1];
+      _outgoing = results[2];
+    }).catch(function (err) {
+      console.warn('[Social] loadFriendsData error:', err);
+      _friends = []; _incoming = []; _outgoing = [];
     });
   }
 
@@ -565,21 +584,32 @@
     var uid = _session.user.id;
 
     return Promise.all([
-      db.from('playlists').select('*').eq('owner_id', uid).order('created_at', { ascending: false }),
+      db.from('playlists').select('*').eq('owner_id', uid).order('created_at', { ascending: false })
+        .then(function (r) { return r.data || []; })
+        .catch(function () { return []; }),
       db.from('playlist_collaborators')
         .select('*, playlist:playlists(*)')
         .eq('user_id', uid)
+        .then(function (r) { return r.data || []; })
+        .catch(function () { return []; })
     ]).then(function (results) {
-      var owned  = results[0].data || [];
-      var collab = (results[1].data || []).map(function (c) {
-        return Object.assign({}, c.playlist, { _collab: true });
-      });
+      var owned  = results[0];
+      var collab = results[1].map(function (c) {
+        return c.playlist ? Object.assign({}, c.playlist, { _collab: true }) : null;
+      }).filter(Boolean);
       _collabs = owned.concat(collab);
+    }).catch(function (err) {
+      console.warn('[Social] loadCollabData error:', err);
+      _collabs = [];
     });
   }
 
   function refreshSocialData() {
-    return Promise.all([loadFriendsData(), loadCollabData(), loadAllUsers()]);
+    return Promise.all([
+      loadFriendsData().catch(function (e) { console.warn('[Social] friends load error', e); }),
+      loadCollabData().catch(function (e) { console.warn('[Social] collab load error', e); }),
+      loadAllUsers().catch(function (e) { console.warn('[Social] users load error', e); })
+    ]);
   }
 
   /* ── All users (for "people on NONIMID") ───────────── */
@@ -648,9 +678,9 @@
         '<div id="sbSearchResults" style="margin-bottom:20px"></div>' +
         '<div id="sbOnlineSection">' + renderOnlineUsersHtml() + '</div>' +
         '<div class="sb-segs">' +
-          '<button class="sb-seg' + (_friendSeg==='friends'  ? ' active':'') + '" onclick="Social._friendSeg(\'friends\')">Friends<span class="sb-badge">' + _friends.length + '</span></button>' +
-          '<button class="sb-seg' + (_friendSeg==='incoming' ? ' active':'') + '" onclick="Social._friendSeg(\'incoming\')">Requests<span class="sb-badge">' + _incoming.length + '</span></button>' +
-          '<button class="sb-seg' + (_friendSeg==='outgoing' ? ' active':'') + '" onclick="Social._friendSeg(\'outgoing\')">Sent</button>' +
+          '<button class="sb-seg' + (_friendTab==='friends'  ? ' active':'') + '" onclick="Social._friendTab(\'friends\')">Friends<span class="sb-badge">' + _friends.length + '</span></button>' +
+          '<button class="sb-seg' + (_friendTab==='incoming' ? ' active':'') + '" onclick="Social._friendTab(\'incoming\')">Requests<span class="sb-badge">' + _incoming.length + '</span></button>' +
+          '<button class="sb-seg' + (_friendTab==='outgoing' ? ' active':'') + '" onclick="Social._friendTab(\'outgoing\')">Sent</button>' +
         '</div>' +
         '<div id="sbFriendList" class="sb-card-list"></div>' +
       '</div>';
@@ -716,9 +746,9 @@
   function renderFriendList() {
     var el = document.getElementById('sbFriendList');
     if (!el) return;
-    if (_friendSeg === 'friends')  renderFriendCards(el);
-    if (_friendSeg === 'incoming') renderIncomingCards(el);
-    if (_friendSeg === 'outgoing') renderOutgoingCards(el);
+    if (_friendTab === 'friends')  renderFriendCards(el);
+    if (_friendTab === 'incoming') renderIncomingCards(el);
+    if (_friendTab === 'outgoing') renderOutgoingCards(el);
   }
 
   function renderFriendCards(el) {
@@ -807,8 +837,8 @@
         '</div>' +
         '<div class="sb-page-sub">Playlists you own or collaborate on</div>' +
         '<div class="sb-segs">' +
-          '<button class="sb-seg' + (_collabSeg==='mine'   ? ' active':'') + '" onclick="Social._collabSeg(\'mine\')">My Playlists</button>' +
-          '<button class="sb-seg' + (_collabSeg==='collab' ? ' active':'') + '" onclick="Social._collabSeg(\'collab\')">Collaborating</button>' +
+          '<button class="sb-seg' + (_collabTab==='mine'   ? ' active':'') + '" onclick="Social._collabSeg(\'mine\')">My Playlists</button>' +
+          '<button class="sb-seg' + (_collabTab==='collab' ? ' active':'') + '" onclick="Social._collabSeg(\'collab\')">Collaborating</button>' +
         '</div>' +
         '<div id="sbCollabList" class="sb-card-list"></div>' +
       '</div>';
@@ -820,12 +850,12 @@
     var el = document.getElementById('sbCollabList');
     if (!el) return;
     var uid = _session && _session.user.id;
-    var list = _collabSeg === 'mine'
+    var list = _collabTab === 'mine'
       ? _collabs.filter(function (p) { return p.owner_id === uid; })
       : _collabs.filter(function (p) { return p._collab; });
 
     if (!list.length) {
-      el.innerHTML = emptyHtml('🎵', _collabSeg === 'mine' ? 'No playlists yet' : 'Not collaborating on any playlists', 'Create one with the + New button');
+      el.innerHTML = emptyHtml('🎵', _collabTab === 'mine' ? 'No playlists yet' : 'Not collaborating on any playlists', 'Create one with the + New button');
       return;
     }
     el.innerHTML = list.map(function (p) {
@@ -978,13 +1008,13 @@
   }
 
   /* ── Social actions ─────────────────────────────────── */
-  /* public */ function _friendSeg(seg) {
-    _friendSeg = seg;
+  /* public */ function _friendTab(seg) {
+    _friendTab = seg;
     renderFriendsPage();
   }
 
   /* public */ function _collabSeg(seg) {
-    _collabSeg = seg;
+    _collabTab = seg;
     renderCollabList();
     // re-render the seg buttons
     var segs = document.querySelectorAll('#collabPage .sb-seg');
@@ -994,7 +1024,8 @@
   }
 
   /* public */ function _searchUsers() {
-    var q = (document.getElementById('sbFriendSearch').value || '').trim();
+    var searchEl = document.getElementById('sbFriendSearch');
+    var q = searchEl ? (searchEl.value || '').trim() : '';
     if (!q) return;
     var el = document.getElementById('sbSearchResults');
     if (!el) return;
@@ -1244,7 +1275,7 @@
     signOut:      signOut,
 
     // Friend actions
-    _friendSeg:       _friendSeg,
+    _friendTab:       _friendTab,
     _searchUsers:     _searchUsers,
     _sendRequest:     _sendRequest,
     _addFromOnline:   _addFromOnline,
