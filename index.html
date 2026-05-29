@@ -487,6 +487,10 @@ display:none!important;
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
         Recently Played
       </button>
+      <button class="nav-item" id="nav-profile" onclick="App.navigate('profile')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        Profile
+      </button>
     </nav>
 
     <div class="sidebar-playlists">
@@ -600,6 +604,22 @@ display:none!important;
           </div>
           <div class="cards-scroll" id="recentCards"></div>
         </div>
+
+        <!-- Trending -->
+        <div class="section" id="trendingSection">
+          <div class="section-header">
+            <div class="section-title">🔥 Trending Now</div>
+          </div>
+          <div class="cards-scroll" id="trendingCards"></div>
+        </div>
+
+        <!-- Recommended -->
+        <div class="section" id="recommendedSection" style="display:none">
+          <div class="section-header">
+            <div class="section-title">✨ Recommended For You</div>
+          </div>
+          <div class="cards-scroll" id="recommendedCards"></div>
+        </div>
       </div>
 
       <!-- SEARCH PAGE -->
@@ -675,6 +695,11 @@ display:none!important;
       <div class="page" id="playlistPage">
         <div class="playlist-page-hero" id="playlistHero"></div>
         <div class="search-track-list" id="playlistTrackList"></div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div class="page" id="profilePage">
+        <div id="profileContent"></div>
       </div>
 
     </div><!-- /pageContent -->
@@ -899,6 +924,10 @@ display:none!important;
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
     Save to liked
   </button>
+  <button class="context-item" id="ctxAddPlaylist" onclick="ContextMenu.action('addPlaylist')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    Add to playlist
+  </button>
   <div class="context-separator"></div>
   <button class="context-item danger" onclick="ContextMenu.action('remove')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -908,6 +937,23 @@ display:none!important;
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- PLAYLIST PICKER MODAL -->
+<div class="modal-overlay" id="playlistPickerModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Add to Playlist</div>
+      <button class="modal-close" onclick="document.getElementById('playlistPickerModal').classList.remove('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="playlistPickerList" style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;max-height:280px;overflow-y:auto"></div>
+    <button class="btn-secondary" style="margin-top:0;display:flex;align-items:center;gap:8px;justify-content:center" onclick="Playlists.createNewAndAdd()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>
+      New playlist
+    </button>
+  </div>
+</div>
 
 <script>
 /* ============================================
@@ -923,7 +969,8 @@ const KEYS = {
   PLAYLISTS: 'nonimid_playlists',
   VOLUME: 'nonimid_volume',
   LAST: 'nonimid_last',
-  SETTINGS: 'nonimid_settings'
+  SETTINGS: 'nonimid_settings',
+  STATS: 'nonimid_stats'
 };
 
 // ── Storage Helper ─────────────────────────────
@@ -1153,7 +1200,7 @@ function shuffle(arr) {
 // ── App Core ───────────────────────────────────
 const App = {
   currentPage: 'home',
-  pages: ['home','search','library','liked','history','playlist'],
+  pages: ['home','search','library','liked','history','playlist','profile'],
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
@@ -1187,6 +1234,7 @@ const App = {
     if (page === 'history') HistoryPage.render();
     if (page === 'library') LibraryPage.render();
     if (page === 'search') SearchPage.activate();
+    if (page === 'profile') ProfilePage.render();
   },
 
   openSettings() {
@@ -1215,7 +1263,7 @@ const App = {
   renderSidebarPlaylists() {
     const playlists = Store.get(KEYS.PLAYLISTS, Playlists.defaults());
     const el = document.getElementById('sidebarPlaylists');
-    el.innerHTML = playlists.map((pl,i) => `
+    el.innerHTML = playlists.map((pl) => `
       <div class="playlist-item" onclick="Playlists.openPlaylist('${pl.id}')">
         <div class="playlist-cover" style="background:${pl.color}">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
@@ -1271,13 +1319,20 @@ const Home = {
       this.renderFallbackCards('phonkCards', 'phonk drift');
       this.renderFallbackCards('nightdriveCards', 'night drive music');
       this.renderFallbackCards('chillCards', 'chill beats');
+      this.renderFallbackCards('trendingCards', 'trending music');
       this.renderFallbackQuick();
       this.renderRecentCards();
+      this.renderRecommended();
       return;
     }
     this.renderSkeletons('phonkCards');
     this.renderSkeletons('nightdriveCards');
     this.renderSkeletons('chillCards');
+    this.renderSkeletons('trendingCards');
+
+    // Check trending cache (1 hour TTL)
+    const trendingCache = Store.get('nonimid_cache_trending');
+    const cacheAge = trendingCache ? Date.now() - (trendingCache.ts || 0) : Infinity;
 
     const [phonk, night, chill] = await Promise.all([
       YT_API.search('phonk music 2024', 8),
@@ -1290,6 +1345,59 @@ const Home = {
     this.renderCards('chillCards', chill.items || []);
     this.renderQuickGrid([...(phonk.items||[]).slice(0,3), ...(night.items||[]).slice(0,3)]);
     this.renderRecentCards();
+    this.renderRecommended();
+
+    // Trending: use cache if fresh, else fetch
+    if (trendingCache && cacheAge < 3600000) {
+      this.renderCards('trendingCards', trendingCache.items);
+    } else {
+      const trending = await YT_API.search('trending music hits 2025', 10);
+      const items = trending.items || [];
+      Store.set('nonimid_cache_trending', { items, ts: Date.now() });
+      this.renderCards('trendingCards', items);
+    }
+  },
+
+  async renderRecommended() {
+    const liked = LikedSongs.get();
+    const history = Store.get(KEYS.HISTORY, []);
+    const sec = document.getElementById('recommendedSection');
+    const el = document.getElementById('recommendedCards');
+    if (!sec || !el) return;
+
+    // Need at least one liked or history track to recommend
+    const pool = [...liked.slice(0,3), ...history.slice(0,3)];
+    if (!pool.length) { sec.style.display = 'none'; return; }
+
+    sec.style.display = '';
+    this.renderSkeletons('recommendedCards');
+
+    // Check recommendations cache (30 min TTL)
+    const cacheKey = 'nonimid_cache_recommended';
+    const cached = Store.get(cacheKey);
+    const cacheAge = cached ? Date.now() - (cached.ts || 0) : Infinity;
+    if (cached && cacheAge < 1800000) {
+      this.renderCards('recommendedCards', cached.items);
+      return;
+    }
+
+    // Build query from seed tracks — extract keywords from titles
+    const seed = pool[Math.floor(Math.random() * pool.length)];
+    const keywords = seed.title.replace(/\(.*?\)|\[.*?\]|official|video|audio|lyrics|ft\.|feat\./gi,'').trim().split(' ').slice(0,3).join(' ');
+    const query = `${keywords} similar music`;
+
+    const key = Store.get(KEYS.API);
+    if (!key) { sec.style.display = 'none'; return; }
+
+    const res = await YT_API.search(query, 8);
+    const items = (res.items || []).filter(item => {
+      const id = item.id?.videoId || item.id;
+      return !liked.some(t => t.id === id) && !history.slice(0,5).some(t => t.id === id);
+    });
+
+    if (!items.length) { sec.style.display = 'none'; return; }
+    Store.set(cacheKey, { items, ts: Date.now() });
+    this.renderCards('recommendedCards', items);
   },
 
   renderSkeletons(id) {
@@ -1591,16 +1699,22 @@ const LibraryPage = {
     const el = document.getElementById('libraryContent');
     el.innerHTML = `
       <div class="search-track-list">
-        ${playlists.map(pl => `
-          <div class="track-row" onclick="Playlists.openPlaylist('${pl.id}')">
-            <div class="playlist-cover" style="background:${pl.color};width:44px;height:44px;border-radius:6px;flex-shrink:0">
+        ${playlists.map(pl => {
+          const isBuiltIn = ['phonk','nightdrive','chill'].includes(pl.id);
+          return `
+          <div class="track-row" style="position:relative" onclick="Playlists.openPlaylist('${pl.id}')">
+            <div class="playlist-cover" style="background:${pl.color};width:44px;height:44px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
               <svg viewBox="0 0 24 24" fill="white" style="width:18px;height:18px"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
             </div>
             <div class="track-info">
               <div class="track-title">${pl.name}</div>
               <div class="track-artist">Playlist · ${pl.tracks?.length || 0} songs</div>
             </div>
-          </div>`).join('')}
+            ${isBuiltIn ? '' : `<button class="track-more-btn" style="opacity:1;color:var(--pink)" onclick="event.stopPropagation();Playlists.delete('${pl.id}')" title="Delete playlist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>`}
+          </div>`;
+        }).join('')}
       </div>`;
   }
 };
@@ -1615,15 +1729,48 @@ const Playlists = {
     ];
   },
 
-  get(id) {
-    const all = Store.get(KEYS.PLAYLISTS, this.defaults());
-    return all.find(p => p.id === id);
+  getAll() { return Store.get(KEYS.PLAYLISTS, this.defaults()); },
+
+  get(id) { return this.getAll().find(p => p.id === id); },
+
+  // Add a track to a playlist by id
+  addTrack(playlistId, track) {
+    const all = this.getAll();
+    const idx = all.findIndex(p => p.id === playlistId);
+    if (idx < 0) return;
+    if (all[idx].tracks.some(t => t.id === track.id)) {
+      Toast.show('Already in playlist', 'info'); return;
+    }
+    all[idx].tracks.push(track);
+    Store.set(KEYS.PLAYLISTS, all);
+    App.renderSidebarPlaylists();
+    Toast.show(`Added to "${all[idx].name}"`, 'success');
+  },
+
+  // Delete a playlist by id
+  delete(id) {
+    const pl = this.get(id);
+    if (!pl) return;
+    if (!confirm(`Delete playlist "${pl.name}"? This cannot be undone.`)) return;
+    const all = this.getAll().filter(p => p.id !== id);
+    Store.set(KEYS.PLAYLISTS, all);
+    App.renderSidebarPlaylists();
+    LibraryPage.render();
+    Toast.show(`Playlist "${pl.name}" deleted`, 'info');
+    if (App.currentPage === 'playlist') App.navigate('library');
   },
 
   async openPlaylist(id) {
     App.navigate('playlist');
     const pl = this.get(id);
     if (!pl) return;
+
+    const isBuiltIn = ['phonk','nightdrive','chill'].includes(id);
+    const deleteBtn = isBuiltIn ? '' : `
+      <button onclick="event.stopPropagation();Playlists.delete('${pl.id}')" style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-full);border:1px solid rgba(255,45,120,.3);background:transparent;color:var(--pink);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(255,45,120,.08)'" onmouseout="this.style.background='transparent'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Delete
+      </button>`;
 
     const heroEl = document.getElementById('playlistHero');
     heroEl.innerHTML = `
@@ -1641,6 +1788,7 @@ const Playlists = {
           <button class="btn-shuffle-large" onclick="Player.shuffleCollection('playlist:${pl.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg> Shuffle
           </button>
+          ${deleteBtn}
         </div>
       </div>`;
 
@@ -1664,7 +1812,7 @@ const Playlists = {
       return;
     }
 
-    const res = await YT_API.search(pl.query, 20);
+    const res = await YT_API.search(pl.query || pl.name, 20);
     const tracks = (res.items || []).map(makeTrack);
     document.getElementById('plMeta').textContent = `${tracks.length} songs`;
 
@@ -1673,7 +1821,7 @@ const Playlists = {
       return;
     }
 
-    const allPl = Store.get(KEYS.PLAYLISTS, this.defaults());
+    const allPl = this.getAll();
     const idx = allPl.findIndex(p => p.id === id);
     if (idx >= 0) { allPl[idx].tracks = tracks; Store.set(KEYS.PLAYLISTS, allPl); }
     listEl.innerHTML = tracks.map((t,i) => Search.trackRowHTML(t, i+1)).join('');
@@ -1681,14 +1829,50 @@ const Playlists = {
 
   createNew() {
     const name = prompt('Playlist name:');
-    if (!name?.trim()) return;
-    const playlists = Store.get(KEYS.PLAYLISTS, this.defaults());
-    const colors = ['linear-gradient(135deg,#450af5,#8e8ee5)','linear-gradient(135deg,#e8115b,#b02897)','linear-gradient(135deg,#e91429,#e91429)'];
-    playlists.push({ id: `pl_${Date.now()}`, name: name.trim(), color: colors[Math.floor(Math.random()*colors.length)], tracks: [] });
+    if (!name?.trim()) return null;
+    const playlists = this.getAll();
+    const colors = ['linear-gradient(135deg,#450af5,#8e8ee5)','linear-gradient(135deg,#e8115b,#b02897)','linear-gradient(135deg,#e91429,#e91429)','linear-gradient(135deg,#006450,#1db954)','linear-gradient(135deg,#8b1538,#e91429)'];
+    const newPl = { id: `pl_${Date.now()}`, name: name.trim(), color: colors[Math.floor(Math.random()*colors.length)], tracks: [] };
+    playlists.push(newPl);
     Store.set(KEYS.PLAYLISTS, playlists);
     App.renderSidebarPlaylists();
     LibraryPage.render();
     Toast.show(`Playlist "${name}" created`, 'success');
+    return newPl;
+  },
+
+  // Show picker modal to add a track to an existing playlist
+  showPicker(track) {
+    const modal = document.getElementById('playlistPickerModal');
+    const listEl = document.getElementById('playlistPickerList');
+    const playlists = this.getAll();
+
+    listEl.innerHTML = playlists.map(pl => `
+      <div onclick="Playlists.addTrack('${pl.id}', ${JSON.stringify(track).replace(/"/g,'&quot;')});document.getElementById('playlistPickerModal').classList.remove('open')"
+        style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md);cursor:pointer;transition:background .2s"
+        onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:6px;background:${pl.color};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="white" style="width:16px;height:16px"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600">${pl.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${pl.tracks?.length || 0} songs</div>
+        </div>
+      </div>
+    `).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px">No playlists yet</div>';
+
+    // Store track for createNewAndAdd
+    modal._pendingTrack = track;
+    modal.classList.add('open');
+  },
+
+  // Create new playlist and immediately add the pending track
+  createNewAndAdd() {
+    const modal = document.getElementById('playlistPickerModal');
+    const track = modal._pendingTrack;
+    modal.classList.remove('open');
+    const newPl = this.createNew();
+    if (newPl && track) this.addTrack(newPl.id, track);
   }
 };
 
@@ -1710,6 +1894,13 @@ const Queue = {
     this.list.splice(i, 1);
     this.save();
     this.renderPanel();
+  },
+
+  // Play item at index: remove it from queue, play it
+  playAt(i) {
+    const t = this.list.splice(i, 1)[0];
+    this.save();
+    if (t) Player.play(t);
   },
 
   shift() {
@@ -1749,15 +1940,20 @@ const Queue = {
       return;
     }
 
-    const header = `<div class="queue-section-label" style="padding:0 8px 8px">Next up (${this.list.length})</div>`;
+    const count = this.list.length;
+    const header = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px 8px">
+        <div class="queue-section-label" style="margin:0">Next up <span style="background:var(--neon-green-dim);color:var(--neon-green);border-radius:999px;padding:1px 8px;font-size:11px;margin-left:4px">${count}</span></div>
+        <button onclick="Queue.clear()" style="background:none;border:none;color:var(--text-muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;transition:color .2s" onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='var(--text-muted)'">Clear</button>
+      </div>`;
     listEl.innerHTML = header + this.list.map((t, i) => `
-      <div class="queue-item" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      <div class="queue-item" onclick="Queue.playAt(${i})" title="Click to play">
         <img class="queue-item-thumb" src="${t.thumbnail}" alt=""/>
         <div class="queue-item-info">
           <div class="queue-item-title">${t.title.length>30?t.title.slice(0,30)+'…':t.title}</div>
           <div class="queue-item-artist">${t.artist}</div>
         </div>
-        <button class="queue-item-remove" onclick="event.stopPropagation();Queue.remove(${i})">
+        <button class="queue-item-remove" onclick="event.stopPropagation();Queue.remove(${i})" title="Remove">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>`).join('');
@@ -1930,6 +2126,7 @@ const Player = {
 
   startProgress() {
     clearInterval(this.progressInterval);
+    let lastTick = Date.now();
     this.progressInterval = setInterval(() => {
       const cur = YTPlayer.getCurrentTime();
       const dur = YTPlayer.getDuration();
@@ -1942,6 +2139,12 @@ const Player = {
       document.getElementById('timeDuration').textContent = formatSecs(dur);
       document.getElementById('fsTimeElapsed').textContent = formatSecs(cur);
       document.getElementById('fsTimeDuration').textContent = formatSecs(dur);
+      // Accumulate listening time (0.5s per tick while playing)
+      if (this.isPlaying) {
+        const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
+        stats.seconds = (stats.seconds || 0) + 0.5;
+        Store.set(KEYS.STATS, stats);
+      }
     }, 500);
   },
 
@@ -1992,6 +2195,11 @@ const Player = {
     hist.unshift(track);
     if (hist.length > 50) hist = hist.slice(0, 50);
     Store.set(KEYS.HISTORY, hist);
+
+    // Track stats
+    const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
+    stats.plays = (stats.plays || 0) + 1;
+    Store.set(KEYS.STATS, stats);
   }
 };
 
@@ -2066,10 +2274,11 @@ const ContextMenu = {
     this.currentTrack = track;
     const m = document.getElementById('contextMenu');
     m.style.left = `${Math.min(event.clientX, window.innerWidth - 220)}px`;
-    m.style.top = `${Math.min(event.clientY, window.innerHeight - 180)}px`;
+    m.style.top = `${Math.min(event.clientY, window.innerHeight - 220)}px`;
     m.classList.add('open');
     const liked = LikedSongs.has(track.id);
-    document.getElementById('ctxLike').querySelector('span') && (document.getElementById('ctxLike').childNodes[2].textContent = liked ? 'Remove from liked' : 'Save to liked');
+    const likeBtn = document.getElementById('ctxLike');
+    if (likeBtn) likeBtn.childNodes[2].textContent = liked ? ' Remove from liked' : ' Save to liked';
   },
 
   close() { document.getElementById('contextMenu').classList.remove('open'); },
@@ -2080,8 +2289,66 @@ const ContextMenu = {
     if (type === 'play') Player.play(t);
     else if (type === 'queue') Queue.add(t);
     else if (type === 'like') LikedSongs.toggle(t, null);
+    else if (type === 'addPlaylist') { this.close(); Playlists.showPicker(t); return; }
     else if (type === 'remove') Toast.show('Cannot remove from this context', 'error');
     this.close();
+  }
+};
+
+// ── Profile Page ───────────────────────────────
+const ProfilePage = {
+  render() {
+    const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
+    const liked = LikedSongs.get();
+    const history = Store.get(KEYS.HISTORY, []);
+    const playlists = Store.get(KEYS.PLAYLISTS, Playlists.defaults());
+    const totalSeconds = Math.round(stats.seconds || 0);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+    const el = document.getElementById('profileContent');
+    el.innerHTML = `
+      <div style="padding:32px">
+        <!-- Hero -->
+        <div style="display:flex;align-items:center;gap:24px;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--border)">
+          <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--neon-green));display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px var(--neon-green-glow);flex-shrink:0">
+            <svg viewBox="0 0 24 24" fill="white" style="width:48px;height:48px"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px">Profile</div>
+            <div style="font-size:32px;font-weight:800;letter-spacing:-.02em">Your Music</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">NONIMID Listener</div>
+          </div>
+        </div>
+
+        <!-- Stats grid -->
+        <div style="font-size:20px;font-weight:800;margin-bottom:20px">Your Stats</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:40px">
+          ${this.statCard('🎵', 'Songs Played', stats.plays || 0, 'total plays')}
+          ${this.statCard('⏱️', 'Time Listened', timeStr, 'total listening time')}
+          ${this.statCard('❤️', 'Liked Songs', liked.length, 'songs you love')}
+          ${this.statCard('📋', 'Playlists', playlists.length, 'collections')}
+          ${this.statCard('🕐', 'Recently Played', history.length, 'in history')}
+        </div>
+
+        <!-- Recent top tracks -->
+        ${history.length ? `
+        <div style="font-size:20px;font-weight:800;margin-bottom:16px">Recent Favourites</div>
+        <div class="search-track-list">
+          ${history.slice(0,5).map((t,i) => Search.trackRowHTML(t, i+1)).join('')}
+        </div>` : ''}
+      </div>`;
+  },
+
+  statCard(emoji, label, value, sub) {
+    return `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;transition:border-color .2s" onmouseover="this.style.borderColor='var(--neon-green-glow)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:28px;margin-bottom:12px">${emoji}</div>
+        <div style="font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--neon-green)">${value}</div>
+        <div style="font-size:13px;font-weight:700;margin-top:4px">${label}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${sub}</div>
+      </div>`;
   }
 };
 
@@ -2093,6 +2360,10 @@ document.getElementById('settingsModal').addEventListener('click', function(e) {
   if (e.target === this) App.closeSettings();
 });
 
+document.getElementById('playlistPickerModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
 // Context menu close
 document.addEventListener('click', () => ContextMenu.close());
 document.addEventListener('keydown', (e) => {
@@ -2101,6 +2372,7 @@ document.addEventListener('keydown', (e) => {
     ContextMenu.close();
     Player.closeFullscreen();
     Queue.close();
+    document.getElementById('playlistPickerModal').classList.remove('open');
   }
   if (e.key === ' ' && e.target.tagName !== 'INPUT') {
     e.preventDefault();
