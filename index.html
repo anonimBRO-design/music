@@ -80,6 +80,67 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .search-loading::after{content:'';display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--neon-green);border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 .topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.topbar-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--neon-green));border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);flex-shrink:0;position:relative;box-shadow:0 0 0 0 var(--neon-green-glow);overflow:hidden}
+.topbar-avatar:hover{border-color:var(--neon-green);box-shadow:0 0 0 3px var(--neon-green-dim)}
+.topbar-avatar.active{border-color:var(--neon-green);box-shadow:0 0 0 3px var(--neon-green-dim)}
+.topbar-avatar svg{width:18px;height:18px;fill:white;pointer-events:none}
+.topbar-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.topbar-avatar-letter{font-size:15px;font-weight:800;color:white;pointer-events:none;line-height:1;font-family:'Syne',sans-serif}
+.avatar-playing-ring{position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--neon-green);opacity:0;animation:avatarPulse 2s ease-in-out infinite;pointer-events:none}
+.topbar-avatar.now-playing .avatar-playing-ring{opacity:1}
+@keyframes avatarPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.08);opacity:.3}}
+/* Profile page */
+#profilePage{padding:32px}
+.profile-hero{display:flex;align-items:flex-end;gap:28px;padding:40px 0 36px;margin-bottom:32px;border-bottom:1px solid var(--border);position:relative}
+.profile-avatar-wrap{position:relative;flex-shrink:0;cursor:pointer}
+.profile-avatar{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;color:white;font-family:'Syne',sans-serif;box-shadow:0 0 40px var(--neon-green-glow);overflow:hidden;background:linear-gradient(135deg,var(--purple),var(--neon-green));transition:all var(--transition)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-avatar-edit{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--transition)}
+.profile-avatar-wrap:hover .profile-avatar-edit{opacity:1}
+.profile-avatar-edit svg{width:24px;height:24px;color:white}
+.profile-hero-info{flex:1;min-width:0}
+.profile-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);margin-bottom:8px}
+.profile-name{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-bottom:8px;word-break:break-word}
+.profile-sub{font-size:13px;color:var(--text-secondary);margin-bottom:4px}
+.profile-member{font-size:12px;color:var(--text-muted)}
+.profile-hero-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn-profile-action{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-full);border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text-secondary);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all var(--transition)}
+.btn-profile-action:hover{border-color:var(--neon-green);color:var(--neon-green);background:var(--neon-green-dim)}
+.btn-profile-action svg{width:15px;height:15px;flex-shrink:0}
+.btn-profile-action.danger:hover{border-color:var(--pink);color:var(--pink);background:rgba(255,45,120,.08)}
+.profile-section{margin-bottom:36px}
+.profile-section-title{font-size:16px;font-weight:800;letter-spacing:-.01em;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.profile-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.profile-stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all var(--transition);cursor:default}
+.profile-stat-card:hover{border-color:var(--border-glow);transform:translateY(-2px)}
+.profile-stat-emoji{font-size:22px;margin-bottom:10px}
+.profile-stat-value{font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--neon-green);line-height:1}
+.profile-stat-label{font-size:12px;font-weight:700;margin-top:5px;color:var(--text-secondary)}
+.profile-stat-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.profile-activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.profile-activity-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all var(--transition)}
+.profile-activity-card:hover{border-color:var(--border-glow)}
+.profile-activity-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px}
+.profile-activity-value{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-activity-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.profile-personality{display:flex;gap:10px;flex-wrap:wrap}
+.personality-badge{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-card);font-size:13px;font-weight:700;transition:all var(--transition)}
+.personality-badge.active{background:var(--neon-green-dim);border-color:var(--border-glow);color:var(--neon-green)}
+.personality-badge-icon{font-size:18px}
+.profile-monthly-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.profile-monthly-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all var(--transition)}
+.profile-monthly-card:hover{border-color:var(--border-glow)}
+.profile-monthly-label{font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.profile-monthly-value{font-size:24px;font-weight:800;color:var(--purple)}
+.profile-monthly-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+@media(max-width:680px){
+  .profile-hero{flex-direction:column;align-items:flex-start;gap:16px;padding:24px 0 28px}
+  .profile-avatar{width:88px;height:88px;font-size:36px}
+  .profile-name{font-size:28px}
+  .profile-stats-grid{grid-template-columns:repeat(2,1fr)}
+  .profile-activity-grid{grid-template-columns:1fr}
+  .profile-monthly-grid{grid-template-columns:repeat(2,1fr)}
+}
 .btn-icon{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
 .btn-icon:hover{background:rgba(255,255,255,.12);color:var(--text-primary)}
 .btn-icon svg{width:18px;height:18px}
@@ -324,7 +385,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
   :root{--sidebar-w:0px;--player-h:80px}
   #app{grid-template-columns:1fr}
   #sidebar{display:none}
-  #homePage,#searchPage,#libraryPage,#likedPage,#historyPage{padding:20px 16px}
+  #homePage,#searchPage,#libraryPage,#likedPage,#historyPage,#profilePage{padding:20px 16px}
   .quick-grid{grid-template-columns:repeat(2,1fr)}
   .player-track-info{width:auto;flex:1}
   .player-right{width:auto;gap:4px}
@@ -419,7 +480,7 @@ body{background:#000}
 .nav-arrows{display:none}
 .search-container{max-width:none;width:100%}
 .search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
-#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage{padding:16px 14px 120px}
+#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage,#profilePage{padding:16px 14px 120px}
 .greeting-time{font-size:30px}
 .quick-grid{grid-template-columns:1fr 1fr;gap:10px}
 .quick-card{height:64px;border-radius:10px;background:#181818}
@@ -537,6 +598,12 @@ display:none!important;
         </div>
         <button class="btn-icon" onclick="App.openSettings()" title="Settings">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+        </button>
+        <button class="topbar-avatar" id="topbarAvatar" onclick="App.navigate('profile')" title="Profile">
+          <div class="avatar-playing-ring"></div>
+          <span class="topbar-avatar-letter" id="topbarAvatarInner">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </span>
         </button>
       </div>
     </div>
@@ -970,7 +1037,9 @@ const KEYS = {
   VOLUME: 'nonimid_volume',
   LAST: 'nonimid_last',
   SETTINGS: 'nonimid_settings',
-  STATS: 'nonimid_stats'
+  STATS: 'nonimid_stats',
+  PROFILE: 'nonimid_profile',
+  MONTHLY: 'nonimid_monthly'
 };
 
 // ── Storage Helper ─────────────────────────────
@@ -1209,6 +1278,7 @@ const App = {
     Home.render();
     this.updateApiStatus();
     this.renderSidebarPlaylists();
+    ProfilePage.initAvatar();
   },
 
   navigate(page) {
@@ -1645,6 +1715,7 @@ const LikedSongs = {
       liked.unshift(track);
       btn?.classList.add('liked');
       Toast.show('Added to Liked Songs ♥', 'success');
+      ProfilePage.trackMonthlyLike();
     }
     this.set(liked);
     this.updatePlayerBtn();
@@ -1700,7 +1771,6 @@ const LibraryPage = {
     el.innerHTML = `
       <div class="search-track-list">
         ${playlists.map(pl => {
-          const isBuiltIn = ['phonk','nightdrive','chill'].includes(pl.id);
           return `
           <div class="track-row" style="position:relative" onclick="Playlists.openPlaylist('${pl.id}')">
             <div class="playlist-cover" style="background:${pl.color};width:44px;height:44px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
@@ -1710,9 +1780,9 @@ const LibraryPage = {
               <div class="track-title">${pl.name}</div>
               <div class="track-artist">Playlist · ${pl.tracks?.length || 0} songs</div>
             </div>
-            ${isBuiltIn ? '' : `<button class="track-more-btn" style="opacity:1;color:var(--pink)" onclick="event.stopPropagation();Playlists.delete('${pl.id}')" title="Delete playlist">
+            <button class="track-more-btn" style="opacity:1;color:var(--pink)" onclick="event.stopPropagation();Playlists.delete('${pl.id}')" title="Delete playlist">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            </button>`}
+            </button>
           </div>`;
         }).join('')}
       </div>`;
@@ -1729,7 +1799,16 @@ const Playlists = {
     ];
   },
 
-  getAll() { return Store.get(KEYS.PLAYLISTS, this.defaults()); },
+  getAll() {
+    // If never saved, initialize with defaults now so deletes persist
+    const stored = Store.get(KEYS.PLAYLISTS, null);
+    if (stored === null) {
+      const def = this.defaults();
+      Store.set(KEYS.PLAYLISTS, def);
+      return def;
+    }
+    return stored;
+  },
 
   get(id) { return this.getAll().find(p => p.id === id); },
 
@@ -1765,8 +1844,7 @@ const Playlists = {
     const pl = this.get(id);
     if (!pl) return;
 
-    const isBuiltIn = ['phonk','nightdrive','chill'].includes(id);
-    const deleteBtn = isBuiltIn ? '' : `
+    const deleteBtn = `
       <button onclick="event.stopPropagation();Playlists.delete('${pl.id}')" style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-full);border:1px solid rgba(255,45,120,.3);background:transparent;color:var(--pink);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(255,45,120,.08)'" onmouseout="this.style.background='transparent'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         Delete
@@ -1837,6 +1915,7 @@ const Playlists = {
     Store.set(KEYS.PLAYLISTS, playlists);
     App.renderSidebarPlaylists();
     LibraryPage.render();
+    ProfilePage.trackMonthlyPlaylist();
     Toast.show(`Playlist "${name}" created`, 'success');
     return newPl;
   },
@@ -1900,6 +1979,7 @@ const Queue = {
   playAt(i) {
     const t = this.list.splice(i, 1)[0];
     this.save();
+    this.renderPanel();
     if (t) Player.play(t);
   },
 
@@ -2126,7 +2206,6 @@ const Player = {
 
   startProgress() {
     clearInterval(this.progressInterval);
-    let lastTick = Date.now();
     this.progressInterval = setInterval(() => {
       const cur = YTPlayer.getCurrentTime();
       const dur = YTPlayer.getDuration();
@@ -2144,6 +2223,7 @@ const Player = {
         const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
         stats.seconds = (stats.seconds || 0) + 0.5;
         Store.set(KEYS.STATS, stats);
+        ProfilePage.trackMonthlySeconds(0.5);
       }
     }, 500);
   },
@@ -2192,7 +2272,7 @@ const Player = {
   addToHistory(track) {
     let hist = Store.get(KEYS.HISTORY, []);
     hist = hist.filter(t => t.id !== track.id);
-    hist.unshift(track);
+    hist.unshift({ ...track, playedAt: new Date().toISOString() });
     if (hist.length > 50) hist = hist.slice(0, 50);
     Store.set(KEYS.HISTORY, hist);
 
@@ -2200,6 +2280,9 @@ const Player = {
     const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
     stats.plays = (stats.plays || 0) + 1;
     Store.set(KEYS.STATS, stats);
+
+    // Monthly stats
+    ProfilePage.trackMonthlyPlay();
   }
 };
 
@@ -2297,58 +2380,367 @@ const ContextMenu = {
 
 // ── Profile Page ───────────────────────────────
 const ProfilePage = {
+  initAvatar() {
+    this.updateTopbarAvatar();
+  },
+
+  getProfile() {
+    return Store.get(KEYS.PROFILE, {
+      username: 'Listener',
+      avatarUrl: null,
+      memberSince: new Date().toISOString()
+    });
+  },
+
+  saveProfile(data) {
+    const current = this.getProfile();
+    Store.set(KEYS.PROFILE, { ...current, ...data });
+    this.updateTopbarAvatar();
+  },
+
+  updateTopbarAvatar() {
+    const profile = this.getProfile();
+    const inner = document.getElementById('topbarAvatarInner');
+    if (!inner) return;
+    if (profile.avatarUrl) {
+      inner.innerHTML = `<img src="${profile.avatarUrl}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    } else {
+      const letter = (profile.username || 'L').charAt(0).toUpperCase();
+      inner.innerHTML = `<span class="topbar-avatar-letter">${letter}</span>`;
+    }
+  },
+
+  getMonthly() {
+    const key = new Date().toISOString().slice(0,7); // YYYY-MM
+    const all = Store.get(KEYS.MONTHLY, {});
+    return all[key] || { plays: 0, seconds: 0, likes: 0, playlists: 0 };
+  },
+
+  trackMonthlyPlay() {
+    const key = new Date().toISOString().slice(0,7);
+    const all = Store.get(KEYS.MONTHLY, {});
+    if (!all[key]) all[key] = { plays: 0, seconds: 0, likes: 0, playlists: 0 };
+    all[key].plays++;
+    Store.set(KEYS.MONTHLY, all);
+  },
+
+  trackMonthlyLike() {
+    const key = new Date().toISOString().slice(0,7);
+    const all = Store.get(KEYS.MONTHLY, {});
+    if (!all[key]) all[key] = { plays: 0, seconds: 0, likes: 0, playlists: 0 };
+    all[key].likes++;
+    Store.set(KEYS.MONTHLY, all);
+  },
+
+  trackMonthlyPlaylist() {
+    const key = new Date().toISOString().slice(0,7);
+    const all = Store.get(KEYS.MONTHLY, {});
+    if (!all[key]) all[key] = { plays: 0, seconds: 0, likes: 0, playlists: 0 };
+    all[key].playlists++;
+    Store.set(KEYS.MONTHLY, all);
+  },
+
+  trackMonthlySeconds(s) {
+    const key = new Date().toISOString().slice(0,7);
+    const all = Store.get(KEYS.MONTHLY, {});
+    if (!all[key]) all[key] = { plays: 0, seconds: 0, likes: 0, playlists: 0 };
+    all[key].seconds = (all[key].seconds || 0) + s;
+    Store.set(KEYS.MONTHLY, all);
+  },
+
+  fmtTime(totalSecs) {
+    totalSecs = Math.round(totalSecs || 0);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m`;
+    return `${s}s`;
+  },
+
+  getTopArtist(history) {
+    if (!history.length) return '—';
+    const counts = {};
+    history.forEach(t => { counts[t.artist] = (counts[t.artist] || 0) + 1; });
+    return Object.entries(counts).sort((a,b) => b[1]-a[1])[0]?.[0] || '—';
+  },
+
+  getTopTrack(history) {
+    if (!history.length) return null;
+    const counts = {};
+    history.forEach(t => { counts[t.id] = (counts[t.id] || 0) + 1; });
+    const topId = Object.entries(counts).sort((a,b) => b[1]-a[1])[0]?.[0];
+    return history.find(t => t.id === topId) || null;
+  },
+
+  getTopGenre(history) {
+    if (!history.length) return '—';
+    const keywords = { 'Phonk': ['phonk','drift'], 'Night Drive': ['night drive','synthwave','retrowave'], 'Chill': ['chill','lofi','lo-fi'], 'Hip-Hop': ['hip hop','hip-hop','rap','trap'], 'Electronic': ['electronic','edm','house','techno'], 'Jazz': ['jazz'], 'R&B': ['r&b','rnb','soul'], 'Indie': ['indie','alternative'] };
+    const counts = {};
+    history.forEach(t => {
+      const txt = (t.title + ' ' + t.artist).toLowerCase();
+      for (const [genre, keys] of Object.entries(keywords)) {
+        if (keys.some(k => txt.includes(k))) { counts[genre] = (counts[genre] || 0) + 1; }
+      }
+    });
+    const top = Object.entries(counts).sort((a,b) => b[1]-a[1])[0];
+    return top ? top[0] : 'Mixed';
+  },
+
+  getStreak(history) {
+    if (!history.length) return 0;
+    // Count unique days in history within last 30 days
+    const days = new Set(history.map(t => {
+      const d = t.playedAt ? new Date(t.playedAt) : null;
+      return d ? d.toDateString() : null;
+    }).filter(Boolean));
+    return days.size;
+  },
+
+  getPersonality(history, liked) {
+    if (!history.length && !liked.length) return [];
+    const all = [...history, ...liked];
+    const txt = all.map(t => (t.title + ' ' + t.artist).toLowerCase()).join(' ');
+    const results = [];
+    if (['phonk','drift','skrrr'].some(k => txt.includes(k))) results.push({ icon:'🚗', label:'Night Driver', active: true });
+    if (['chill','lofi','lo-fi','study','sleep'].some(k => txt.includes(k))) results.push({ icon:'☕', label:'Chill Listener', active: true });
+    if (['phonk','phonk drift'].some(k => txt.includes(k)) && txt.split('phonk').length > 3) results.push({ icon:'🔊', label:'Phonk Addict', active: true });
+    if (['electronic','edm','techno','house','synth'].some(k => txt.includes(k))) results.push({ icon:'⚡', label:'Electronic Explorer', active: true });
+    // Always show all badges, active or not
+    const all_badges = [
+      { icon:'🚗', label:'Night Driver' },
+      { icon:'☕', label:'Chill Listener' },
+      { icon:'🔊', label:'Phonk Addict' },
+      { icon:'⚡', label:'Electronic Explorer' }
+    ];
+    return all_badges.map(b => ({ ...b, active: results.some(r => r.label === b.label) }));
+  },
+
   render() {
+    const profile = this.getProfile();
     const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
     const liked = LikedSongs.get();
     const history = Store.get(KEYS.HISTORY, []);
-    const playlists = Store.get(KEYS.PLAYLISTS, Playlists.defaults());
-    const totalSeconds = Math.round(stats.seconds || 0);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    const playlists = Playlists.getAll();
+    const monthly = this.getMonthly();
+    const topArtist = this.getTopArtist(history);
+    const topTrack = this.getTopTrack(history);
+    const topGenre = this.getTopGenre(history);
+    const streak = this.getStreak(history);
+    const personality = this.getPersonality(history, liked);
+    const memberDate = profile.memberSince ? new Date(profile.memberSince).toLocaleDateString('en-US', { year:'numeric', month:'long' }) : 'Recently joined';
+
+    // Avatar HTML
+    let avatarInnerHTML = '';
+    if (profile.avatarUrl) {
+      avatarInnerHTML = `<img src="${profile.avatarUrl}" alt="Avatar">`;
+    } else {
+      avatarInnerHTML = `<span style="font-size:48px;font-weight:800;color:white;font-family:'Syne',sans-serif">${(profile.username||'L').charAt(0).toUpperCase()}</span>`;
+    }
 
     const el = document.getElementById('profileContent');
     el.innerHTML = `
       <div style="padding:32px">
-        <!-- Hero -->
-        <div style="display:flex;align-items:center;gap:24px;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--border)">
-          <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--neon-green));display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px var(--neon-green-glow);flex-shrink:0">
-            <svg viewBox="0 0 24 24" fill="white" style="width:48px;height:48px"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+
+        <!-- HERO -->
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap" onclick="ProfilePage.changeAvatar()">
+            <div class="profile-avatar">${avatarInnerHTML}</div>
+            <div class="profile-avatar-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
           </div>
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px">Profile</div>
-            <div style="font-size:32px;font-weight:800;letter-spacing:-.02em">Your Music</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:4px">NONIMID Listener</div>
+          <div class="profile-hero-info">
+            <div class="profile-type">Profile</div>
+            <div class="profile-name" id="profileNameDisplay">${profile.username || 'Listener'}</div>
+            <div class="profile-sub">NONIMID Listener · ${stats.plays || 0} plays</div>
+            <div class="profile-member">Member since ${memberDate}</div>
+            <div class="profile-hero-actions">
+              <button class="btn-profile-action" onclick="ProfilePage.editUsername()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Name
+              </button>
+              <button class="btn-profile-action" onclick="ProfilePage.changeAvatar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                Change Avatar
+              </button>
+              <button class="btn-profile-action" onclick="ProfilePage.exportData()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Data
+              </button>
+              <button class="btn-profile-action danger" onclick="ProfilePage.clearHistory()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Clear History
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Stats grid -->
-        <div style="font-size:20px;font-weight:800;margin-bottom:20px">Your Stats</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:40px">
-          ${this.statCard('🎵', 'Songs Played', stats.plays || 0, 'total plays')}
-          ${this.statCard('⏱️', 'Time Listened', timeStr, 'total listening time')}
-          ${this.statCard('❤️', 'Liked Songs', liked.length, 'songs you love')}
-          ${this.statCard('📋', 'Playlists', playlists.length, 'collections')}
-          ${this.statCard('🕐', 'Recently Played', history.length, 'in history')}
+        <!-- STATS -->
+        <div class="profile-section">
+          <div class="profile-section-title">📊 Statistics</div>
+          <div class="profile-stats-grid">
+            ${this.statCard('🎵','Songs Played', stats.plays||0, 'total plays')}
+            ${this.statCard('⏱️','Time Listened', this.fmtTime(stats.seconds), 'total listening time')}
+            ${this.statCard('❤️','Liked Songs', liked.length, 'songs you love')}
+            ${this.statCard('📋','Playlists', playlists.length, 'collections')}
+            ${this.statCard('🕐','Recently Played', history.length, 'in history')}
+          </div>
         </div>
 
-        <!-- Recent top tracks -->
+        <!-- LISTENING ACTIVITY -->
+        <div class="profile-section">
+          <div class="profile-section-title">🏆 Listening Activity</div>
+          <div class="profile-activity-grid">
+            <div class="profile-activity-card">
+              <div class="profile-activity-label">Top Genre</div>
+              <div class="profile-activity-value">${topGenre}</div>
+              <div class="profile-activity-sub">Based on listening history</div>
+            </div>
+            <div class="profile-activity-card">
+              <div class="profile-activity-label">Most Played Artist</div>
+              <div class="profile-activity-value">${topArtist}</div>
+              <div class="profile-activity-sub">Your go-to artist</div>
+            </div>
+            <div class="profile-activity-card">
+              <div class="profile-activity-label">Most Played Track</div>
+              <div class="profile-activity-value">${topTrack ? (topTrack.title.length>28 ? topTrack.title.slice(0,28)+'…' : topTrack.title) : '—'}</div>
+              <div class="profile-activity-sub">${topTrack ? topTrack.artist : 'Play some music first'}</div>
+            </div>
+            <div class="profile-activity-card">
+              <div class="profile-activity-label">Listening Streak</div>
+              <div class="profile-activity-value">${streak} day${streak!==1?'s':''}</div>
+              <div class="profile-activity-sub">Unique days with activity</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENTLY PLAYED -->
         ${history.length ? `
-        <div style="font-size:20px;font-weight:800;margin-bottom:16px">Recent Favourites</div>
-        <div class="search-track-list">
-          ${history.slice(0,5).map((t,i) => Search.trackRowHTML(t, i+1)).join('')}
+        <div class="profile-section">
+          <div class="profile-section-title">🎧 Recently Played</div>
+          <div class="search-track-list">
+            ${history.slice(0,5).map((t,i) => Search.trackRowHTML(t, i+1)).join('')}
+          </div>
         </div>` : ''}
+
+        <!-- FAVORITES -->
+        ${liked.length ? `
+        <div class="profile-section">
+          <div class="profile-section-title">❤️ Favorites</div>
+          <div class="search-track-list">
+            ${liked.slice(0,5).map((t,i) => Search.trackRowHTML(t, i+1)).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- MONTHLY SUMMARY -->
+        <div class="profile-section">
+          <div class="profile-section-title">📈 This Month</div>
+          <div class="profile-monthly-grid">
+            <div class="profile-monthly-card">
+              <div class="profile-monthly-label">Songs Played</div>
+              <div class="profile-monthly-value">${monthly.plays || 0}</div>
+              <div class="profile-monthly-sub">this month</div>
+            </div>
+            <div class="profile-monthly-card">
+              <div class="profile-monthly-label">Time Listened</div>
+              <div class="profile-monthly-value" style="font-size:20px">${this.fmtTime(monthly.seconds)}</div>
+              <div class="profile-monthly-sub">this month</div>
+            </div>
+            <div class="profile-monthly-card">
+              <div class="profile-monthly-label">Likes Added</div>
+              <div class="profile-monthly-value">${monthly.likes || 0}</div>
+              <div class="profile-monthly-sub">this month</div>
+            </div>
+            <div class="profile-monthly-card">
+              <div class="profile-monthly-label">Playlists Created</div>
+              <div class="profile-monthly-value">${monthly.playlists || 0}</div>
+              <div class="profile-monthly-sub">this month</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MUSIC PERSONALITY -->
+        <div class="profile-section">
+          <div class="profile-section-title">🎵 Music Personality</div>
+          <div class="profile-personality">
+            ${personality.map(p => `
+              <div class="personality-badge ${p.active ? 'active' : ''}">
+                <span class="personality-badge-icon">${p.icon}</span>
+                ${p.label}
+              </div>`).join('')}
+          </div>
+          ${!personality.some(p=>p.active) ? '<p style="font-size:13px;color:var(--text-muted);margin-top:8px">Play more music to unlock your personality badges!</p>' : ''}
+        </div>
+
       </div>`;
   },
 
   statCard(emoji, label, value, sub) {
     return `
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;transition:border-color .2s" onmouseover="this.style.borderColor='var(--neon-green-glow)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:28px;margin-bottom:12px">${emoji}</div>
-        <div style="font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--neon-green)">${value}</div>
-        <div style="font-size:13px;font-weight:700;margin-top:4px">${label}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${sub}</div>
+      <div class="profile-stat-card">
+        <div class="profile-stat-emoji">${emoji}</div>
+        <div class="profile-stat-value">${value}</div>
+        <div class="profile-stat-label">${label}</div>
+        <div class="profile-stat-sub">${sub}</div>
       </div>`;
+  },
+
+  editUsername() {
+    const profile = this.getProfile();
+    const name = prompt('Enter your username:', profile.username || 'Listener');
+    if (name === null) return;
+    const trimmed = name.trim() || 'Listener';
+    this.saveProfile({ username: trimmed });
+    Toast.show('Username updated!', 'success');
+    this.render();
+  },
+
+  changeAvatar() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { Toast.show('Image too large (max 2MB)', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        this.saveProfile({ avatarUrl: ev.target.result });
+        Toast.show('Avatar updated!', 'success');
+        this.render();
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  },
+
+  exportData() {
+    const data = {
+      profile: this.getProfile(),
+      stats: Store.get(KEYS.STATS, {}),
+      liked: LikedSongs.get(),
+      history: Store.get(KEYS.HISTORY, []),
+      playlists: Playlists.getAll(),
+      monthly: Store.get(KEYS.MONTHLY, {}),
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nonimid-profile-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    Toast.show('Profile exported!', 'success');
+  },
+
+  clearHistory() {
+    if (!confirm('Clear all listening history? This cannot be undone.')) return;
+    Store.set(KEYS.HISTORY, []);
+    Store.set(KEYS.STATS, { plays: 0, seconds: 0 });
+    Toast.show('History cleared', 'info');
+    this.render();
   }
 };
 
@@ -2536,7 +2928,7 @@ body{background:#000}
 .nav-arrows{display:none}
 .search-container{max-width:none;width:100%}
 .search-input-wrap{height:42px;border-radius:14px;background:#242424;border:none}
-#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage{padding:16px 14px 120px}
+#homePage,#searchPage,#likedPage,#historyPage,#libraryPage,#playlistPage,#profilePage{padding:16px 14px 120px}
 .greeting-time{font-size:30px}
 .quick-grid{grid-template-columns:1fr 1fr;gap:10px}
 .quick-card{height:64px;border-radius:10px;background:#181818}
@@ -2684,23 +3076,5 @@ document.addEventListener("DOMContentLoaded", () => {
 localStorage.setItem('youtube_api_key', 'AIzaSyAqcB95yqKUJigmvAgqwej1Ox-ySlRtQFE');
 </script>
 
-<script>
-// ADDED PLAYLIST FEATURES
-window.addToCustomPlaylist=function(track){
- const names=Object.keys(Store.playlists||{});
- const name=prompt('Add to playlist:\n'+names.join('\n'));
- if(!name||!Store.playlists[name]) return;
- Store.playlists[name].push(track);
- Store.save && Store.save();
- Toast.show && Toast.show('Added to '+name,'success');
-};
-window.deletePlaylistPrompt=function(name){
- if(!confirm('Delete playlist "'+name+'"?')) return;
- if(Store.playlists && Store.playlists[name]){
-   delete Store.playlists[name];
-   Store.save && Store.save();
-   location.reload();
- }
-};
 </script></body>
 </html>
