@@ -383,8 +383,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .no-key-banner-btn:hover{transform:scale(1.04)}
 @media(max-width:900px){
   :root{--sidebar-w:0px;--player-h:80px}
-  #app{grid-template-columns:1fr}
+  #app{grid-template-columns:1fr;grid-template-rows:1fr var(--player-h)}
   #sidebar{display:none}
+  #main{grid-column:1;grid-row:1}
+  #playerBar{grid-column:1;grid-row:2}
   #homePage,#searchPage,#libraryPage,#likedPage,#historyPage,#profilePage{padding:20px 16px}
   .quick-grid{grid-template-columns:repeat(2,1fr)}
   .player-track-info{width:auto;flex:1}
@@ -476,6 +478,8 @@ html,body{
 :root{--player-h:72px;--navbar-h:56px}
 body{background:#000}
 #sidebar{display:none!important}
+#app{grid-template-columns:1fr;grid-template-rows:1fr}
+#main{grid-column:1!important;grid-row:1!important;width:100%}
 #topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
 .nav-arrows{display:none}
 .search-container{max-width:none;flex:1;min-width:0}
@@ -486,7 +490,7 @@ body{background:#000}
 .quick-grid{grid-template-columns:1fr 1fr;gap:10px}
 .quick-card{height:64px;border-radius:10px;background:#181818}
 .music-card{width:150px;padding:12px;border-radius:14px;background:#181818}
-#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120}
+#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120;grid-column:unset;grid-row:unset}
 .player-right{display:none}
 .ctrl-btn{display:none}
 .btn-play-pause{width:42px;height:42px}
@@ -2973,6 +2977,8 @@ html,body{
 :root{--player-h:72px;--navbar-h:56px}
 body{background:#000}
 #sidebar{display:none!important}
+#app{grid-template-columns:1fr;grid-template-rows:1fr}
+#main{grid-column:1!important;grid-row:1!important;width:100%}
 #topbar{position:sticky;top:0;z-index:99;height:56px;padding:0 14px;background:rgba(0,0,0,.92);backdrop-filter:blur(20px)}
 .nav-arrows{display:none}
 .search-container{max-width:none;flex:1;min-width:0}
@@ -2983,7 +2989,7 @@ body{background:#000}
 .quick-grid{grid-template-columns:1fr 1fr;gap:10px}
 .quick-card{height:64px;border-radius:10px;background:#181818}
 .music-card{width:150px;padding:12px;border-radius:14px;background:#181818}
-#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120}
+#playerBar{position:fixed;bottom:58px;left:8px;right:8px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1f1f1f,#151515);padding:8px 12px;z-index:120;grid-column:unset;grid-row:unset}
 .player-right{display:none}
 .ctrl-btn{display:none}
 .btn-play-pause{width:42px;height:42px}
