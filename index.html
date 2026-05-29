@@ -1056,7 +1056,7 @@ const Store = {
   remove(k) { try { localStorage.removeItem(k); } catch {} }
 };
 
-const DEFAULT_API_KEY = "AIzaSyAqcB95yqKUJigmvAgqwej1Ox-ySlRtQFE";
+const DEFAULT_API_KEY = "";
 
 // ── YouTube API Manager ────────────────────────
 class YouTubeAPIManager {
@@ -1070,7 +1070,7 @@ class YouTubeAPIManager {
     this.abortControllers = new Map();
   }
 
-  get apiKey() { return DEFAULT_API_KEY; }
+  get apiKey() { return DEFAULT_API_KEY || Store.get('nonimid_apikey_override', ''); }
 
   isRateLimited() {
     const now = Date.now();
@@ -1085,7 +1085,7 @@ class YouTubeAPIManager {
   async search(query, maxResults = 10) {
     if (!this.apiKey) return { error: 'NO_KEY' };
     const q = this.sanitize(query);
-    if (!q || q.length < 2) return { items: [] };
+    if (!q || q.length < 3) return { items: [] };
 
     const cacheKey = `search:${q}:${maxResults}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
@@ -1101,17 +1101,27 @@ class YouTubeAPIManager {
   }
 
   async _fetchSearch(q, maxResults, cacheKey, signal) {
-const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=${maxResults}&q=${encodeURIComponent(q)}&key=${this.apiKey}`;
+    const url = `/search?q=${encodeURIComponent(q)}&maxResults=${maxResults}`;
     try {
       this.requestCount++;
       const r = await fetch(url, { signal });
       const data = await r.json();
-      if (!r.ok) throw new Error(data.error?.message || 'API Error');
+      if (!r.ok) {
+        const msg = data?.error || data?.message || 'Search failed';
+        const code = r.status;
+        if (code === 429 || (msg && msg.toLowerCase().includes('quota'))) {
+          return { error: 'QUOTA_EXCEEDED', items: [], message: 'YouTube API quota exceeded. Try again later.' };
+        }
+        if (code === 401 || code === 403 || (msg && (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('key')))) {
+          return { error: 'INVALID_KEY', items: [], message: 'Invalid or missing API key on server.' };
+        }
+        return { error: 'API_ERROR', items: [], message: msg };
+      }
       this.cache.set(cacheKey, data);
       return data;
     } catch (e) {
       if (e.name === 'AbortError') return { items: [] };
-      return { error: e.message, items: [] };
+      return { error: 'NETWORK_ERROR', items: [], message: 'Network error. Check your connection.' };
     } finally {
       this.pending.delete(cacheKey);
       this.abortControllers.delete(cacheKey);
@@ -1137,13 +1147,13 @@ const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=vide
   async getVideoDetails(videoId) {
     const cacheKey = `detail:${videoId}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
-    if (!this.apiKey) return null;
     try {
       this.requestCount++;
-      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${this.apiKey}`;
+      const url = `/video?id=${encodeURIComponent(videoId)}`;
       const r = await fetch(url);
+      if (!r.ok) return null;
       const data = await r.json();
-      if (data.items?.length) { this.cache.set(cacheKey, data.items[0]); return data.items[0]; }
+      if (data?.id) { this.cache.set(cacheKey, data); return data; }
     } catch {}
     return null;
   }
@@ -1328,11 +1338,11 @@ const App = {
   },
 
   updateApiStatus() {
-    const key = Store.get(KEYS.API);
     const el = document.getElementById('apiStatus');
     const txt = document.getElementById('apiStatusText');
-    if (key) { el.classList.add('connected'); txt.textContent = 'API Ready'; }
-    else { el.classList.remove('connected'); txt.textContent = 'No API Key'; }
+    // Backend manages the API key; show connected by default
+    el.classList.add('connected');
+    txt.textContent = 'Backend';
   },
 
   renderSidebarPlaylists() {
@@ -1389,17 +1399,6 @@ const Home = {
   },
 
   async loadSections() {
-    const key = Store.get(KEYS.API);
-    if (!key) {
-      this.renderFallbackCards('phonkCards', 'phonk drift');
-      this.renderFallbackCards('nightdriveCards', 'night drive music');
-      this.renderFallbackCards('chillCards', 'chill beats');
-      this.renderFallbackCards('trendingCards', 'trending music');
-      this.renderFallbackQuick();
-      this.renderRecentCards();
-      this.renderRecommended();
-      return;
-    }
     this.renderSkeletons('phonkCards');
     this.renderSkeletons('nightdriveCards');
     this.renderSkeletons('chillCards');
@@ -1460,9 +1459,6 @@ const Home = {
     const seed = pool[Math.floor(Math.random() * pool.length)];
     const keywords = seed.title.replace(/\(.*?\)|\[.*?\]|official|video|audio|lyrics|ft\.|feat\./gi,'').trim().split(' ').slice(0,3).join(' ');
     const query = `${keywords} similar music`;
-
-    const key = Store.get(KEYS.API);
-    if (!key) { sec.style.display = 'none'; return; }
 
     const res = await YT_API.search(query, 8);
     const items = (res.items || []).filter(item => {
@@ -1571,8 +1567,13 @@ const Search = {
       const v = e.target.value.trim();
       document.getElementById('searchClear').classList.toggle('visible', v.length > 0);
       if (!v) { this.closeDropdown(); return; }
+      if (v.length < 3) {
+        document.getElementById('searchDropdown').innerHTML = '<div class="search-empty">Type at least 3 characters…</div>';
+        document.getElementById('searchDropdown').classList.add('visible');
+        return;
+      }
       this.showLoading();
-      YT_API.debounceSearch(v, 8, (res) => this.handleResults(res), 800);
+      YT_API.debounceSearch(v, 8, (res) => this.handleResults(res), 1500);
     });
     inp.addEventListener('focus', () => {
       if (inp.value.trim() && this.currentResults.length) this.showDropdown();
@@ -1596,14 +1597,22 @@ const Search = {
   },
 
   handleResults(res) {
-    if (res.error === 'NO_KEY') {
-      document.getElementById('searchDropdown').innerHTML = '<div class="search-empty">Add an API key in Settings to search</div>';
-      document.getElementById('searchDropdown').classList.add('visible');
+    const d = document.getElementById('searchDropdown');
+    d.classList.add('visible');
+    if (res.error) {
+      const msgs = {
+        'NO_KEY': 'Search unavailable — server config issue.',
+        'QUOTA_EXCEEDED': '⚠️ Quota exceeded. Try again later.',
+        'INVALID_KEY': '⚠️ Server API key invalid.',
+        'NETWORK_ERROR': '⚠️ Network error. Check connection.',
+        'API_ERROR': res.message || 'Search error. Try again.'
+      };
+      d.innerHTML = `<div class="search-empty">${msgs[res.error] || msgs['API_ERROR']}</div>`;
       return;
     }
     this.currentResults = (res.items || []).map(makeTrack);
     if (!this.currentResults.length) {
-      document.getElementById('searchDropdown').innerHTML = '<div class="search-empty">No results found</div>';
+      d.innerHTML = '<div class="search-empty">No results found</div>';
       return;
     }
     this.showDropdown();
@@ -1639,12 +1648,18 @@ const Search = {
     title.textContent = `Results for "${q}"`;
     el.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
     const res = await YT_API.search(q, 20);
-    if (res.error === 'NO_KEY') {
+    if (res.error) {
+      const msgs = {
+        'NO_KEY': 'Search unavailable — server configuration issue.',
+        'QUOTA_EXCEEDED': 'YouTube API quota exceeded. Please try again later.',
+        'INVALID_KEY': 'Server API key is invalid. Please contact the administrator.',
+        'NETWORK_ERROR': 'Network error. Please check your connection and try again.',
+        'API_ERROR': res.message || 'Search failed. Please try again.'
+      };
       el.innerHTML = `<div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-        <div class="empty-state-title">API Key Required</div>
-        <div class="empty-state-sub">Add your YouTube API key in Settings to search music</div>
-        <button class="btn-primary" style="width:auto;padding:12px 28px;margin-top:8px" onclick="App.openSettings()">Open Settings</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+        <div class="empty-state-title">Search Unavailable</div>
+        <div class="empty-state-sub">${msgs[res.error] || msgs['API_ERROR']}</div>
       </div>`;
       return;
     }
@@ -1884,17 +1899,6 @@ const Playlists = {
     if (pl.tracks?.length) {
       document.getElementById('plMeta').textContent = `${pl.tracks.length} songs`;
       listEl.innerHTML = pl.tracks.map((t,i) => Search.trackRowHTML(t, i+1)).join('');
-      return;
-    }
-
-    const key = Store.get(KEYS.API);
-    if (!key) {
-      listEl.innerHTML = `<div class="empty-state">
-        <div class="empty-state-title">API Key Required</div>
-        <div class="empty-state-sub">Add your YouTube API key in Settings to load playlist tracks</div>
-        <button class="btn-primary" style="width:auto;padding:12px 28px;margin-top:8px" onclick="App.openSettings()">Open Settings</button>
-      </div>`;
-      document.getElementById('plMeta').textContent = '0 songs';
       return;
     }
 
@@ -2342,41 +2346,18 @@ const Player = {
 // ── Settings ───────────────────────────────────
 const Settings = {
   saveKey() {
-    const inp = document.getElementById('apiKeyInput');
-    let val = inp.value.trim();
-    if (val.startsWith('•')) {
-      Toast.show('Key unchanged', 'info');
-      return;
-    }
-    if (!val) {
-      Store.remove(KEYS.API);
-      App.updateApiStatus();
-      Toast.show('API Key removed', 'info');
-      App.closeSettings();
-      Home.renderNoKeyBanner();
-      return;
-    }
-    Store.set(KEYS.API, val);
-    App.updateApiStatus();
-    YT_API.clearCache();
-    Toast.show('API Key saved!', 'success');
-    App.closeSettings();
-    Home.render();
+    Toast.show('API key is managed server-side via environment variables.', 'info');
   },
 
   async testKey() {
-    const inp = document.getElementById('apiKeyInput');
-    let key = inp.value.trim();
-    if (key.startsWith('•')) key = Store.get(KEYS.API, '');
-    if (!key) { this.showResult('Enter an API key first', false); return; }
     this.showResult('Testing…', null);
-const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=test&key=${key}`;
     try {
-      const r = await fetch(url);
+      const r = await fetch('/search?q=test&maxResults=1');
       const d = await r.json();
-      if (r.ok) this.showResult('✓ Connection successful!', true);
-      else this.showResult(`✗ ${d.error?.message || 'Invalid key'}`, false);
-    } catch { this.showResult('✗ Network error', false); }
+      if (r.ok && d.items) this.showResult('✓ Backend connected & API key valid!', true);
+      else if (r.status === 429 || (d.error && d.error.toLowerCase().includes('quota'))) this.showResult('⚠ Quota exceeded — key works but limit reached', true);
+      else this.showResult(`✗ ${d.error || d.message || 'Connection failed'}`, false);
+    } catch { this.showResult('✗ Network error — is the server running?', false); }
   },
 
   showResult(msg, success) {
@@ -3128,9 +3109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<script>
-localStorage.setItem('youtube_api_key', 'AIzaSyAqcB95yqKUJigmvAgqwej1Ox-ySlRtQFE');
-</script>
 
-</script></body>
+
+</body>
 </html>
