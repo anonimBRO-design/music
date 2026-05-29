@@ -1083,14 +1083,12 @@ class YouTubeAPIManager {
   }
 
   async search(query, maxResults = 10) {
-    if (!this.apiKey) return { error: 'NO_KEY' };
     const q = this.sanitize(query);
     if (!q || q.length < 3) return { items: [] };
 
     const cacheKey = `search:${q}:${maxResults}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
     if (this.pending.has(cacheKey)) return this.pending.get(cacheKey);
-    if (this.isRateLimited()) return { error: 'RATE_LIMIT', items: [] };
 
     const ctrl = new AbortController();
     this.abortControllers.set(cacheKey, ctrl);
@@ -1101,7 +1099,7 @@ class YouTubeAPIManager {
   }
 
   async _fetchSearch(q, maxResults, cacheKey, signal) {
-    const url = `/search?q=${encodeURIComponent(q)}&maxResults=${maxResults}`;
+    const url = `/api/search?q=${encodeURIComponent(q)}&maxResults=${maxResults}`;
     try {
       this.requestCount++;
       const r = await fetch(url, { signal });
@@ -1149,7 +1147,7 @@ class YouTubeAPIManager {
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
     try {
       this.requestCount++;
-      const url = `/video?id=${encodeURIComponent(videoId)}`;
+      const url = `/api/video?id=${encodeURIComponent(videoId)}`;
       const r = await fetch(url);
       if (!r.ok) return null;
       const data = await r.json();
@@ -1375,20 +1373,7 @@ const Home = {
     document.getElementById('greetingText').textContent = greeting();
   },
 
-  renderNoKeyBanner() {
-    const el = document.getElementById('noKeyBanner');
-    if (!Store.get(KEYS.API)) {
-      el.innerHTML = `
-        <div class="no-key-banner">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-          <div class="no-key-banner-text">
-            <div class="no-key-banner-title">Add your YouTube API key to search music</div>
-            <div class="no-key-banner-sub">Get a free key at Google Cloud Console in under 2 minutes</div>
-          </div>
-          <button class="no-key-banner-btn" onclick="App.openSettings()">Add Key</button>
-        </div>`;
-    } else { el.innerHTML = ''; }
-  },
+  renderNoKeyBanner() { /* API key managed server-side */ },
 
   renderMoods() {
     const moods = ['Phonk','Night Drive','Chill Beats','Hip-Hop','Lo-Fi','Dark Ambient','Electronic','Jazz','R&B','Indie'];
@@ -2352,7 +2337,7 @@ const Settings = {
   async testKey() {
     this.showResult('Testing…', null);
     try {
-      const r = await fetch('/search?q=test&maxResults=1');
+      const r = await fetch('/api/search?q=test&maxResults=1');
       const d = await r.json();
       if (r.ok && d.items) this.showResult('✓ Backend connected & API key valid!', true);
       else if (r.status === 429 || (d.error && d.error.toLowerCase().includes('quota'))) this.showResult('⚠ Quota exceeded — key works but limit reached', true);
