@@ -935,6 +935,8 @@ const Store = {
   remove(k) { try { localStorage.removeItem(k); } catch {} }
 };
 
+const DEFAULT_API_KEY = "MASUKKAN_API_KEY_DISINI";
+
 // ── YouTube API Manager ────────────────────────
 class YouTubeAPIManager {
   constructor() {
@@ -947,7 +949,7 @@ class YouTubeAPIManager {
     this.abortControllers = new Map();
   }
 
-  get apiKey() { return Store.get(KEYS.API); }
+  get apiKey() { return DEFAULT_API_KEY; }
 
   isRateLimited() {
     const now = Date.now();
@@ -2129,9 +2131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Install NONIMID
 </button>
 
-<div id="aiDjBubble" class="ai-dj-bubble">
-  🎧 AI DJ Active
-</div>
+
 
 <style>
 #visualizer {
@@ -2204,17 +2204,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .install-btn.hidden { display:none; }
 
-.ai-dj-bubble {
-  position:fixed;
-  top:80px;
-  right:20px;
-  z-index:999;
-  background:rgba(18,18,18,.8);
-  border:1px solid rgba(255,255,255,.1);
-  padding:12px 16px;
-  border-radius:16px;
-  backdrop-filter:blur(20px);
-}
 /* MOBILE BUG FIX */
 html,body{
   width:100%;
@@ -2423,5 +2412,23 @@ document.addEventListener("DOMContentLoaded", () => {
 localStorage.setItem('youtube_api_key', 'AIzaSyAqcB95yqKUJigmvAgqwej1Ox-ySlRtQFE');
 </script>
 
-</body>
+<script>
+// ADDED PLAYLIST FEATURES
+window.addToCustomPlaylist=function(track){
+ const names=Object.keys(Store.playlists||{});
+ const name=prompt('Add to playlist:\n'+names.join('\n'));
+ if(!name||!Store.playlists[name]) return;
+ Store.playlists[name].push(track);
+ Store.save && Store.save();
+ Toast.show && Toast.show('Added to '+name,'success');
+};
+window.deletePlaylistPrompt=function(name){
+ if(!confirm('Delete playlist "'+name+'"?')) return;
+ if(Store.playlists && Store.playlists[name]){
+   delete Store.playlists[name];
+   Store.save && Store.save();
+   location.reload();
+ }
+};
+</script></body>
 </html>
