@@ -320,7 +320,7 @@
   var _incoming  = [];     // friend_requests pending for me
   var _outgoing  = [];     // friend_requests I sent
   var _collabs   = [];     // playlists I own + I collaborate on
-  var _friendTab = 'friends';   // active segment on friends page
+  var _activeFriendTab = 'friends';   // active segment on friends page
   var _collabTab = 'mine';      // active segment on collab page
   var _allUsers  = [];          // all profiles for "people online" section
   var _onlinePresence = {};     // uid -> last_seen timestamp
@@ -564,9 +564,24 @@
         .then(function (r) { return r.data || []; })
         .catch(function () { return []; }),
       db.from('friend_requests')
-        .select('*, profile:profiles!friend_requests_receiver_id_fkey(id,username,display_name)')
+        .select('id, sender_id, receiver_id, status, created_at')
         .eq('sender_id', uid).eq('status', 'pending')
-        .then(function (r) { return r.data || []; })
+        .then(function (r) {
+          var rows = r.data || [];
+          if (!rows.length) return rows;
+          var ids = rows.map(function (x) { return x.receiver_id; });
+          return db.from('profiles')
+            .select('id,username,display_name')
+            .in('id', ids)
+            .then(function (pr) {
+              var profileMap = {};
+              (pr.data || []).forEach(function (p) { profileMap[p.id] = p; });
+              return rows.map(function (req) {
+                return Object.assign({}, req, { profile: profileMap[req.receiver_id] || null });
+              });
+            })
+            .catch(function () { return rows; });
+        })
         .catch(function () { return []; })
     ]).then(function (results) {
       _friends  = results[0];
@@ -678,9 +693,9 @@
         '<div id="sbSearchResults" style="margin-bottom:20px"></div>' +
         '<div id="sbOnlineSection">' + renderOnlineUsersHtml() + '</div>' +
         '<div class="sb-segs">' +
-          '<button class="sb-seg' + (_friendTab==='friends'  ? ' active':'') + '" onclick="Social._friendTab(\'friends\')">Friends<span class="sb-badge">' + _friends.length + '</span></button>' +
-          '<button class="sb-seg' + (_friendTab==='incoming' ? ' active':'') + '" onclick="Social._friendTab(\'incoming\')">Requests<span class="sb-badge">' + _incoming.length + '</span></button>' +
-          '<button class="sb-seg' + (_friendTab==='outgoing' ? ' active':'') + '" onclick="Social._friendTab(\'outgoing\')">Sent</button>' +
+          '<button class="sb-seg' + (_activeFriendTab==='friends'  ? ' active':'') + '" onclick="Social._friendTab(\'friends\')">Friends<span class="sb-badge">' + _friends.length + '</span></button>' +
+          '<button class="sb-seg' + (_activeFriendTab==='incoming' ? ' active':'') + '" onclick="Social._friendTab(\'incoming\')">Requests<span class="sb-badge">' + _incoming.length + '</span></button>' +
+          '<button class="sb-seg' + (_activeFriendTab==='outgoing' ? ' active':'') + '" onclick="Social._friendTab(\'outgoing\')">Sent</button>' +
         '</div>' +
         '<div id="sbFriendList" class="sb-card-list"></div>' +
       '</div>';
@@ -728,12 +743,12 @@
               : '<button class="sb-btn-sm green" style="font-size:11px" onclick="Social._addFromOnline(\'' + u.id + '\', this)">+ Add</button>';
         return '<div class="sb-card">' +
           '<div style="position:relative;display:inline-block;flex-shrink:0">' +
-            avatarHtml(u.display_name || u.username, '') +
+            avatarHtml(displayName(u), '') +
             '<span class="' + (onlineNow ? 'sb-dot-online' : 'sb-dot-offline') + '"></span>' +
           '</div>' +
           '<div class="sb-card-body">' +
-            '<div class="sb-card-name">' + esc(u.display_name || u.username || '?') + '</div>' +
-            '<div class="sb-card-sub">@' + esc(u.username || '') + (onlineNow ? ' · <span style="color:#1db954;font-weight:700">Online</span>' : '') + '</div>' +
+            '<div class="sb-card-name">' + esc(displayName(u)) + '</div>' +
+            '<div class="sb-card-sub">' + esc(subLabel(u)) + (onlineNow ? ' · <span style="color:#1db954;font-weight:700">Online</span>' : '') + '</div>' +
           '</div>' +
           '<div class="sb-card-actions">' + action + '</div>' +
         '</div>';
@@ -746,9 +761,9 @@
   function renderFriendList() {
     var el = document.getElementById('sbFriendList');
     if (!el) return;
-    if (_friendTab === 'friends')  renderFriendCards(el);
-    if (_friendTab === 'incoming') renderIncomingCards(el);
-    if (_friendTab === 'outgoing') renderOutgoingCards(el);
+    if (_activeFriendTab === 'friends')  renderFriendCards(el);
+    if (_activeFriendTab === 'incoming') renderIncomingCards(el);
+    if (_activeFriendTab === 'outgoing') renderOutgoingCards(el);
   }
 
   function renderFriendCards(el) {
@@ -756,10 +771,10 @@
     el.innerHTML = _friends.map(function (f) {
       var p = f.profile || {};
       return '<div class="sb-card">' +
-        avatarHtml(p.display_name || p.username, '') +
+        avatarHtml(displayName(p), '') +
         '<div class="sb-card-body">' +
-          '<div class="sb-card-name">' + esc(p.display_name || p.username || '?') + '</div>' +
-          '<div class="sb-card-sub">@' + esc(p.username || '') + '</div>' +
+          '<div class="sb-card-name">' + esc(displayName(p)) + '</div>' +
+          '<div class="sb-card-sub">' + esc(subLabel(p)) + '</div>' +
         '</div>' +
         '<div class="sb-card-actions">' +
           '<button class="sb-btn-sm red" onclick="Social._removeFriend(\'' + f.friend_id + '\')">Remove</button>' +
@@ -773,10 +788,10 @@
     el.innerHTML = _incoming.map(function (r) {
       var p = r.profile || {};
       return '<div class="sb-card">' +
-        avatarHtml(p.display_name || p.username, '') +
+        avatarHtml(displayName(p), '') +
         '<div class="sb-card-body">' +
-          '<div class="sb-card-name">' + esc(p.display_name || p.username || '?') + '</div>' +
-          '<div class="sb-card-sub">@' + esc(p.username || '') + '</div>' +
+          '<div class="sb-card-name">' + esc(displayName(p)) + '</div>' +
+          '<div class="sb-card-sub">' + esc(subLabel(p)) + '</div>' +
         '</div>' +
         '<div class="sb-card-actions">' +
           '<button class="sb-btn-sm green" onclick="Social._respondRequest(\'' + r.id + '\',\'accepted\')">Accept</button>' +
@@ -791,10 +806,10 @@
     el.innerHTML = _outgoing.map(function (r) {
       var p = r.profile || {};
       return '<div class="sb-card">' +
-        avatarHtml(p.display_name || p.username, '') +
+        avatarHtml(displayName(p), '') +
         '<div class="sb-card-body">' +
-          '<div class="sb-card-name">' + esc(p.display_name || p.username || '?') + '</div>' +
-          '<div class="sb-card-sub">@' + esc(p.username || '') + '</div>' +
+          '<div class="sb-card-name">' + esc(displayName(p)) + '</div>' +
+          '<div class="sb-card-sub">' + esc(subLabel(p)) + '</div>' +
         '</div>' +
         '<div class="sb-card-actions">' +
           '<span style="font-size:11px;color:var(--text-muted);font-weight:700">Pending…</span>' +
@@ -818,10 +833,10 @@
           var isFriend = _friends.some(function (f) { return f.friend_id === u.id; });
           return '<div class="sb-online-chip">' +
             '<div style="position:relative;display:inline-block">' +
-              avatarHtml(u.display_name || u.username, 'sb-avatar-sm') +
+              avatarHtml(displayName(u), 'sb-avatar-sm') +
               '<span class="sb-dot-online" style="position:absolute;bottom:0;right:0"></span>' +
             '</div>' +
-            '<span class="sb-online-name">' + esc((u.display_name || u.username || '?').slice(0, 10)) + '</span>' +
+            '<span class="sb-online-name">' + esc(displayName(u).slice(0, 10)) + '</span>' +
             (!isFriend ? '<button class="sb-chip-add" onclick="Social._addFromOnline(\'' + u.id + '\', this)" title="Add friend">+</button>' : '<span class="sb-chip-friends">✓</span>') +
           '</div>';
         }).join('') +
@@ -984,9 +999,9 @@
     return _currentCollabs.map(function (c) {
       var p = c.profile || {};
       return '<div class="sb-card" style="padding:8px 12px">' +
-        avatarHtml(p.display_name || p.username, 'sm') +
+        avatarHtml(displayName(p), 'sm') +
         '<div class="sb-card-body">' +
-          '<div class="sb-card-name" style="font-size:13px">' + esc(p.display_name || p.username || '?') + '</div>' +
+          '<div class="sb-card-name" style="font-size:13px">' + esc(displayName(p)) + '</div>' +
         '</div>' +
         (isOwner ? '<button class="sb-btn-sm red" style="padding:5px 10px;font-size:11px" onclick="Social._removeCollab(\'' + c.user_id + '\')">Remove</button>' : '') +
       '</div>';
@@ -1000,8 +1015,8 @@
       available.map(function (f) {
         var p = f.profile || {};
         return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-          avatarHtml(p.display_name || p.username, 'sm') +
-          '<span style="flex:1;font-size:13px">' + esc(p.display_name || p.username || '?') + '</span>' +
+          avatarHtml(displayName(p), 'sm') +
+          '<span style="flex:1;font-size:13px">' + esc(displayName(p)) + '</span>' +
           '<button class="sb-btn-sm green" style="padding:5px 12px;font-size:11px" onclick="Social._addCollab(\'' + f.friend_id + '\')">Add</button>' +
         '</div>';
       }).join('');
@@ -1009,7 +1024,7 @@
 
   /* ── Social actions ─────────────────────────────────── */
   /* public */ function _friendTab(seg) {
-    _friendTab = seg;
+    _activeFriendTab = seg;
     renderFriendsPage();
   }
 
@@ -1053,10 +1068,10 @@
                 ? '<span style="font-size:11px;color:var(--text-muted);font-weight:700">Pending…</span>'
                 : '<button class="sb-btn-sm green" style="padding:6px 14px;font-size:11px" onclick="Social._sendRequest(\'' + u.id + '\')">Add</button>';
             return '<div class="sb-card">' +
-              avatarHtml(u.display_name || u.username, '') +
+              avatarHtml(displayName(u), '') +
               '<div class="sb-card-body">' +
-                '<div class="sb-card-name">' + esc(u.display_name || u.username) + '</div>' +
-                '<div class="sb-card-sub">@' + esc(u.username) + '</div>' +
+                '<div class="sb-card-name">' + esc(displayName(u)) + '</div>' +
+                '<div class="sb-card-sub">' + esc(subLabel(u)) + '</div>' +
               '</div>' +
               '<div class="sb-card-actions">' + action + '</div>' +
             '</div>';
@@ -1072,7 +1087,24 @@
       .then(function (r) {
         if (r.error) { showToast(r.error.message, 'error'); return; }
         showToast('Friend request sent!', 'success');
-        loadFriendsData().then(function () { renderFriendsPage(); });
+
+        // Capture the current search query *before* renderFriendsPage()
+        // rebuilds the DOM and wipes the input value
+        var searchEl  = document.getElementById('sbFriendSearch');
+        var prevQuery = searchEl ? searchEl.value.trim() : '';
+
+        loadFriendsData().then(function () {
+          renderFriendsPage();
+          // Restore query and refresh search results so the "Add"
+          // button updates to "Pending…"
+          if (prevQuery) {
+            var newSearchEl = document.getElementById('sbFriendSearch');
+            if (newSearchEl) {
+              newSearchEl.value = prevQuery;
+              _searchUsers();
+            }
+          }
+        });
       });
   }
 
@@ -1235,6 +1267,27 @@
   function avatarHtml(name, cls) {
     var letter = (name || '?')[0].toUpperCase();
     return '<div class="sb-avatar ' + cls + '">' + esc(letter) + '</div>';
+  }
+
+  /* Prefer display_name; if missing/empty, fall back to username — and
+     if that username looks like an email (Supabase default), show only
+     the local part instead of the full address (Bug 3 fix) */
+  function displayName(p) {
+    if (!p) return '?';
+    var dn = (p.display_name || '').trim();
+    if (dn && dn.indexOf('@') === -1) return dn;
+    var un = (p.username || '').trim();
+    if (un.indexOf('@') !== -1) return un.split('@')[0];
+    return un || '?';
+  }
+
+  /* Sub-label under the name — always "@username", but if the username
+     is an email address, show only the local part (Bug 3 fix) */
+  function subLabel(p) {
+    if (!p) return '';
+    var un = (p.username || '').trim();
+    if (un.indexOf('@') !== -1) return '@' + un.split('@')[0];
+    return '@' + un;
   }
 
   function emptyHtml(icon, title, sub) {
