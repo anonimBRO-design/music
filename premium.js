@@ -500,7 +500,6 @@ const Wrapped = (() => {
     // Top artists
     const artistCounts = {};
     history.forEach(t => {
-      if (!t.artist) return;
       artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1;
     });
     const topArtists = Object.entries(artistCounts)
@@ -511,25 +510,14 @@ const Wrapped = (() => {
     // Top songs
     const songCounts = {};
     history.forEach(t => {
-      if (!t.id) return;
       songCounts[t.id] = { track: t, count: (songCounts[t.id]?.count || 0) + 1 };
     });
     const topSongs = Object.values(songCounts)
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Total plays — nonimid_stats.plays is the source of truth, but fall back
-    // to history.length if the player never populated it (Bug 1 fix)
-    const totalPlays = (stats.plays && stats.plays > 0) ? stats.plays : history.length;
-
-    // Total minutes — stats.seconds → monthly breakdown → estimate from history
-    let totalSeconds = stats.seconds || 0;
-    if (!totalSeconds) {
-      totalSeconds = Object.values(monthly).reduce((a, m) => a + (m.seconds || 0), 0);
-    }
-    if (!totalSeconds && history.length > 0) {
-      totalSeconds = history.reduce((sum, t) => sum + (t.duration_ms ? Math.round(t.duration_ms / 1000) : 210), 0);
-    }
+    // Total minutes
+    const totalSeconds = stats.seconds || Object.values(monthly).reduce((a, m) => a + (m.seconds || 0), 0);
     const totalMinutes = Math.round(totalSeconds / 60);
 
     // Monthly breakdown
@@ -538,17 +526,17 @@ const Wrapped = (() => {
       .map(([month, data]) => ({ month, plays: data.plays || 0, mins: Math.round((data.seconds||0)/60) }));
 
     // Personality
-    const allText = history.map(t => ((t.title || '') + ' ' + (t.artist || '')).toLowerCase()).join(' ');
+    const allText = history.map(t => (t.title + ' ' + t.artist).toLowerCase()).join(' ');
     let personality = 'Explorer';
-    if      (allText.includes('phonk'))                                                          personality = 'Phonk Drifter';
-    else if (allText.includes('lofi') || allText.includes('lo-fi') || allText.includes('chill')) personality = 'Chill Architect';
-    else if (allText.includes('jazz'))                                                           personality = 'Jazz Soul';
-    else if (allText.includes('night') || allText.includes('synthwave'))                        personality = 'Night Owl';
-    else if (allText.includes('edm') || allText.includes('festival'))                           personality = 'Festival Freak';
+    if (allText.includes('phonk'))       personality = 'Phonk Drifter';
+    else if (allText.includes('lofi'))   personality = 'Chill Architect';
+    else if (allText.includes('jazz'))   personality = 'Jazz Soul';
+    else if (allText.includes('night'))  personality = 'Night Owl';
+    else if (allText.includes('edm'))    personality = 'Festival Freak';
 
     return {
       totalMinutes,
-      totalPlays,
+      totalPlays: stats.plays || 0,
       topArtists,
       topSongs,
       likedCount: liked.length,
@@ -1065,22 +1053,10 @@ const Achievements = (() => {
 
   function check() {
     const state    = getState();
-    let stats      = window.Store?.get('nonimid_stats', {}) || {};
+    const stats    = window.Store?.get('nonimid_stats', {}) || {};
     const liked    = window.Store?.get('nonimid_liked', []) || [];
     const playlists= window.Store?.get('nonimid_playlists', []) || [];
     const history  = window.Store?.get('nonimid_history', []) || [];
-
-    // Bug 2 fallback: nonimid_stats.plays may never have been written by
-    // the player, leaving context.plays at 0 forever. Sync it from
-    // history.length (and estimate seconds) so play-based achievements
-    // can actually unlock.
-    if (window.Store && (!stats.plays || stats.plays < history.length)) {
-      stats.plays = history.length;
-      if (!stats.seconds && history.length > 0) {
-        stats.seconds = history.reduce((s, t) => s + (t.duration_ms ? Math.round(t.duration_ms / 1000) : 210), 0);
-      }
-      window.Store.set('nonimid_stats', stats);
-    }
 
     const context = {
       plays:     stats.plays || 0,
@@ -1245,64 +1221,22 @@ const Achievements = (() => {
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
   }
 
-  // Hook into Player.addToHistory (with retry — window.Player may not
-  // exist yet when premium.js boots, which was the root cause of Bug 2:
-  // the original code returned immediately without retrying)
+  // Hook into Player.addToHistory
   function hookPlayer() {
-    let tries = 0;
-    const interval = setInterval(() => {
-      if (!window.Player) {
-        if (++tries > 100) clearInterval(interval);
-        return;
-      }
-      clearInterval(interval);
-      doHook();
-    }, 100);
-  }
-
-  function doHook() {
-    const orig = window.Player.addToHistory?.bind(window.Player);
+    const orig = window.Player?.addToHistory?.bind(window.Player);
+    if (!orig || !window.Player) return;
     window.Player.addToHistory = function(track) {
-      if (orig) orig(track);
+      orig(track);
       setTimeout(check, 200);
     };
 
-    // Hook LikedSongs.toggle, with its own retry since LikedSongs may
-    // not be ready yet either
     const origToggle = window.LikedSongs?.toggle?.bind(window.LikedSongs);
     if (origToggle && window.LikedSongs) {
       window.LikedSongs.toggle = function(track, btn) {
         origToggle(track, btn);
         setTimeout(check, 200);
       };
-    } else {
-      let lTries = 0;
-      const lInt = setInterval(() => {
-        if (window.LikedSongs?.toggle) {
-          clearInterval(lInt);
-          const orig2 = window.LikedSongs.toggle.bind(window.LikedSongs);
-          window.LikedSongs.toggle = function(track, btn) {
-            orig2(track, btn);
-            setTimeout(check, 200);
-          };
-        }
-        if (++lTries > 100) clearInterval(lInt);
-      }, 150);
     }
-
-    // Hook playlist creation so playlist-based achievements unlock too
-    if (window.Playlists?.create) {
-      const origCreate = window.Playlists.create.bind(window.Playlists);
-      window.Playlists.create = function(...args) {
-        const result = origCreate.apply(this, args);
-        setTimeout(check, 300);
-        return result;
-      };
-    }
-
-    // Run a check once hooks are in place, in case thresholds are
-    // already met from existing history/likes/playlists
-    setTimeout(check, 500);
   }
 
   return { init: hookPlayer, check, open, renderWidget };
@@ -1553,50 +1487,6 @@ function hookPlayerForPremium() {
 
 
 /* ───────────────────────────────────────────────────────────────
-   PLAYER STATS TRACKING — keep nonimid_stats / nonimid_monthly in
-   sync with playback so Wrapped & Achievements have real numbers
-   (root cause of Bug 1: nothing ever wrote to nonimid_stats)
-   ─────────────────────────────────────────────────────────────── */
-function hookPlayerStatsTracking() {
-  const tryHook = () => {
-    if (!window.Player || !window.Store) { setTimeout(tryHook, 100); return; }
-
-    const origAddToHistory = window.Player.addToHistory
-      ? window.Player.addToHistory.bind(window.Player)
-      : null;
-
-    window.Player.addToHistory = function(track) {
-      if (origAddToHistory) origAddToHistory(track);
-
-      const Store   = window.Store;
-      const stats   = Store.get('nonimid_stats', {}) || {};
-      const monthly = Store.get('nonimid_monthly', {}) || {};
-
-      // Increment play count
-      stats.plays = (stats.plays || 0) + 1;
-
-      // Add duration (estimate 3.5 min if unknown)
-      const dur = track?.duration_ms ? Math.round(track.duration_ms / 1000) : 210;
-      stats.seconds = (stats.seconds || 0) + dur;
-
-      // Monthly bucket — format: YYYY-MM
-      const now    = new Date();
-      const bucket = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-      if (!monthly[bucket]) monthly[bucket] = { plays: 0, seconds: 0 };
-      monthly[bucket].plays++;
-      monthly[bucket].seconds += dur;
-
-      Store.set('nonimid_stats', stats);
-      Store.set('nonimid_monthly', monthly);
-    };
-
-    console.log('[NONIMID Premium] ✓ Player.addToHistory hooked for stats tracking');
-  };
-  tryHook();
-}
-
-
-/* ───────────────────────────────────────────────────────────────
    PROFILE PAGE EXTENSION — inject achievement widget into profile
    ─────────────────────────────────────────────────────────────── */
 function hookProfilePage() {
@@ -1701,9 +1591,6 @@ function achievementSummaryHTML() {
 
     // 8. Player hooks for premium systems
     hookPlayerForPremium();
-
-    // 8b. Player stats tracking (feeds Wrapped + Achievements)
-    hookPlayerStatsTracking();
 
     // 9. Profile page extension
     hookProfilePage();
