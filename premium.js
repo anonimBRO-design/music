@@ -1250,10 +1250,10 @@ const PWAManager = (() => {
   let _deferredPrompt = null;
 
   function init() {
-    registerServiceWorker();
-    listenInstallPrompt();
-    injectManifest();
-  }
+  registerServiceWorker();
+  listenInstallPrompt();
+  // injectManifest();
+}
 
   function injectManifest() {
     if (document.querySelector('link[rel="manifest"]')) return;
