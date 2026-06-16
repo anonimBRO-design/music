@@ -1255,47 +1255,8 @@ const PWAManager = (() => {
   // injectManifest();
 }
 
-  function injectManifest() {
-    if (document.querySelector('link[rel="manifest"]')) return;
-    // Inline manifest via blob
-    const manifest = {
-      name: 'NONIMID',
-      short_name: 'NONIMID',
-      description: 'Your futuristic music streaming app',
-      start_url: '/',
-      display: 'standalone',
-      background_color: '#050508',
-      theme_color: '#1db954',
-      orientation: 'portrait-primary',
-      icons: [
-        { src: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg', sizes: '96x96',  type: 'image/jpeg' },
-        { src: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg', sizes: '192x192', type: 'image/jpeg' },
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const link = document.createElement('link');
-    link.rel  = 'manifest';
-    link.href = url;
-    document.head.appendChild(link);
-
-    // Meta theme-color
-    const meta = document.createElement('meta');
-    meta.name    = 'theme-color';
-    meta.content = '#050508';
-    document.head.appendChild(meta);
-
-    // Apple mobile web app
-    const apple = document.createElement('meta');
-    apple.name    = 'apple-mobile-web-app-capable';
-    apple.content = 'yes';
-    document.head.appendChild(apple);
-
-    const appleStatus = document.createElement('meta');
-    appleStatus.name    = 'apple-mobile-web-app-status-bar-style';
-    appleStatus.content = 'black-translucent';
-    document.head.appendChild(appleStatus);
-  }
+  function injectManifest() {}
+    
 
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
@@ -1334,12 +1295,9 @@ self.addEventListener('fetch', e => {
   );
 });
 `;
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-
-    navigator.serviceWorker.register(swUrl, { scope: '/' })
-      .then(() => console.log('[NONIMID PWA] Service Worker registered'))
-      .catch(() => {}); // Blob SW only works on same-origin
+    navigator.serviceWorker.register('/sw.js')
+  .then(() => console.log('[NONIMID PWA] Service Worker registered'))
+  .catch(err => console.error(err)); // Blob SW only works on same-origin
   }
 
   function listenInstallPrompt() {
