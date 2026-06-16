@@ -320,7 +320,7 @@
   var _incoming  = [];     // friend_requests pending for me
   var _outgoing  = [];     // friend_requests I sent
   var _collabs   = [];     // playlists I own + I collaborate on
-  var _friendTab = 'friends';   // active segment on friends page
+  var _currentFriendTab = 'friends';   // active segment on friends page
   var _collabTab = 'mine';      // active segment on collab page
   var _allUsers  = [];          // all profiles for "people online" section
   var _onlinePresence = {};     // uid -> last_seen timestamp
@@ -341,7 +341,7 @@
       } else {
         showAuthOverlay();
       }
-    });
+    }).catch(console.error);
 
     db.auth.onAuthStateChange(function (event, session) {
       _session = session;
@@ -364,7 +364,9 @@
   function patchAppNavigate() {
     // Wait for App to exist (script loads after main bundle)
     var orig = null;
+    var attempts = 0;
     var interval = setInterval(function () {
+      if (++attempts > 100) return clearInterval(interval);
       if (!window.App) return;
       clearInterval(interval);
 
@@ -384,7 +386,9 @@
 
   /* ── Patch App.init to inject social topbar status ─── */
   function patchAppInit() {
+    var attempts = 0;
     var interval = setInterval(function () {
+      if (++attempts > 100) return clearInterval(interval);
       if (!window.App) return;
       clearInterval(interval);
       var origInit = window.App.init.bind(window.App);
@@ -508,7 +512,7 @@
       if (window.ProfilePage && _profile) {
         var existing = window.Store && window.Store.get && window.Store.get('nonimid_profile', null);
         if (!existing || !existing.username || existing.username === 'Listener') {
-          window.Store.set('nonimid_profile', {
+          if (window.Store && window.Store.set) window.Store.set('nonimid_profile', {
             username: _profile.display_name || _profile.username,
             avatarUrl: null,
             memberSince: _profile.created_at || new Date().toISOString()
@@ -520,6 +524,10 @@
   }
 
   function onLoggedOut() {
+  if (window._sbPresenceInterval) clearInterval(window._sbPresenceInterval);
+  _currentPlaylistId = null;
+  _currentTracks = [];
+  _currentCollabs = [];
     _profile  = null;
     _friends  = [];
     _incoming = [];
@@ -544,12 +552,13 @@
   function saveProfile(fields) {
     if (!_session) return Promise.reject('Not signed in');
     return db.from('profiles').update(fields).eq('id', _session.user.id)
-      .then(function () { return loadProfile(); });
+      .then(function () { return loadProfile(); }).catch(console.error);
   }
 
   /* ── Friends data ───────────────────────────────────── */
   function loadFriendsData() {
     if (!_session) return Promise.resolve();
+    if (!_session) return;
     var uid = _session.user.id;
 
     return Promise.all([
@@ -581,6 +590,7 @@
   /* ── Collab playlists data ──────────────────────────── */
   function loadCollabData() {
     if (!_session) return Promise.resolve();
+    if (!_session) return;
     var uid = _session.user.id;
 
     return Promise.all([
@@ -746,9 +756,9 @@
   function renderFriendList() {
     var el = document.getElementById('sbFriendList');
     if (!el) return;
-    if (_friendTab === 'friends')  renderFriendCards(el);
-    if (_friendTab === 'incoming') renderIncomingCards(el);
-    if (_friendTab === 'outgoing') renderOutgoingCards(el);
+    if (_currentFriendTab === 'friends')  renderFriendCards(el);
+    if (_currentFriendTab === 'incoming') renderIncomingCards(el);
+    if (_currentFriendTab === 'outgoing') renderOutgoingCards(el);
   }
 
   function renderFriendCards(el) {
@@ -1027,6 +1037,7 @@
     var searchEl = document.getElementById('sbFriendSearch');
     var q = searchEl ? (searchEl.value || '').trim() : '';
     if (!q) return;
+    if (!_session) return;
     var el = document.getElementById('sbSearchResults');
     if (!el) return;
     el.innerHTML = '<div class="sb-spinner"></div>';
@@ -1072,7 +1083,7 @@
       .then(function (r) {
         if (r.error) { showToast(r.error.message, 'error'); return; }
         showToast('Friend request sent!', 'success');
-        loadFriendsData().then(function () { renderFriendsPage(); });
+        loadFriendsData().then(function () { renderFriendsPage(); }).catch(console.error);
       });
   }
 
@@ -1102,19 +1113,20 @@
       .then(function (r) {
         if (r.error) { showToast(r.error.message, 'error'); return; }
         showToast(status === 'accepted' ? 'Friend added! 🎉' : 'Request declined', 'info');
-        loadFriendsData().then(function () { renderFriendsPage(); });
+        loadFriendsData().then(function () { renderFriendsPage(); }).catch(console.error);
       });
   }
 
   /* public */ function _removeFriend(friendId) {
     if (!confirm('Remove this friend?')) return;
+    if (!_session) return;
     var uid = _session.user.id;
     Promise.all([
       db.from('friends').delete().eq('user_id', uid).eq('friend_id', friendId),
       db.from('friends').delete().eq('user_id', friendId).eq('friend_id', uid)
     ]).then(function () {
       showToast('Friend removed', 'info');
-      loadFriendsData().then(function () { renderFriendsPage(); });
+      loadFriendsData().then(function () { renderFriendsPage(); }).catch(console.error);
     });
   }
 
@@ -1131,7 +1143,7 @@
       .then(function (r) {
         if (r.error) { showToast(r.error.message, 'error'); return; }
         showToast('"' + name.trim() + '" created!', 'success');
-        loadCollabData().then(function () { renderCollabPage(); });
+        loadCollabData().then(function () { renderCollabPage(); }).catch(console.error);
       });
   }
 
@@ -1139,7 +1151,7 @@
     if (!confirm('Delete this playlist? This cannot be undone.')) return;
     db.from('playlists').delete().eq('id', playlistId).then(function () {
       showToast('Playlist deleted', 'info');
-      loadCollabData().then(function () { renderCollabPage(); });
+      loadCollabData().then(function () { renderCollabPage(); }).catch(console.error);
     });
   }
 
@@ -1166,7 +1178,8 @@
   }
 
   /* public */ function _addTrack() {
-    var title  = (document.getElementById('sbTrackTitle')  && document.getElementById('sbTrackTitle').value  || '').trim();
+    var el = document.getElementById('sbTrackTitle');
+    var title = (el ? el.value || '' : '').trim();
     var artist = (document.getElementById('sbTrackArtist') && document.getElementById('sbTrackArtist').value || '').trim();
     var album  = (document.getElementById('sbTrackAlbum')  && document.getElementById('sbTrackAlbum').value  || '').trim();
     if (!title || !artist) { showToast('Title and artist are required', 'error'); return; }
@@ -1224,7 +1237,7 @@
 
   /* ── Helpers ─────────────────────────────────────────── */
   function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
   function fmtDur(ms) {

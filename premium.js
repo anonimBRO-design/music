@@ -150,7 +150,8 @@ const ThemeEngine = (() => {
         --dyn-dim:    var(--neon-green-dim);
         --dyn-bg-accent: transparent;
       }
-      body { transition: --dyn-accent 1s ease; }
+      @property --dyn-accent { syntax: '<color>'; inherits: true; initial-value: transparent; }
+body { transition: --dyn-accent 1s ease; }
       #playerBar { transition: box-shadow 1.5s ease; }
       .ambient-orb { transition: background 2s ease; }
       /* Apply dynamic accent selectively */
@@ -224,7 +225,7 @@ const AudioVisualizer = (() => {
       window.YTPlayer.onStateChange = (state) => {
         if (typeof origCb === 'function') origCb(state);
         if (state === 1) tryConnectAudio();
-        if (state === 2 || state === 0) isActive = false;
+        if (state === 2 || state === 0) { isActive = false; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
       };
     }
   }
@@ -733,7 +734,8 @@ const Wrapped = (() => {
     try {
       // Use html2canvas if available, otherwise fallback to SVG snapshot
       if (window.html2canvas) {
-        const c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 });
+        let c;
+      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 }); } catch(err) { console.error(err); return; }
         const a = document.createElement('a');
         a.href = c.toDataURL('image/png');
         a.download = `nonimid-wrapped-${new Date().getFullYear()}.png`;
@@ -744,13 +746,15 @@ const Wrapped = (() => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
         script.onload = async () => {
-          const c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 });
+          let c;
+      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 }); } catch(err) { console.error(err); return; }
           const a = document.createElement('a');
           a.href = c.toDataURL('image/png');
           a.download = `nonimid-wrapped-${new Date().getFullYear()}.png`;
           a.click();
         };
-        document.head.appendChild(script);
+        script.onerror = function() { console.error('Failed to load html2canvas'); };
+      document.head.appendChild(script);
       }
     } catch (e) {
       window.Toast?.show('Download failed — try screenshot instead', 'error');
@@ -767,7 +771,7 @@ const Wrapped = (() => {
     if (navigator.share) {
       navigator.share({ title: `NONIMID Wrapped ${stats.year}`, text }).catch(() => {});
     } else {
-      navigator.clipboard?.writeText(text);
+      navigator.clipboard?.writeText(text).catch(console.error);
       window.Toast?.show('Copied to clipboard!', 'success');
     }
   }
@@ -984,7 +988,7 @@ const AIDj = (() => {
 
   function stop() {
     _isActive = false;
-    window.Queue?.clear();
+    // window.Queue?.clear(); // Prevent destroying user queue
     _btn?.classList.remove('dj-on');
     const dot = document.getElementById('djActiveDot');
     if (dot) dot.style.display = 'none';
@@ -1223,7 +1227,9 @@ const Achievements = (() => {
 
   // Hook into Player.addToHistory
   function hookPlayer() {
-    const orig = window.Player?.addToHistory?.bind(window.Player);
+    if (window._isAchievementsHooked) return;
+      window._isAchievementsHooked = true;
+      const orig = window.Player?.addToHistory?.bind(window.Player);
     if (!orig || !window.Player) return;
     window.Player.addToHistory = function(track) {
       orig(track);
@@ -1339,14 +1345,14 @@ self.addEventListener('fetch', e => {
         background:#1db954; color:#000; font-family:'Syne',sans-serif;
         font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap;
       ">Install</button>
-      <button onclick="document.getElementById('installBanner').remove()" style="
+      <button onclick="var b = document.getElementById('installBanner'); if(b) b.remove();" style="
         background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; font-size:18px; padding:2px;
       ">✕</button>
     `;
     document.body.appendChild(banner);
 
     // Auto-dismiss after 8s
-    setTimeout(() => banner.remove(), 8000);
+    setTimeout(() => { if(banner.parentNode) banner.remove(); }, 8000);
   }
 
   function install() {
@@ -1402,9 +1408,9 @@ function injectPremiumMobileNav() {
 function initKeyboardExtension() {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'w' || e.key === 'W') Wrapped.open();
-    if (e.key === 'a' || e.key === 'A') Achievements.open();
-    if (e.key === 'd' || e.key === 'D') AIDj.showPanel();
+    if (e.altKey && (e.key === 'w' || e.key === 'W')) Wrapped.open();
+    if (e.altKey && (e.key === 'a' || e.key === 'A')) Achievements.open();
+    if (e.altKey && (e.key === 'd' || e.key === 'D')) AIDj.showPanel();
   });
 }
 
@@ -1414,8 +1420,10 @@ function initKeyboardExtension() {
    ─────────────────────────────────────────────────────────────── */
 function hookPlayerForPremium() {
   const tryHook = () => {
-    if (!window.Player?.play) { setTimeout(tryHook, 100); return; }
+    if (!window.Player || !window.Player.play) { setTimeout(tryHook, 100); return; }
 
+    if (window._isPremiumHooked) return;
+    window._isPremiumHooked = true;
     const origPlay = window.Player.play.bind(window.Player);
     window.Player.play = function(track) {
       origPlay(track);
