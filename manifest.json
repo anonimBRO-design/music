@@ -1,0 +1,61 @@
+{
+  "name": "NONIMSONG — Music",
+  "short_name": "NONIMSONG",
+  "description": "Your futuristic music streaming app. Search, play, and discover music with lyrics, dynamic backgrounds, and a fullscreen player.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050508",
+  "theme_color": "#1db954",
+  "screenshots": [
+    {
+      "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      "sizes": "540x720",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music"],
+  "shortcuts": [
+    {
+      "name": "Search Music",
+      "short_name": "Search",
+      "description": "Quickly search for your favorite music",
+      "url": "/?mode=search",
+      "icons": [
+        {
+          "src": "https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
