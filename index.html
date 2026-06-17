@@ -3410,6 +3410,9 @@ const Lyrics = {
 const KeyboardShortcuts = {
   init() {
     document.addEventListener("keydown", (e) => {
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
       if(e.code === "Space") {
         e.preventDefault();
 
@@ -3471,19 +3474,7 @@ document.getElementById('sidebarOverlay').classList.toggle('show');
 
 <script src="premium.js"></script>
 
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => {
-        console.log('[PWA] Service Worker registered:', reg.scope);
-      })
-      .catch(err => {
-        console.error('[PWA] Service Worker registration failed:', err);
-      });
-  });
-}
-</script>
+
 
 </body>
 </html>

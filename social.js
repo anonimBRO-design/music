@@ -558,7 +558,6 @@
   /* ── Friends data ───────────────────────────────────── */
   function loadFriendsData() {
     if (!_session) return Promise.resolve();
-    if (!_session) return;
     var uid = _session.user.id;
 
     return Promise.all([
@@ -590,7 +589,6 @@
   /* ── Collab playlists data ──────────────────────────── */
   function loadCollabData() {
     if (!_session) return Promise.resolve();
-    if (!_session) return;
     var uid = _session.user.id;
 
     return Promise.all([

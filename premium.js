@@ -627,7 +627,7 @@ const Wrapped = (() => {
           <div>
             <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:12px">#1 Song</div>
             <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border-radius:12px;padding:12px">
-              <img src="${topSongArt}" style="width:52px;height:52px;border-radius:8px;object-fit:cover"/>
+              <img src="${topSongArt}" crossorigin="anonymous" style="width:52px;height:52px;border-radius:8px;object-fit:cover"/>
               <div style="flex:1;min-width:0">
                 <div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(topSongName)}</div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px">${stats.topSongs[0]?.count || 0} plays</div>
@@ -735,7 +735,7 @@ const Wrapped = (() => {
       // Use html2canvas if available, otherwise fallback to SVG snapshot
       if (window.html2canvas) {
         let c;
-      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 }); } catch(err) { console.error(err); return; }
+      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2, useCORS: true, allowTaint: false }); } catch(err) { console.error(err); return; }
         const a = document.createElement('a');
         a.href = c.toDataURL('image/png');
         a.download = `nonimid-wrapped-${new Date().getFullYear()}.png`;
@@ -747,7 +747,7 @@ const Wrapped = (() => {
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
         script.onload = async () => {
           let c;
-      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2 }); } catch(err) { console.error(err); return; }
+      try { c = await window.html2canvas(card, { backgroundColor: '#0a0a14', scale: 2, useCORS: true, allowTaint: false }); } catch(err) { console.error(err); return; }
           const a = document.createElement('a');
           a.href = c.toDataURL('image/png');
           a.download = `nonimid-wrapped-${new Date().getFullYear()}.png`;
@@ -948,6 +948,10 @@ const AIDj = (() => {
 
       if (status) status.textContent = `Finding ${_selectedMood ? MOODS[_selectedMood].label : 'similar tracks'}…`;
 
+      if (!window.YT_API) {
+        if (status) status.textContent = '⚠ API not ready';
+        return;
+      }
       const res = await window.YT_API?.search(query, 15);
       const items = (res?.items || []);
 
@@ -1227,22 +1231,27 @@ const Achievements = (() => {
 
   // Hook into Player.addToHistory
   function hookPlayer() {
-    if (window._isAchievementsHooked) return;
+    let _attempts = 0;
+    const tryHook = () => {
+      if (++_attempts > 50) return;
+      if (!window.Player || !window.Player.addToHistory) { setTimeout(tryHook, 100); return; }
+      if (window._isAchievementsHooked) return;
       window._isAchievementsHooked = true;
-      const orig = window.Player?.addToHistory?.bind(window.Player);
-    if (!orig || !window.Player) return;
-    window.Player.addToHistory = function(track) {
-      orig(track);
-      setTimeout(check, 200);
-    };
-
-    const origToggle = window.LikedSongs?.toggle?.bind(window.LikedSongs);
-    if (origToggle && window.LikedSongs) {
-      window.LikedSongs.toggle = function(track, btn) {
-        origToggle(track, btn);
+      const orig = window.Player.addToHistory.bind(window.Player);
+      window.Player.addToHistory = function(track) {
+        orig(track);
         setTimeout(check, 200);
       };
-    }
+
+      const origToggle = window.LikedSongs?.toggle?.bind(window.LikedSongs);
+      if (origToggle && window.LikedSongs) {
+        window.LikedSongs.toggle = function(track, btn) {
+          origToggle(track, btn);
+          setTimeout(check, 200);
+        };
+      }
+    };
+    tryHook();
   }
 
   return { init: hookPlayer, check, open, renderWidget };
