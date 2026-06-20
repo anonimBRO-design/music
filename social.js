@@ -588,7 +588,7 @@
         .then(function (r) { return r.data || []; })
         .catch(function () { return []; }),
       db.from('playlist_collaborators')
-        .select('*, playlist:playlists(*)')
+        .select('*, playlist:playlists!playlist_collaborators_playlist_id_fkey(*)')
         .eq('user_id', uid)
         .then(function (r) { return r.data || []; })
         .catch(function () { return []; })
