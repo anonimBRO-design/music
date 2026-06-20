@@ -11,7 +11,8 @@
 <meta name="theme-color" content="#1db954"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+<link rel="icon" type="image/png" href="/icons/favicon.png"/>
+<link rel="apple-touch-icon" href="/icons/logo.png"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="NONIMSONG — Music"/>
 <meta property="og:description" content="NONIMSONG — your futuristic music streaming app. Search, play, and discover music with lyrics, dynamic backgrounds, and a fullscreen player."/>
@@ -40,8 +41,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 @keyframes floatOrb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 #sidebar{grid-column:1;grid-row:1;background:rgba(5,5,8,.95);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10;backdrop-filter:blur(20px)}
 .sidebar-logo{padding:28px 24px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;cursor:pointer}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--neon-green),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--neon-green-glow);flex-shrink:0}
-.logo-icon svg{width:20px;height:20px;fill:white}
+.logo-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon img{width:40px;height:40px;object-fit:contain}
 .logo-text{font-size:18px;font-weight:800;letter-spacing:.05em;background:linear-gradient(90deg,#fff 0%,var(--neon-green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sidebar-nav{padding:8px 12px;flex-shrink:0}
 .nav-section-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-muted);padding:12px 12px 6px;text-transform:uppercase}
@@ -552,9 +553,7 @@ display:none!important;
   <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sidebar-logo" onclick="App.navigate('home')">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
-      </div>
+      <div class="logo-icon"><img src="/icons/logo.png" alt="Logo"/></div>
       <span class="logo-text">NONIMSONG</span>
     </div>
     <nav class="sidebar-nav">
