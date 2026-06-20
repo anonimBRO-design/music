@@ -1,6 +1,6 @@
 // api/video.js — Vercel Serverless Function
 // Fetches video details using youtubei.js (Innertube)
-const { Innertube } = require('youtubei.js');
+import { Innertube } from 'youtubei.js';
 
 let youtube;
 
@@ -11,7 +11,7 @@ async function getInnertube() {
   return youtube;
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
