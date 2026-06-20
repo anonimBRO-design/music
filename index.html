@@ -2362,19 +2362,28 @@ const Player = {
   },
 
   addToHistory(track) {
+    console.log('[TRACK] play event');
     let hist = Store.get(KEYS.HISTORY, []);
+    
+    // Find existing track to preserve play count
+    const existing = hist.find(t => t.id === track.id);
+    const playCount = (existing?.playCount || 0) + 1;
+
     hist = hist.filter(t => t.id !== track.id);
-    hist.unshift({ ...track, playedAt: new Date().toISOString() });
+    hist.unshift({ ...track, playCount, playedAt: new Date().toISOString() });
     if (hist.length > 50) hist = hist.slice(0, 50);
     Store.set(KEYS.HISTORY, hist);
+    console.log('[TRACK] history saved');
 
     // Track stats
     const stats = Store.get(KEYS.STATS, { plays: 0, seconds: 0 });
     stats.plays = (stats.plays || 0) + 1;
     Store.set(KEYS.STATS, stats);
+    console.log('[TRACK] stats updated');
 
     // Monthly stats
     ProfilePage.trackMonthlyPlay();
+    console.log('[TRACK] monthly updated');
   }
 };
 

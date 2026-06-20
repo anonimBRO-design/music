@@ -507,7 +507,7 @@ const Wrapped = (() => {
     history.forEach(t => {
       if (!t) return;
       const artist = t.artist || 'Unknown Artist';
-      artistCounts[artist] = (artistCounts[artist] || 0) + 1;
+      artistCounts[artist] = (artistCounts[artist] || 0) + (t.playCount || 1);
     });
     const topArtists = Object.entries(artistCounts)
       .sort((a, b) => b[1] - a[1])
@@ -518,7 +518,7 @@ const Wrapped = (() => {
     const songCounts = {};
     history.forEach(t => {
       if (!t || !t.id) return;
-      songCounts[t.id] = { track: t, count: (songCounts[t.id]?.count || 0) + 1 };
+      songCounts[t.id] = { track: t, count: (songCounts[t.id]?.count || 0) + (t.playCount || 1) };
     });
     const topSongs = Object.values(songCounts)
       .sort((a, b) => b.count - a.count)
