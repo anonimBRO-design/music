@@ -1560,7 +1560,7 @@ const Home = {
     if (!el) return;
     if (!items.length) { el.innerHTML = ''; return; }
     el.innerHTML = items.slice(0,6).map(item => {
-      const t = makeTrack(item);
+      const t = item.snippet ? makeTrack(item) : item;
       return `
         <div class="quick-card" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')})">
           <img class="quick-card-thumb" src="${t.thumbnail}" alt=""/>
