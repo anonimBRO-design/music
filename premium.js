@@ -492,11 +492,15 @@ const AudioVisualizer = (() => {
 const Wrapped = (() => {
   function getStats() {
     console.log('[WRAPPED] Fetching statistics...');
-    const history = window.Store?.get('nonimid_history', []) || [];
-    const liked   = window.LikedSongs?.get() || [];
-    const playlists = window.Playlists?.getAll() || [];
-    const stats   = window.Store?.get('nonimid_stats', { plays: 0, seconds: 0 }) || { plays: 0, seconds: 0 };
-    const monthly = window.Store?.get('nonimid_monthly_stats', {}) || {};
+    const sStore = typeof Store !== 'undefined' ? Store : window.Store;
+    const sLiked = typeof LikedSongs !== 'undefined' ? LikedSongs : window.LikedSongs;
+    const sPlaylists = typeof Playlists !== 'undefined' ? Playlists : window.Playlists;
+
+    const history = sStore?.get('nonimid_history', []) || [];
+    const liked   = sLiked?.get() || [];
+    const playlists = sPlaylists?.getAll() || [];
+    const stats   = sStore?.get('nonimid_stats', { plays: 0, seconds: 0 }) || { plays: 0, seconds: 0 };
+    const monthly = sStore?.get('nonimid_monthly', {}) || {};
 
     // Top artists
     const artistCounts = {};
