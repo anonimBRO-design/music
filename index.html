@@ -1528,7 +1528,7 @@ const Home = {
     if (!el) return;
     if (!items.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px">No results found</div>'; return; }
     el.innerHTML = items.map(item => {
-      const t = makeTrack(item);
+      const t = item;
       const liked = LikedSongs.has(t.id);
       return `
         <div class="music-card" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')})">
