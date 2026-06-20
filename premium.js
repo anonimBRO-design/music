@@ -491,16 +491,19 @@ const AudioVisualizer = (() => {
    ─────────────────────────────────────────────────────────────── */
 const Wrapped = (() => {
   function getStats() {
-    const history   = (window.Store?.get('nonimid_history', []) || []);
-    const liked     = (window.Store?.get('nonimid_liked', []) || []);
-    const stats     = (window.Store?.get('nonimid_stats', {}) || {});
-    const monthly   = (window.Store?.get('nonimid_monthly', {}) || {});
-    const playlists = (window.Store?.get('nonimid_playlists', []) || []);
+    console.log('[WRAPPED] Fetching statistics...');
+    const history = window.Store?.get('nonimid_history', []) || [];
+    const liked   = window.LikedSongs?.get() || [];
+    const playlists = window.Playlists?.getAll() || [];
+    const stats   = window.Store?.get('nonimid_stats', { plays: 0, seconds: 0 }) || { plays: 0, seconds: 0 };
+    const monthly = window.Store?.get('nonimid_monthly_stats', {}) || {};
 
     // Top artists
     const artistCounts = {};
     history.forEach(t => {
-      artistCounts[t.artist] = (artistCounts[t.artist] || 0) + 1;
+      if (!t) return;
+      const artist = t.artist || 'Unknown Artist';
+      artistCounts[artist] = (artistCounts[artist] || 0) + 1;
     });
     const topArtists = Object.entries(artistCounts)
       .sort((a, b) => b[1] - a[1])
@@ -510,6 +513,7 @@ const Wrapped = (() => {
     // Top songs
     const songCounts = {};
     history.forEach(t => {
+      if (!t || !t.id) return;
       songCounts[t.id] = { track: t, count: (songCounts[t.id]?.count || 0) + 1 };
     });
     const topSongs = Object.values(songCounts)
@@ -517,16 +521,17 @@ const Wrapped = (() => {
       .slice(0, 5);
 
     // Total minutes
-    const totalSeconds = stats.seconds || Object.values(monthly).reduce((a, m) => a + (m.seconds || 0), 0);
-    const totalMinutes = Math.round(totalSeconds / 60);
+    const totalSeconds = Number(stats.seconds) || Object.values(monthly).reduce((a, m) => a + (Number(m?.seconds) || 0), 0);
+    const totalMinutes = Math.round(totalSeconds / 60) || 0;
+    const totalPlays = Number(stats.plays) || history.length || 0;
 
     // Monthly breakdown
     const monthlyPlays = Object.entries(monthly)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, plays: data.plays || 0, mins: Math.round((data.seconds||0)/60) }));
+      .map(([month, data]) => ({ month: String(month), plays: Number(data?.plays) || 0, mins: Math.round((Number(data?.seconds)||0)/60) }));
 
     // Personality
-    const allText = history.map(t => (t.title + ' ' + t.artist).toLowerCase()).join(' ');
+    const allText = history.map(t => ((t?.title || '') + ' ' + (t?.artist || '')).toLowerCase()).join(' ');
     let personality = 'Explorer';
     if (allText.includes('phonk'))       personality = 'Phonk Drifter';
     else if (allText.includes('lofi'))   personality = 'Chill Architect';
@@ -548,7 +553,22 @@ const Wrapped = (() => {
   }
 
   function open() {
-    const stats = getStats();
+    console.log('[WRAPPED] Opening modal...');
+    let stats;
+    try {
+      stats = getStats();
+    } catch (e) {
+      console.error('[WRAPPED] Initialization failure:', e);
+      window.Toast?.show('Failed to load Wrapped data.', 'error');
+      return;
+    }
+
+    if (!stats.totalPlays && stats.topSongs.length === 0) {
+      console.log('[WRAPPED] No history found, showing fallback UI');
+      window.Toast?.show('You need to play some music first!', 'info');
+      return;
+    }
+
     const modal = document.createElement('div');
     modal.id = 'wrappedModal';
     modal.style.cssText = `
@@ -558,25 +578,27 @@ const Wrapped = (() => {
       animation: fadeIn 0.3s ease; overflow-y:auto; padding:20px;
     `;
 
-    const topSongName = stats.topSongs[0]?.track?.title || '—';
-    const topArtist   = stats.topArtists[0]?.name || '—';
+    const topSongName = stats.topSongs[0]?.track?.title || 'No songs played';
     const topSongArt  = stats.topSongs[0]?.track?.thumbnail || '';
 
     // Monthly chart data
     const maxPlays = Math.max(...stats.monthlyPlays.map(m => m.plays), 1);
     const barChart = stats.monthlyPlays.map(m => {
-      const pct = Math.round((m.plays / maxPlays) * 100);
-      const label = m.month.slice(5); // MM
+      const pct = Math.round((m.plays / maxPlays) * 100) || 0;
+      const label = String(m.month || '').slice(5); // MM
       const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const monthName = months[parseInt(label)] || label || '—';
       return `
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0">
           <div style="width:100%;background:rgba(255,255,255,0.06);border-radius:4px;height:80px;display:flex;align-items:flex-end;overflow:hidden">
             <div style="width:100%;background:linear-gradient(to top,var(--dyn-accent,#1db954),rgba(29,185,84,0.4));height:${pct}%;border-radius:4px;transition:height 1s ease"></div>
           </div>
-          <span style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700">${months[parseInt(label)]||label}</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:700">${monthName}</span>
           <span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700">${m.plays}</span>
         </div>`;
     }).join('');
+
+    const topArtistMaxCount = Math.max(stats.topArtists[0]?.count || 1, 1);
 
     modal.innerHTML = `
       <div id="wrappedCard" style="
@@ -626,7 +648,7 @@ const Wrapped = (() => {
           <div>
             <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:12px">#1 Song</div>
             <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.04);border-radius:12px;padding:12px">
-              <img src="${topSongArt}" style="width:52px;height:52px;border-radius:8px;object-fit:cover"/>
+              <img src="${topSongArt}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" onerror="this.src=''"/>
               <div style="flex:1;min-width:0">
                 <div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(topSongName)}</div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px">${stats.topSongs[0]?.count || 0} plays</div>
@@ -644,7 +666,7 @@ const Wrapped = (() => {
                 <div style="display:flex;align-items:center;gap:12px">
                   <span style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.2);width:20px;text-align:right">${i+1}</span>
                   <div style="flex:1;height:32px;background:rgba(255,255,255,0.04);border-radius:6px;position:relative;overflow:hidden">
-                    <div style="height:100%;background:linear-gradient(90deg,rgba(29,185,84,0.2),transparent);width:${Math.round(a.count/stats.topArtists[0].count*100)}%;transition:width 1.2s ease"></div>
+                    <div style="height:100%;background:linear-gradient(90deg,rgba(29,185,84,0.2),transparent);width:${Math.round((a.count/topArtistMaxCount)*100) || 0}%;transition:width 1.2s ease"></div>
                     <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700">${esc(a.name)}</span>
                   </div>
                   <span style="font-size:12px;color:rgba(255,255,255,0.4);font-weight:700;width:40px;text-align:right">${a.count}</span>
@@ -654,7 +676,7 @@ const Wrapped = (() => {
           </div>` : ''}
 
           <!-- Monthly chart -->
-          ${stats.monthlyPlays.length > 1 ? `
+          ${stats.monthlyPlays.length > 0 ? `
           <div>
             <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:12px">Monthly Plays</div>
             <div style="display:flex;gap:4px;align-items:flex-end">
@@ -996,252 +1018,6 @@ const AIDj = (() => {
 })();
 
 
-/* ───────────────────────────────────────────────────────────────
-   5. ACHIEVEMENT SYSTEM
-   Badge, level pengguna, XP berdasarkan aktivitas
-   ─────────────────────────────────────────────────────────────── */
-const Achievements = (() => {
-  const KEY = 'nonimid_achievements';
-
-  const DEFINITIONS = [
-    { id: 'first_play',     name: 'First Note',       desc: 'Play your first song',         emoji: '🎵', xp: 10,  trigger: 'plays',    threshold: 1    },
-    { id: 'ten_plays',      name: 'Getting Warmed Up', desc: 'Play 10 songs',                emoji: '🔥', xp: 25,  trigger: 'plays',    threshold: 10   },
-    { id: 'night_owl',      name: 'Night Owl',         desc: 'Play 50 songs',                emoji: '🦉', xp: 50,  trigger: 'plays',    threshold: 50   },
-    { id: 'centurion',      name: 'Centurion',         desc: 'Play 100 songs',               emoji: '💯', xp: 100, trigger: 'plays',    threshold: 100  },
-    { id: 'music_addict',   name: 'Music Addict',      desc: 'Play 500 songs',               emoji: '🎧', xp: 250, trigger: 'plays',    threshold: 500  },
-    { id: 'first_like',     name: 'Heart Strings',     desc: 'Like your first song',         emoji: '❤️', xp: 10,  trigger: 'likes',    threshold: 1    },
-    { id: 'curator',        name: 'Curator',           desc: 'Like 25 songs',                emoji: '🏆', xp: 50,  trigger: 'likes',    threshold: 25   },
-    { id: 'archivist',      name: 'Archivist',         desc: 'Like 100 songs',               emoji: '📚', xp: 100, trigger: 'likes',    threshold: 100  },
-    { id: 'first_playlist', name: 'Playlist Pioneer',  desc: 'Create your first playlist',   emoji: '📋', xp: 15,  trigger: 'playlists',threshold: 1    },
-    { id: 'dj',             name: 'The DJ',            desc: 'Create 5 playlists',           emoji: '🎚️', xp: 75,  trigger: 'playlists',threshold: 5    },
-    { id: 'hour_club',      name: 'Hour Club',         desc: 'Listen for 60 minutes total',  emoji: '⏰', xp: 50,  trigger: 'minutes',  threshold: 60   },
-    { id: 'day_listener',   name: 'Day Listener',      desc: 'Listen for 24 hours total',    emoji: '🌞', xp: 200, trigger: 'minutes',  threshold: 1440 },
-    { id: 'phonk_head',     name: 'Phonk Head',        desc: 'Listen to 10 phonk tracks',    emoji: '🚗', xp: 40,  trigger: 'genre_phonk', threshold: 10 },
-    { id: 'chill_master',   name: 'Chill Master',      desc: 'Listen to 10 lofi/chill tracks',emoji:'☕', xp: 40,  trigger: 'genre_chill', threshold: 10 },
-  ];
-
-  const LEVELS = [
-    { level: 1,  name: 'Newcomer',   minXP: 0    },
-    { level: 2,  name: 'Listener',   minXP: 50   },
-    { level: 3,  name: 'Fan',        minXP: 150  },
-    { level: 4,  name: 'Enthusiast', minXP: 300  },
-    { level: 5,  name: 'Devotee',    minXP: 500  },
-    { level: 6,  name: 'Audiophile', minXP: 800  },
-    { level: 7,  name: 'Connoisseur',minXP: 1200 },
-    { level: 8,  name: 'Maestro',    minXP: 2000 },
-    { level: 9,  name: 'Legend',     minXP: 3000 },
-    { level: 10, name: 'Icon',       minXP: 5000 },
-  ];
-
-  function getState() {
-    return window.Store?.get(KEY, { xp: 0, unlocked: [], lastChecked: 0 }) ||
-           { xp: 0, unlocked: [], lastChecked: 0 };
-  }
-
-  function saveState(state) {
-    window.Store?.set(KEY, state);
-  }
-
-  function getLevel(xp) {
-    const lvl = [...LEVELS].reverse().find(l => xp >= l.minXP);
-    return lvl || LEVELS[0];
-  }
-
-  function getNextLevel(xp) {
-    return LEVELS.find(l => l.minXP > xp);
-  }
-
-  function check() {
-    const state    = getState();
-    const stats    = window.Store?.get('nonimid_stats', {}) || {};
-    const liked    = window.Store?.get('nonimid_liked', []) || [];
-    const playlists= window.Store?.get('nonimid_playlists', []) || [];
-    const history  = window.Store?.get('nonimid_history', []) || [];
-
-    const context = {
-      plays:     stats.plays || 0,
-      likes:     liked.length,
-      playlists: playlists.length,
-      minutes:   Math.round((stats.seconds || 0) / 60),
-      genre_phonk: history.filter(t => (t.title + t.artist).toLowerCase().includes('phonk')).length,
-      genre_chill: history.filter(t => ['lofi','lo-fi','chill','study'].some(k => (t.title + t.artist).toLowerCase().includes(k))).length,
-    };
-
-    const newlyUnlocked = [];
-
-    DEFINITIONS.forEach(def => {
-      if (state.unlocked.includes(def.id)) return;
-      if ((context[def.trigger] || 0) >= def.threshold) {
-        state.unlocked.push(def.id);
-        state.xp += def.xp;
-        newlyUnlocked.push(def);
-      }
-    });
-
-    if (newlyUnlocked.length) {
-      saveState(state);
-      newlyUnlocked.forEach((def, i) => {
-        setTimeout(() => showUnlockToast(def), i * 1500);
-      });
-    }
-
-    return { state, context };
-  }
-
-  function showUnlockToast(def) {
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-      position:fixed; bottom:calc(var(--player-h) + 80px); left:50%; transform:translateX(-50%) translateY(10px);
-      background:linear-gradient(135deg,rgba(13,13,20,0.98),rgba(18,18,30,0.98));
-      border:1px solid rgba(155,89,255,0.4); border-radius:16px;
-      padding:14px 20px; display:flex; align-items:center; gap:12px;
-      box-shadow:0 8px 40px rgba(155,89,255,0.2);
-      z-index:999; animation:achieveIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
-      max-width:320px;
-    `;
-    toast.innerHTML = `
-      <style>@keyframes achieveIn{from{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}</style>
-      <div style="font-size:28px">${def.emoji}</div>
-      <div>
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#9b59ff;text-transform:uppercase;margin-bottom:2px">Achievement Unlocked!</div>
-        <div style="font-size:14px;font-weight:800">${def.name}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.5)">${def.desc} · +${def.xp} XP</div>
-      </div>
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(-10px)';
-      setTimeout(() => toast.remove(), 350);
-    }, 4000);
-  }
-
-  function renderWidget() {
-    const { state } = check();
-    const level     = getLevel(state.xp);
-    const next      = getNextLevel(state.xp);
-    const pct       = next ? Math.round(((state.xp - level.minXP) / (next.minXP - level.minXP)) * 100) : 100;
-    const unlocked  = DEFINITIONS.filter(d => state.unlocked.includes(d.id));
-    const locked    = DEFINITIONS.filter(d => !state.unlocked.includes(d.id));
-
-    return `
-      <div style="padding:32px">
-        <!-- Level Card -->
-        <div style="
-          background:linear-gradient(135deg,rgba(155,89,255,0.15),rgba(29,185,84,0.08));
-          border:1px solid rgba(155,89,255,0.2); border-radius:20px; padding:24px;
-          margin-bottom:28px; display:flex; align-items:center; gap:20px;
-        ">
-          <div style="
-            width:64px;height:64px;border-radius:50%;flex-shrink:0;
-            background:linear-gradient(135deg,#9b59ff,#6b35cc);
-            display:flex;align-items:center;justify-content:center;
-            font-size:24px;font-weight:900;color:white;
-            box-shadow:0 0 24px rgba(155,89,255,0.4);
-          ">${level.level}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px">Level ${level.level}</div>
-            <div style="font-size:20px;font-weight:800;margin-bottom:10px">${level.name}</div>
-            <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden">
-              <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#9b59ff,#1db954);border-radius:6px;transition:width 1s ease"></div>
-            </div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px">
-              ${state.xp} XP ${next ? `· ${next.minXP - state.xp} XP to ${next.name}` : '· Max level!'}
-            </div>
-          </div>
-        </div>
-
-        <!-- Unlocked badges -->
-        ${unlocked.length ? `
-        <div style="margin-bottom:24px">
-          <div style="font-size:13px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-            🏆 Unlocked <span style="background:rgba(29,185,84,0.15);color:#1db954;border-radius:20px;padding:2px 10px;font-size:11px">${unlocked.length}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-            ${unlocked.map(d => `
-              <div style="
-                background:rgba(255,255,255,0.04); border:1px solid rgba(29,185,84,0.2);
-                border-radius:12px; padding:14px; text-align:center;
-              ">
-                <div style="font-size:28px;margin-bottom:8px">${d.emoji}</div>
-                <div style="font-size:13px;font-weight:700;margin-bottom:3px">${d.name}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.4)">${d.desc}</div>
-                <div style="font-size:11px;color:#1db954;font-weight:700;margin-top:5px">+${d.xp} XP</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>` : ''}
-
-        <!-- Locked badges -->
-        ${locked.length ? `
-        <div>
-          <div style="font-size:13px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-            🔒 Locked <span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border-radius:20px;padding:2px 10px;font-size:11px">${locked.length}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-            ${locked.map(d => `
-              <div style="
-                background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05);
-                border-radius:12px; padding:14px; text-align:center; opacity:0.5;
-                filter:grayscale(1);
-              ">
-                <div style="font-size:28px;margin-bottom:8px">🔒</div>
-                <div style="font-size:13px;font-weight:700;margin-bottom:3px">${d.name}</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.4)">${d.desc}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>` : ''}
-      </div>
-    `;
-  }
-
-  function open() {
-    const modal = document.createElement('div');
-    modal.id = 'achievementsModal';
-    modal.style.cssText = `
-      position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.85);
-      backdrop-filter:blur(20px); display:flex; align-items:center; justify-content:center;
-      padding:20px; animation:fadeIn 0.25s ease; overflow-y:auto;
-    `;
-    modal.innerHTML = `
-      <div style="width:min(600px,100%);background:#0d0d14;border-radius:24px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;max-height:90vh;overflow-y:auto">
-        <div style="padding:24px 32px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-size:20px;font-weight:800">Achievements</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">Your NONIMID journey</div>
-          </div>
-          <button onclick="document.getElementById('achievementsModal').remove()" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.5);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
-        </div>
-        ${renderWidget()}
-      </div>
-    `;
-    document.body.appendChild(modal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-  }
-
-  // Hook into Player.addToHistory
-  function hookPlayer() {
-    const orig = window.Player?.addToHistory?.bind(window.Player);
-    if (!orig || !window.Player) return;
-    window.Player.addToHistory = function(track) {
-      orig(track);
-      setTimeout(check, 200);
-    };
-
-    const origToggle = window.LikedSongs?.toggle?.bind(window.LikedSongs);
-    if (origToggle && window.LikedSongs) {
-      window.LikedSongs.toggle = function(track, btn) {
-        origToggle(track, btn);
-        setTimeout(check, 200);
-      };
-    }
-  }
-
-  return { init: hookPlayer, check, open, renderWidget };
-})();
-
 
 /* ───────────────────────────────────────────────────────────────
    6. PWA — Service Worker + Install Prompt
@@ -1379,13 +1155,6 @@ function injectPremiumNavItems() {
       </svg>
       Wrapped
     </button>
-    <button class="nav-item" id="nav-achievements" onclick="Achievements.open()">
-      <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px">
-        <path d="M17 11c.34 0 .67.03 1 .08V6.27L10.5 3 3 6.27v4.91c0 4.54 3.2 8.79 7.5 9.82.55-.13 1.08-.32 1.6-.55-.69-.98-1.1-2.17-1.1-3.45 0-3.31 2.69-6 6-6z"/>
-        <path d="M17 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm2 4.5h-1.5V19h-1v-1.5H15V16h1.5v-1.5h1V16H19v1.5z"/>
-      </svg>
-      Achievements
-    </button>
   `;
 
   sidebar.insertAdjacentHTML('beforeend', navItems);
@@ -1403,7 +1172,6 @@ function initKeyboardExtension() {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'w' || e.key === 'W') Wrapped.open();
-    if (e.key === 'a' || e.key === 'A') Achievements.open();
     if (e.key === 'd' || e.key === 'D') AIDj.showPanel();
   });
 }
@@ -1425,8 +1193,6 @@ function hookPlayerForPremium() {
       if (window.YTPlayer?.isPlaying !== undefined) {
         setTimeout(() => AudioVisualizer.tryConnectAudio(), 300);
       }
-      // Check achievements after play
-      setTimeout(() => Achievements.check(), 500);
     };
 
     // Also hook YTPlayer state for visualizer
@@ -1445,79 +1211,11 @@ function hookPlayerForPremium() {
 
 
 /* ───────────────────────────────────────────────────────────────
-   PROFILE PAGE EXTENSION — inject achievement widget into profile
+   PROFILE PAGE EXTENSION
    ─────────────────────────────────────────────────────────────── */
 function hookProfilePage() {
-  const tryHook = () => {
-    if (!window.ProfilePage?.render) { setTimeout(tryHook, 100); return; }
-
-    const origRender = window.ProfilePage.render.bind(window.ProfilePage);
-    window.ProfilePage.render = function() {
-      origRender();
-      // Inject achievement summary into profile after a tick
-      setTimeout(() => {
-        const profileContent = document.getElementById('profileContent');
-        if (!profileContent) return;
-
-        const achieveSection = document.createElement('div');
-        achieveSection.style.cssText = 'padding:0 32px 32px';
-        achieveSection.innerHTML = `
-          <div class="profile-section">
-            <div class="profile-section-title" style="display:flex;align-items:center;justify-content:space-between">
-              🏆 Achievements
-              <button onclick="Achievements.open()" style="
-                padding:6px 14px; border-radius:20px; border:1px solid rgba(155,89,255,0.3);
-                background:rgba(155,89,255,0.08); color:#9b59ff;
-                font-family:'Syne',sans-serif; font-size:11px; font-weight:700; cursor:pointer;
-              ">View All</button>
-            </div>
-            ${achievementSummaryHTML()}
-          </div>
-        `;
-
-        // Find the inner padding div
-        const inner = profileContent.querySelector('div[style*="padding:32px"]') ||
-                      profileContent.querySelector('div');
-        if (inner) inner.appendChild(achieveSection);
-      }, 50);
-    };
-  };
-  tryHook();
+  // Achievements removed from profile
 }
-
-function achievementSummaryHTML() {
-  const state   = window.Store?.get('nonimid_achievements', { xp: 0, unlocked: [] }) || { xp: 0, unlocked: [] };
-  const LEVELS  = [
-    { level: 1, name: 'Newcomer', minXP: 0 },
-    { level: 2, name: 'Listener', minXP: 50 },
-    { level: 3, name: 'Fan', minXP: 150 },
-    { level: 4, name: 'Enthusiast', minXP: 300 },
-    { level: 5, name: 'Devotee', minXP: 500 },
-    { level: 6, name: 'Audiophile', minXP: 800 },
-    { level: 7, name: 'Connoisseur', minXP: 1200 },
-    { level: 8, name: 'Maestro', minXP: 2000 },
-    { level: 9, name: 'Legend', minXP: 3000 },
-    { level: 10, name: 'Icon', minXP: 5000 },
-  ];
-  const lvl   = [...LEVELS].reverse().find(l => state.xp >= l.minXP) || LEVELS[0];
-  const next  = LEVELS.find(l => l.minXP > state.xp);
-  const pct   = next ? Math.round(((state.xp - lvl.minXP) / (next.minXP - lvl.minXP)) * 100) : 100;
-
-  return `
-    <div style="background:rgba(155,89,255,0.08);border:1px solid rgba(155,89,255,0.2);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px;cursor:pointer" onclick="Achievements.open()">
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#9b59ff,#6b35cc);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0">${lvl.level}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700">${lvl.name} · ${state.xp} XP</div>
-        <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:4px;margin-top:8px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#9b59ff,#1db954)"></div>
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">${state.unlocked.length} badges unlocked</div>
-      </div>
-      <div style="color:rgba(255,255,255,0.3);font-size:18px">›</div>
-    </div>
-  `;
-}
-
 
 /* ───────────────────────────────────────────────────────────────
    MAIN BOOT
@@ -1532,14 +1230,17 @@ function achievementSummaryHTML() {
     // 2. Audio Visualizer
     AudioVisualizer.init();
 
+    // Clean up old achievements data
+    try {
+      localStorage.removeItem('nonimid_achievements');
+      console.log('[NONIMID Premium] Removed legacy achievements data');
+    } catch(e) {}
+
     // 3. AI DJ
     AIDj.init();
 
     // 4. PWA
     PWAManager.init();
-
-    // 5. Achievements hooks
-    Achievements.init();
 
     // 6. Sidebar nav items
     injectPremiumNavItems();
@@ -1558,11 +1259,10 @@ function achievementSummaryHTML() {
     window.AudioVisualizer= AudioVisualizer;
     window.Wrapped        = Wrapped;
     window.AIDj           = AIDj;
-    window.Achievements   = Achievements;
     window.PWAManager     = PWAManager;
 
     console.log('[NONIMID Premium] ✓ All systems online');
-    console.log('[NONIMID Premium] Shortcuts: W=Wrapped, A=Achievements, D=AI DJ');
+    console.log('[NONIMID Premium] Shortcuts: W=Wrapped, D=AI DJ');
   };
 
   if (document.readyState === 'loading') {
