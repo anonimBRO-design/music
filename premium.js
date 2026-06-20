@@ -563,13 +563,15 @@ const Wrapped = (() => {
       return;
     }
 
+    let isFallback = false;
     if (!stats.totalPlays && stats.topSongs.length === 0) {
       console.log('[WRAPPED] No history found, showing fallback UI');
-      window.Toast?.show('You need to play some music first!', 'info');
-      return;
+      window.Toast?.show('Showing preview with empty stats!', 'info');
+      isFallback = true;
     }
 
     const modal = document.createElement('div');
+    console.log('[WRAPPED] modal created');
     modal.id = 'wrappedModal';
     modal.style.cssText = `
       position:fixed; inset:0; z-index:600;
@@ -719,6 +721,12 @@ const Wrapped = (() => {
     `;
 
     document.body.appendChild(modal);
+    console.log('[WRAPPED] modal inserted');
+    setTimeout(() => {
+      console.log('[WRAPPED] modal shown');
+      if (isFallback) console.log('[WRAPPED] fallback rendered');
+    }, 50);
+
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.remove();
     });
