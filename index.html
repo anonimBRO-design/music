@@ -41,8 +41,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 @keyframes floatOrb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 #sidebar{grid-column:1;grid-row:1;background:rgba(5,5,8,.95);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10;backdrop-filter:blur(20px)}
 .sidebar-logo{padding:28px 24px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;cursor:pointer}
-.logo-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-icon img{width:40px;height:40px;object-fit:contain}
+.logo-icon{width:auto;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon img{height:40px;width:auto;object-fit:contain}
 .logo-text{font-size:18px;font-weight:800;letter-spacing:.05em;background:linear-gradient(90deg,#fff 0%,var(--neon-green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sidebar-nav{padding:8px 12px;flex-shrink:0}
 .nav-section-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-muted);padding:12px 12px 6px;text-transform:uppercase}
@@ -982,6 +982,14 @@ display:none!important;
           <button class="toggle on" id="toggleHQ" onclick="Settings.toggle('hqthumb', this)"></button>
         </div>
       </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <div class="settings-row">
+          <div id="settingsUsername">Username: Loading...</div>
+        </div>
+        <button class="btn-secondary" onclick="Social.signOut()" style="margin-top:10px;color:var(--pink);border-color:rgba(255,45,120,.3)">Logout</button>
+      </div>
+
       <div class="settings-section">
         <div class="settings-section-title">Data</div>
         <button class="btn-secondary" onclick="Settings.clearData()" style="margin-top:0;color:var(--pink);border-color:rgba(255,45,120,.3)">Clear all data</button>
