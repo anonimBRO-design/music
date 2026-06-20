@@ -1474,29 +1474,41 @@ const Home = {
     const cached = Store.get(cacheKey);
     const cacheAge = cached ? Date.now() - (cached.ts || 0) : Infinity;
 
-    let results = [];
+    let results, rawDiscoveryItems;
     if (cached && cacheAge < 1800000 && cached.queries === sections.map(s => s.query).join('|')) {
-      results = cached.results;
+      results = cached.rawResults;
+      rawDiscoveryItems = cached.rawDiscoveryItems;
     } else {
-      const promises = sections.map(sec => YT_API.search(sec.query, 8));
+      const promises = sections.map(sec => YT_API.search(sec.query, 20));
+      const discoveryRes = await YT_API.search(`${favKeyword} underrated music`, 20);
+      
       results = await Promise.all(promises);
+      rawDiscoveryItems = discoveryRes.items || [];
+
       Store.set(cacheKey, { 
-        results, 
+        rawResults: results,
+        rawDiscoveryItems,
         queries: sections.map(s => s.query).join('|'),
         ts: Date.now() 
       });
     }
 
+    const processedResults = results.map(res => (res.items || []).map(item => makeTrack(item)));
+    const processedDiscoveryItems = rawDiscoveryItems.map(item => makeTrack(item));
+
     // QuickGrid needs 6 items from favorites/similar
     const quickGridItems = [
-      ...(results[0]?.items || []).slice(0, 3),
-      ...(results[1]?.items || []).slice(0, 3)
+      ...(processedResults[0] || []).slice(0, 3),
+      ...(processedResults[1] || []).slice(0, 3)
     ];
     this.renderQuickGrid(quickGridItems);
 
     // Render cards
     sections.forEach((sec, idx) => {
-      this.renderCards(sec.id, results[idx]?.items || []);
+      let items = processedResults[idx];
+      items = DiversityEngine.apply(items);
+      items = DiversityEngine.injectDiscovery(items, processedDiscoveryItems);
+      this.renderCards(sec.id, items);
     });
   },
 
