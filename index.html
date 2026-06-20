@@ -1370,6 +1370,36 @@ const App = {
   }
 };
 
+const DiversityEngine = {
+  apply(items) {
+    const counts = {};
+    return items.filter(item => {
+      const artist = (item.artist || '').toLowerCase();
+      counts[artist] = (counts[artist] || 0) + 1;
+      return counts[artist] <= 2;
+    });
+  },
+
+  injectDiscovery(items, discoveryItems) {
+    const total = items.length;
+    const injectCount = Math.floor(total * 0.3);
+
+    if (!injectCount) return items;
+
+    const result = [...items];
+
+    discoveryItems.slice(0, injectCount).forEach((d, i) => {
+      const pos = Math.min(
+        Math.floor(i * (total / injectCount)),
+        result.length
+      );
+      result.splice(pos, 0, d);
+    });
+
+    return result.slice(0, total);
+  }
+};
+
 // ── Home Page ──────────────────────────────────
 const Home = {
   async render() {
