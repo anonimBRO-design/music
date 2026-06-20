@@ -1538,6 +1538,12 @@ const Home = {
       let items = processedResults[idx];
       items = DiversityEngine.apply(items);
       items = DiversityEngine.injectDiscovery(items, processedDiscoveryItems);
+      console.log('[JVKE DEBUG] before renderCards', {
+        sectionId: sec.id,
+        title: sec.title,
+        length: items?.length,
+        items
+      });
       this.renderCards(sec.id, items);
     });
   },
@@ -1554,9 +1560,23 @@ const Home = {
   },
 
   renderCards(id, items) {
+    console.log('[JVKE DEBUG] renderCards entry', {
+      id,
+      length: items?.length,
+      items
+    });
     const el = document.getElementById(id);
     if (!el) return;
-    if (!items.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px">No results found</div>'; return; }
+    if (!items.length) {
+      console.log('[JVKE DEBUG] no results branch', {
+        id,
+        length: items?.length
+      });
+      el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px">No results found</div>'; return; }
+    console.log('[JVKE DEBUG] rendering cards', {
+      id,
+      length: items?.length
+    });
     el.innerHTML = items.map(item => {
       const t = item;
       const liked = LikedSongs.has(t.id);
