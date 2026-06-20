@@ -1411,7 +1411,7 @@ const Home = {
       if (t.artist) artistCounts[t.artist] = (artistCounts[t.artist] || 0) + (t.playCount || 1);
       
       if (t.title) {
-        const words = t.title.replace(/\\(.*?\\)|\\[.*?\\]|official|video|audio|lyrics|ft\\.|feat\\./gi, '').trim().split(/\\s+/);
+        const words = t.title.replace(/\(.*?\)|\[.*?\]|official|video|audio|lyrics|ft\.|feat\./gi, '').trim().split(/\s+/);
         words.forEach(w => {
           if (w.length > 3) {
             const kw = w.toLowerCase();
@@ -1436,35 +1436,35 @@ const Home = {
     const sections = [
       {
         id: 'sec_fav',
-        title: topArtists.length ? \`🎯 Because you listened to \${favArtist}\` : '🎯 Your Favorites Mix',
-        query: \`\${favArtist} best songs\`
+        title: topArtists.length ? `🎯 Because you listened to ${favArtist}` : '🎯 Your Favorites Mix',
+        query: `${favArtist} best songs`
       },
       {
         id: 'sec_sim',
-        title: topArtists.length > 1 ? \`🎵 Similar to \${similarArtist}\` : '🎵 Discover Similar Tracks',
-        query: \`\${similarArtist} similar artists music\`
+        title: topArtists.length > 1 ? `🎵 Similar to ${similarArtist}` : '🎵 Discover Similar Tracks',
+        query: `${similarArtist} similar artists music`
       },
       {
         id: 'sec_exp',
-        title: \`✨ Discover Something New\`,
-        query: \`\${freshGenre} new trending music\`
+        title: `✨ Discover Something New`,
+        query: `${freshGenre} new trending music`
       },
       {
         id: 'sec_trend',
-        title: \`🔥 Trending Now\`,
-        query: \`trending music hits \${new Date().getFullYear()}\`
+        title: `🔥 Trending Now`,
+        query: `trending music hits ${new Date().getFullYear()}`
       }
     ];
 
     // Build DOM
-    container.innerHTML = sections.map(sec => \`
+    container.innerHTML = sections.map(sec => `
       <div class="section">
         <div class="section-header">
-          <div class="section-title">\${sec.title}</div>
+          <div class="section-title">${sec.title}</div>
         </div>
-        <div class="cards-scroll" id="\${sec.id}"></div>
+        <div class="cards-scroll" id="${sec.id}"></div>
       </div>
-    \`).join('');
+    `).join('');
 
     // Skeletons
     sections.forEach(sec => this.renderSkeletons(sec.id));
