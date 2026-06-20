@@ -413,8 +413,8 @@
           '<button class="sb-tab active" id="sbTabLogin"  onclick="Social._authTab(\'login\')">Sign In</button>' +
           '<button class="sb-tab"        id="sbTabReg"    onclick="Social._authTab(\'register\')">Register</button>' +
         '</div>' +
-        '<div class="sb-field"><label class="sb-label">Email</label>' +
-          '<input class="sb-input" id="sbAuthEmail" type="email" placeholder="you@example.com" autocomplete="email"/></div>' +
+        '<div class="sb-field"><label class="sb-label">Username</label>' +
+          '<input class="sb-input" id="sbAuthUsername" type="text" placeholder="username" autocomplete="username"/></div>' +
         '<div class="sb-field"><label class="sb-label">Password</label>' +
           '<input class="sb-input" id="sbAuthPass" type="password" placeholder="••••••••" autocomplete="current-password"/></div>' +
         '<div class="sb-err" id="sbAuthErr"></div>' +
@@ -453,21 +453,22 @@
 
   /* public */ function _authSubmit() {
     var btn   = document.getElementById('sbAuthBtn');
-    var email = (document.getElementById('sbAuthEmail').value || '').trim();
+    var username = (document.getElementById('sbAuthUsername').value || '').trim();
     var pass  = document.getElementById('sbAuthPass').value || '';
     var err   = document.getElementById('sbAuthErr');
     var isReg = document.getElementById('sbTabReg') && document.getElementById('sbTabReg').classList.contains('active');
 
-    if (!email || !pass) { err.textContent = 'Email and password required'; return; }
+    if (!username || !pass) { err.textContent = 'Username and password required'; return; }
     if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters'; return; }
 
     btn.disabled = true;
     btn.textContent = '…';
     err.textContent = '';
 
+    var virtualEmail = username + '@nonimid.local';
     var promise = isReg
-      ? db.auth.signUp({ email: email, password: pass })
-      : db.auth.signInWithPassword({ email: email, password: pass });
+      ? db.auth.signUp({ email: virtualEmail, password: pass })
+      : db.auth.signInWithPassword({ email: virtualEmail, password: pass });
 
     promise.then(function (r) {
       if (r.error) {
