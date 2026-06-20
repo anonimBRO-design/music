@@ -670,33 +670,9 @@ display:none!important;
           <div class="mood-chips" id="moodChips"></div>
         </div>
 
-        <!-- Phonk -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-title">🔥 Phonk</div>
-            <span class="section-link" onclick="Playlists.openPlaylist('phonk')">See all</span>
-          </div>
-          <div class="cards-scroll" id="phonkCards"></div>
-        </div>
-
-        <!-- Night Drive -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-title">🌙 Night Drive</div>
-            <span class="section-link" onclick="Playlists.openPlaylist('nightdrive')">See all</span>
-          </div>
-          <div class="cards-scroll" id="nightdriveCards"></div>
-        </div>
-
-        <!-- Chill Beats -->
-        <div class="section">
-          <div class="section-header">
-            <div class="section-title">☁️ Chill Beats</div>
-            <span class="section-link" onclick="Playlists.openPlaylist('chill')">See all</span>
-          </div>
-          <div class="cards-scroll" id="chillCards"></div>
-        </div>
-
+        <!-- Dynamic Recommendations Engine -->
+        <div id="dynamicSectionsContainer"></div>
+        
         <!-- Recently Played -->
         <div class="section" id="recentSection">
           <div class="section-header">
@@ -704,22 +680,6 @@ display:none!important;
             <span class="section-link" onclick="App.navigate('history')">See all</span>
           </div>
           <div class="cards-scroll" id="recentCards"></div>
-        </div>
-
-        <!-- Trending -->
-        <div class="section" id="trendingSection">
-          <div class="section-header">
-            <div class="section-title">🔥 Trending Now</div>
-          </div>
-          <div class="cards-scroll" id="trendingCards"></div>
-        </div>
-
-        <!-- Recommended -->
-        <div class="section" id="recommendedSection" style="display:none">
-          <div class="section-header">
-            <div class="section-title">✨ Recommended For You</div>
-          </div>
-          <div class="cards-scroll" id="recommendedCards"></div>
         </div>
       </div>
 
@@ -1434,76 +1394,110 @@ const Home = {
   },
 
   async loadSections() {
-    this.renderSkeletons('phonkCards');
-    this.renderSkeletons('nightdriveCards');
-    this.renderSkeletons('chillCards');
-    this.renderSkeletons('trendingCards');
-
-    // Check trending cache (1 hour TTL)
-    const trendingCache = Store.get('nonimid_cache_trending');
-    const cacheAge = trendingCache ? Date.now() - (trendingCache.ts || 0) : Infinity;
-
-    const [phonk, night, chill] = await Promise.all([
-      YT_API.search('phonk music 2024', 8),
-      YT_API.search('night drive synthwave', 8),
-      YT_API.search('chill lofi beats study', 8)
-    ]);
-
-    this.renderCards('phonkCards', phonk.items || []);
-    this.renderCards('nightdriveCards', night.items || []);
-    this.renderCards('chillCards', chill.items || []);
-    this.renderQuickGrid([...(phonk.items||[]).slice(0,3), ...(night.items||[]).slice(0,3)]);
     this.renderRecentCards();
-    this.renderRecommended();
 
-    // Trending: use cache if fresh, else fetch
-    if (trendingCache && cacheAge < 3600000) {
-      this.renderCards('trendingCards', trendingCache.items);
-    } else {
-      const trending = await YT_API.search('trending music hits 2025', 10);
-      const items = trending.items || [];
-      Store.set('nonimid_cache_trending', { items, ts: Date.now() });
-      this.renderCards('trendingCards', items);
-    }
-  },
+    const container = document.getElementById('dynamicSectionsContainer');
+    if (!container) return;
 
-  async renderRecommended() {
-    const liked = LikedSongs.get();
+    // 1. Analyze History & Liked
     const history = Store.get(KEYS.HISTORY, []);
-    const sec = document.getElementById('recommendedSection');
-    const el = document.getElementById('recommendedCards');
-    if (!sec || !el) return;
+    const liked = LikedSongs.get();
+    const pool = [...history, ...liked];
 
-    // Need at least one liked or history track to recommend
-    const pool = [...liked.slice(0,3), ...history.slice(0,3)];
-    if (!pool.length) { sec.style.display = 'none'; return; }
-
-    sec.style.display = '';
-    this.renderSkeletons('recommendedCards');
-
-    // Check recommendations cache (30 min TTL)
-    const cacheKey = 'nonimid_cache_recommended';
-    const cached = Store.get(cacheKey);
-    const cacheAge = cached ? Date.now() - (cached.ts || 0) : Infinity;
-    if (cached && cacheAge < 1800000) {
-      this.renderCards('recommendedCards', cached.items);
-      return;
-    }
-
-    // Build query from seed tracks — extract keywords from titles
-    const seed = pool[Math.floor(Math.random() * pool.length)];
-    const keywords = seed.title.replace(/\(.*?\)|\[.*?\]|official|video|audio|lyrics|ft\.|feat\./gi,'').trim().split(' ').slice(0,3).join(' ');
-    const query = `${keywords} similar music`;
-
-    const res = await YT_API.search(query, 8);
-    const items = (res.items || []).filter(item => {
-      const id = item.id?.videoId || item.id;
-      return !liked.some(t => t.id === id) && !history.slice(0,5).some(t => t.id === id);
+    const artistCounts = {};
+    const keywordCounts = {};
+    
+    pool.forEach(t => {
+      if (t.artist) artistCounts[t.artist] = (artistCounts[t.artist] || 0) + (t.playCount || 1);
+      
+      if (t.title) {
+        const words = t.title.replace(/\\(.*?\\)|\\[.*?\\]|official|video|audio|lyrics|ft\\.|feat\\./gi, '').trim().split(/\\s+/);
+        words.forEach(w => {
+          if (w.length > 3) {
+            const kw = w.toLowerCase();
+            keywordCounts[kw] = (keywordCounts[kw] || 0) + (t.playCount || 1);
+          }
+        });
+      }
     });
 
-    if (!items.length) { sec.style.display = 'none'; return; }
-    Store.set(cacheKey, { items, ts: Date.now() });
-    this.renderCards('recommendedCards', items);
+    const topArtists = Object.entries(artistCounts).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+    const topKeywords = Object.entries(keywordCounts).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+
+    // Defaults if empty
+    const favArtist = topArtists[0] || 'The Weeknd';
+    const similarArtist = topArtists[1] || topArtists[0] || 'Daft Punk';
+    const favKeyword = topKeywords[0] || 'pop';
+
+    const discoveryGenres = ['Indie Pop', 'Electronic', 'Jazz', 'R&B', 'Classical', 'Synthwave', 'Dark Ambient', 'Acoustic'];
+    const freshGenre = discoveryGenres[Math.floor(Math.random() * discoveryGenres.length)];
+
+    // Define Sections (Spotify-style Mix)
+    const sections = [
+      {
+        id: 'sec_fav',
+        title: topArtists.length ? \`🎯 Because you listened to \${favArtist}\` : '🎯 Your Favorites Mix',
+        query: \`\${favArtist} best songs\`
+      },
+      {
+        id: 'sec_sim',
+        title: topArtists.length > 1 ? \`🎵 Similar to \${similarArtist}\` : '🎵 Discover Similar Tracks',
+        query: \`\${similarArtist} similar artists music\`
+      },
+      {
+        id: 'sec_exp',
+        title: \`✨ Discover Something New\`,
+        query: \`\${freshGenre} new trending music\`
+      },
+      {
+        id: 'sec_trend',
+        title: \`🔥 Trending Now\`,
+        query: \`trending music hits \${new Date().getFullYear()}\`
+      }
+    ];
+
+    // Build DOM
+    container.innerHTML = sections.map(sec => \`
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">\${sec.title}</div>
+        </div>
+        <div class="cards-scroll" id="\${sec.id}"></div>
+      </div>
+    \`).join('');
+
+    // Skeletons
+    sections.forEach(sec => this.renderSkeletons(sec.id));
+
+    // Fetch and Render
+    const cacheKey = 'nonimid_cache_home';
+    const cached = Store.get(cacheKey);
+    const cacheAge = cached ? Date.now() - (cached.ts || 0) : Infinity;
+
+    let results = [];
+    if (cached && cacheAge < 1800000 && cached.queries === sections.map(s => s.query).join('|')) {
+      results = cached.results;
+    } else {
+      const promises = sections.map(sec => YT_API.search(sec.query, 8));
+      results = await Promise.all(promises);
+      Store.set(cacheKey, { 
+        results, 
+        queries: sections.map(s => s.query).join('|'),
+        ts: Date.now() 
+      });
+    }
+
+    // QuickGrid needs 6 items from favorites/similar
+    const quickGridItems = [
+      ...(results[0]?.items || []).slice(0, 3),
+      ...(results[1]?.items || []).slice(0, 3)
+    ];
+    this.renderQuickGrid(quickGridItems);
+
+    // Render cards
+    sections.forEach((sec, idx) => {
+      this.renderCards(sec.id, results[idx]?.items || []);
+    });
   },
 
   renderSkeletons(id) {

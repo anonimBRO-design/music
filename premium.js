@@ -609,42 +609,53 @@ const Wrapped = (() => {
     modal.innerHTML = `
       <style>
         #wrappedCard {
-          width: 100%; max-width: 1100px; max-height: 85vh;
+          width: 100%; max-width: 1200px;
           background: linear-gradient(160deg, #0a0a14 0%, #0d1a10 50%, #0a0a14 100%);
           border-radius: 24px; border: 1px solid rgba(29,185,84,0.2);
-          overflow-y: auto; overflow-x: hidden;
           box-shadow: 0 0 80px rgba(29,185,84,0.1);
           display: flex; flex-direction: column;
         }
+        .w-main-grid {
+          padding: 24px 36px; display: grid; gap: 20px; flex: 1;
+        }
         .w-top {
-          display: grid; grid-template-columns: auto auto 1fr 1fr 1fr; gap: 16px; align-items: stretch;
+          display: grid; grid-template-columns: auto auto 1fr 1fr 1fr; gap: 16px; align-items: stretch; height: 100%;
         }
         .w-mid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
-        }
-        .w-card-title {
-          font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 16px;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 24px; height: 100%;
         }
         .w-box {
-          background: rgba(255,255,255,0.02); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column;
+          background: rgba(255,255,255,0.02); border-radius: 16px; padding: 16px 24px; border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; justify-content: center; overflow: hidden;
         }
-        @media (max-width: 768px) {
+        .w-card-title {
+          font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 12px;
+        }
+        
+        /* Desktop strict landscape lock */
+        @media (min-width: 1024px) {
+          #wrappedCard { max-height: 80vh; overflow: hidden; }
+          .w-main-grid { grid-template-rows: minmax(100px, 120px) minmax(200px, 220px) minmax(100px, 140px); }
+        }
+        
+        /* Mobile fallback stacked */
+        @media (max-width: 1023px) {
+          #wrappedCard { max-height: 85vh; overflow-y: auto; overflow-x: hidden; }
+          .w-main-grid { display: flex; flex-direction: column; gap: 28px; padding: 32px 24px; }
           .w-top { grid-template-columns: 1fr; }
           .w-mid { grid-template-columns: 1fr; }
+          .w-box { padding: 24px; }
         }
       </style>
       <div id="wrappedCard">
-        <div style="padding: 32px 36px; display: flex; flex-direction: column; gap: 28px; flex: 1;">
+        <div class="w-main-grid">
           
-          <!-- TOP ROW -->
+          <!-- ROW 1 -->
           <div class="w-top">
-            <!-- Year -->
             <div style="background:linear-gradient(135deg,rgba(29,185,84,0.15),rgba(155,89,255,0.1)); padding:20px 32px; border-radius:16px; border:1px solid rgba(255,255,255,0.04); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
               <div style="font-size:11px;font-weight:800;letter-spacing:0.16em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px">NONIMID WRAPPED</div>
               <div style="font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1;background:linear-gradient(90deg,#1db954,#9b59ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${stats.year}</div>
             </div>
 
-            <!-- Personality -->
             <div style="background:linear-gradient(90deg,rgba(29,185,84,0.1),rgba(155,89,255,0.08)); border:1px solid rgba(29,185,84,0.2); border-radius:16px; padding:20px 32px; display:flex; align-items:center; gap:20px; justify-content:center;">
               <div style="font-size:40px">${personalityEmoji(stats.personality)}</div>
               <div>
@@ -653,23 +664,22 @@ const Wrapped = (() => {
               </div>
             </div>
 
-            <!-- Stats -->
             ${bigStat('🎵', stats.totalPlays.toLocaleString(), 'Songs Played')}
             ${bigStat('⏱', stats.totalMinutes.toLocaleString(), 'Minutes')}
             ${bigStat('❤', stats.likedCount.toLocaleString(), 'Liked')}
           </div>
 
-          <!-- MIDDLE ROW -->
+          <!-- ROW 2 -->
           <div class="w-mid">
             <!-- LEFT: Top Song -->
             <div class="w-box">
               <div class="w-card-title">#1 Song of the Year</div>
               ${topSongArt ? `
-              <div style="display:flex; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; gap:20px;">
-                <img src="${topSongArt}" style="width:180px; height:180px; border-radius:16px; object-fit:cover; box-shadow:0 10px 40px rgba(0,0,0,0.4);" onerror="this.src=''"/>
-                <div>
-                  <div style="font-size:24px; font-weight:800; margin-bottom:6px;">${esc(topSongName)}</div>
-                  <div style="font-size:15px; color:rgba(255,255,255,0.5);">${stats.topSongs[0]?.count || 0} plays</div>
+              <div style="display:flex; align-items:center; flex:1; gap:24px;">
+                <img src="${topSongArt}" style="width:140px; height:140px; border-radius:16px; object-fit:cover; box-shadow:0 10px 40px rgba(0,0,0,0.4);" onerror="this.src=''"/>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:32px; font-weight:800; margin-bottom:8px; line-height:1.1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${esc(topSongName)}</div>
+                  <div style="font-size:16px; color:rgba(255,255,255,0.5);">${stats.topSongs[0]?.count || 0} plays</div>
                 </div>
               </div>` : '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)">No songs played</div>'}
             </div>
@@ -678,35 +688,35 @@ const Wrapped = (() => {
             <div class="w-box">
               <div class="w-card-title">Top 5 Artists</div>
               ${stats.topArtists.length ? `
-              <div style="display:flex;flex-direction:column;gap:14px; flex:1; justify-content:center;">
+              <div style="display:flex;flex-direction:column;gap:10px; flex:1; justify-content:center;">
                 ${stats.topArtists.slice(0,5).map((a, i) => `
-                  <div style="display:flex;align-items:center;gap:16px">
-                    <span style="font-size:15px;font-weight:800;color:rgba(255,255,255,0.2);width:24px;text-align:right">${i+1}</span>
-                    <div style="flex:1;height:40px;background:rgba(255,255,255,0.03);border-radius:8px;position:relative;overflow:hidden">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-size:14px;font-weight:800;color:rgba(255,255,255,0.2);width:20px;text-align:right">${i+1}</span>
+                    <div style="flex:1;height:28px;background:rgba(255,255,255,0.03);border-radius:6px;position:relative;overflow:hidden">
                       <div style="height:100%;background:linear-gradient(90deg,rgba(29,185,84,0.2),transparent);width:${Math.round((a.count/topArtistMaxCount)*100) || 0}%;transition:width 1.2s ease"></div>
-                      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700">${esc(a.name)}</span>
+                      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700; white-space:nowrap;">${esc(a.name)}</span>
                     </div>
-                    <span style="font-size:14px;color:rgba(255,255,255,0.5);font-weight:700;width:40px;text-align:right">${a.count}</span>
+                    <span style="font-size:13px;color:rgba(255,255,255,0.5);font-weight:700;width:36px;text-align:right">${a.count}</span>
                   </div>
                 `).join('')}
               </div>` : '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3)">No artists found</div>'}
             </div>
           </div>
 
-          <!-- BOTTOM ROW: Monthly Chart -->
+          <!-- ROW 3: Monthly Chart -->
           ${stats.monthlyPlays.length > 0 ? `
           <div class="w-box">
             <div class="w-card-title">Monthly Plays</div>
-            <div style="display:flex;gap:6px;align-items:flex-end; height:120px;">
+            <div style="display:flex;gap:6px;align-items:flex-end; flex:1;">
               ${barChart}
             </div>
           </div>` : ''}
 
         </div>
 
-        <!-- FOOTER / ACTIONS -->
+        <!-- ROW 4: ACTIONS -->
         <div style="
-          padding:24px 36px; border-top:1px solid rgba(255,255,255,0.04);
+          padding:16px 36px; border-top:1px solid rgba(255,255,255,0.04);
           display:flex; gap:12px; justify-content:flex-end; background:rgba(0,0,0,0.2);
         ">
           <button onclick="Wrapped.share()" style="
@@ -750,10 +760,10 @@ const Wrapped = (() => {
 
   function bigStat(emoji, value, label) {
     return `
-      <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px 8px">
-        <div style="font-size:22px;margin-bottom:6px">${emoji}</div>
-        <div style="font-size:22px;font-weight:800;color:#1db954;line-height:1">${value}</div>
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em">${label}</div>
+      <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid rgba(255,255,255,0.04);">
+        <div style="font-size:24px;margin-bottom:8px">${emoji}</div>
+        <div style="font-size:28px;font-weight:800;color:#1db954;line-height:1">${value}</div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);margin-top:6px;text-transform:uppercase;letter-spacing:0.06em">${label}</div>
       </div>`;
   }
 
