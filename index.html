@@ -11,8 +11,8 @@
 <meta name="theme-color" content="#1db954"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<link rel="icon" type="image/png" href="/icons/favicon.png"/>
-<link rel="apple-touch-icon" href="/icons/logo.png"/>
+<link rel="icon" type="image/x-icon" href="/icons/favicon.ico"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="NONIMSONG — Music"/>
 <meta property="og:description" content="NONIMSONG — your futuristic music streaming app. Search, play, and discover music with lyrics, dynamic backgrounds, and a fullscreen player."/>
@@ -420,6 +420,11 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;color:var(--text-muted);font-size:10px;font-weight:700;cursor:pointer;transition:all var(--transition);border:none;background:none;font-family:'Syne',sans-serif}
 .mobile-nav-item svg{width:22px;height:22px}
 .mobile-nav-item.active{color:var(--neon-green)}
+
+/* Logo Theme Switching */
+.logo-icon img.light-logo { display: none; }
+body.light-theme .logo-icon img.dark-logo { display: none; }
+body.light-theme .logo-icon img.light-logo { display: block; }
 /* Playlist page */
 #playlistPage{padding:32px}
 .playlist-page-hero{display:flex;align-items:flex-end;gap:28px;padding:40px 0 32px;margin-bottom:32px;border-bottom:1px solid var(--border)}
@@ -975,6 +980,13 @@ display:none!important;
         </div>
         <div class="settings-row">
           <div>
+            <div class="settings-row-label">Light Mode</div>
+            <div class="settings-row-sub">Switch to light theme</div>
+          </div>
+          <button class="toggle" id="toggleTheme" onclick="Settings.toggleTheme(this)"></button>
+        </div>
+        <div class="settings-row">
+          <div>
             <div class="settings-row-label">High quality thumbnails</div>
             <div class="settings-row-sub">Use maxresdefault for album art</div>
           </div>
@@ -1302,12 +1314,18 @@ const App = {
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
+    this.initTheme();
     YTPlayer.init();
     Player.init();
     Home.render();
     this.updateApiStatus();
     this.renderSidebarPlaylists();
     ProfilePage.initAvatar();
+  },
+
+  initTheme() {
+    const isLight = Store.get('nonimid_light_mode', false);
+    document.body.classList.toggle('light-theme', isLight);
   },
 
   navigate(page) {
@@ -2477,6 +2495,12 @@ const Settings = {
     const s = Store.get(KEYS.SETTINGS, {});
     s[key] = btn.classList.contains('on');
     Store.set(KEYS.SETTINGS, s);
+  },
+
+  toggleTheme(btn) {
+    const isLight = btn.classList.toggle('on');
+    document.body.classList.toggle('light-theme', isLight);
+    Store.set('nonimid_light_mode', isLight);
   },
 
   clearData() {
