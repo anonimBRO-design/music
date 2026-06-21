@@ -1608,7 +1608,7 @@ const Home = {
       const t = item;
       const liked = LikedSongs.has(t.id);
       return `
-        <div class="music-card" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+        <div class="music-card" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')}, null)">
           <div class="card-thumb-wrap">
             <img class="card-thumb" src="${t.thumbnail}" alt="${t.title.replace(/"/g,'')}"/>
             <div class="card-play-overlay">
@@ -1744,7 +1744,7 @@ const Search = {
     const d = document.getElementById('searchDropdown');
     d.classList.add('visible');
     d.innerHTML = this.currentResults.map((t, i) => `
-      <div class="search-result-item" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')});Search.closeDropdown()">
+      <div class="search-result-item" onclick="Player.play(${JSON.stringify(t).replace(/"/g,'&quot;')}, Search.currentResults);Search.closeDropdown()">
         <img class="search-result-thumb" src="${t.thumbnail}" alt=""/>
         <div class="search-result-info">
           <div class="search-result-title">${t.title}</div>
@@ -2238,7 +2238,7 @@ const Player = {
     };
   },
 
-  async play(track) {
+  async play(track, sourceCollection = null) {
     if (!track?.id) return;
 
     const playBtn = document.getElementById('btnPlayPause');
@@ -2260,13 +2260,24 @@ const Player = {
     Store.set(KEYS.LAST, track);
     Home.renderRecentCards();
     
-    // Add next 5-10 songs to queue
-    const searchResults = Search.currentResults;
-    if (searchResults && searchResults.length > 0) {
-      const currentIndex = searchResults.findIndex(t => t.id === track.id);
+    // Determine the source to populate the queue from
+    let collection = sourceCollection;
+    if (!collection) {
+        // Fallback to search results
+        collection = Search.currentResults;
+    }
+
+    if (collection && collection.length > 0) {
+      const currentIndex = collection.findIndex(t => t.id === track.id);
       if (currentIndex !== -1) {
-        const nextSongs = searchResults.slice(currentIndex + 1, currentIndex + 11);
-        nextSongs.forEach(song => Queue.add(song));
+        // Add next up to 10 songs from this collection to queue
+        const nextSongs = collection.slice(currentIndex + 1, currentIndex + 11);
+        nextSongs.forEach(song => {
+            // Only add if not already in queue
+            if (!Queue.list.some(q => q.id === song.id)) {
+                Queue.add(song);
+            }
+        });
       }
     }
     
@@ -2446,7 +2457,7 @@ const Player = {
     if (!tracks.length) { Toast.show('No tracks in collection', 'error'); return; }
     this.collection = tracks;
     this.collectionIndex = 0;
-    this.play(tracks[0]);
+    this.play(tracks[0], tracks);
   },
 
   shuffleCollection(collectionId) {
