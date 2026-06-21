@@ -36,24 +36,29 @@ export default async function handler(req, res) {
     const yt = await getInnertube();
     const info = await yt.getBasicInfo(videoId);
     
-    // Map Innertube video info to match YouTube Data API v3 expected by frontend
+    // Defensive access to Innertube result
+    const basicInfo = info.basic_info || {};
+    
+    // Map Innertube video info to match expected structure
     const item = {
-      id: info.basic_info.id,
+      id: basicInfo.id || videoId,
       snippet: {
-        title: info.basic_info.title,
-        channelTitle: info.basic_info.author,
-        publishedAt: info.basic_info.upload_date
+        title: basicInfo.title || 'Untitled',
+        channelTitle: basicInfo.author || 'Unknown',
+        publishedAt: basicInfo.upload_date || ''
       },
       contentDetails: {
-        duration: info.basic_info.duration ? `PT${info.basic_info.duration}S` : ''
+        duration: basicInfo.duration ? `PT${basicInfo.duration}S` : ''
       }
     };
+    
+    console.log(`[api/video] ID: "${videoId}", Result mapped: "${item.snippet.title}"`);
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
     return res.status(200).json(item);
 
   } catch (err) {
-    console.error('[api/video] Innertube error:', err);
+    console.error(`[api/video] Innertube error for ID "${videoId}":`, err);
     return res.status(500).json({ error: 'Failed to fetch video details' });
   }
 }

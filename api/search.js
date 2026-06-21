@@ -38,16 +38,20 @@ export default async function handler(req, res) {
     const searchResults = await yt.search(query, { type: 'video' });
     
     // Map Innertube results to match YouTube Data API v3 'items' format expected by frontend
-    const items = (searchResults.results || [])
+    const results = searchResults.videos || searchResults.results || [];
+    const items = results
       .slice(0, max)
+      .filter(video => video.id) // Defensive filter
       .map(video => ({
         id: { videoId: video.id },
         snippet: {
-          title: video.title.text,
-          channelTitle: video.author.name,
-          publishedAt: video.published_time?.text
+          title: video.title?.text || 'Untitled',
+          channelTitle: video.author?.name || 'Unknown',
+          publishedAt: video.published_time?.text || ''
         }
       }));
+    
+    console.log(`[api/search] Query: "${query}", Results mapped: ${items.length}`);
 
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600');
     return res.status(200).json({ items });

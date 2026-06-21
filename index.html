@@ -40,10 +40,11 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .ambient-orb:nth-child(3){width:300px;height:300px;background:var(--cyan);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
 @keyframes floatOrb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.95)}}
 #sidebar{grid-column:1;grid-row:1;background:rgba(5,5,8,.95);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10;backdrop-filter:blur(20px)}
-.sidebar-logo{padding:32px 24px 32px;display:flex;align-items:center;gap:16px;text-decoration:none;flex-shrink:0;cursor:pointer;transition:transform var(--transition)}
+.sidebar-logo{padding:32px 24px 32px;display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;cursor:pointer;transition:transform var(--transition)}
 .sidebar-logo:hover{transform:scale(1.02)}
-.logo-icon{width:auto;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;filter:drop-shadow(0 0 10px var(--neon-green-dim))}
-.logo-icon img{height:48px;width:auto;object-fit:contain}
+.logo-wordmark{color:#fff;font-size:16px;font-weight:800;letter-spacing:.02em;font-family:'Syne',sans-serif;white-space:nowrap;line-height:1}
+.logo-icon{width:auto;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;filter:drop-shadow(0 0 10px var(--neon-green-dim))}
+.logo-icon img{height:44px;width:auto;object-fit:contain}
 .logo-text{font-size:22px;font-weight:800;letter-spacing:.05em;background:linear-gradient(90deg,#fff 0%,var(--neon-green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sidebar-nav{padding:8px 12px;flex-shrink:0}
 .nav-section-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-muted);padding:12px 12px 6px;text-transform:uppercase}
@@ -560,6 +561,7 @@ display:none!important;
   <aside id="sidebar">
     <div class="sidebar-logo" onclick="App.navigate('home')">
       <div class="logo-icon"><img src="/icons/logo.png" alt="Logo"/></div>
+      <div class="logo-wordmark">ONIMSONG</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu</div>
@@ -1689,7 +1691,7 @@ const Search = {
         return;
       }
       this.showLoading();
-      YT_API.debounceSearch(v, 8, (res) => this.handleResults(res), 1500);
+      YT_API.debounceSearch(v, 8, (res) => this.handleResults(res), 400);
     });
     inp.addEventListener('focus', () => {
       if (inp.value.trim() && this.currentResults.length) this.showDropdown();
@@ -1712,7 +1714,7 @@ const Search = {
     d.innerHTML = '<div class="search-loading">Searching</div>';
   },
 
-  handleResults(res) {
+  handleResults(res, isRetry = false) {
     const d = document.getElementById('searchDropdown');
     d.classList.add('visible');
     if (res.error) {
@@ -1727,6 +1729,10 @@ const Search = {
       return;
     }
     this.currentResults = (res.items || []).map(makeTrack);
+    if (!this.currentResults.length && !isRetry) {
+      YT_API.search(document.getElementById('searchInput').value.trim(), 8).then(r => this.handleResults(r, true));
+      return;
+    }
     if (!this.currentResults.length) {
       d.innerHTML = '<div class="search-empty">No results found</div>';
       return;
@@ -2234,6 +2240,18 @@ const Player = {
 
   async play(track) {
     if (!track?.id) return;
+
+    const playBtn = document.getElementById('btnPlayPause');
+    const originalIcon = playBtn.innerHTML;
+    
+    const timeout = setTimeout(() => {
+      playBtn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .8s linear infinite"></div>';
+    }, 300);
+
+    await YT_API.getVideoDetails(track.id);
+    clearTimeout(timeout);
+    playBtn.innerHTML = originalIcon;
+
     this.current = track;
     this.isPlaying = true;
     this.updateUI(track, true);
@@ -2241,6 +2259,17 @@ const Player = {
     this.addToHistory(track);
     Store.set(KEYS.LAST, track);
     Home.renderRecentCards();
+    
+    // Add next 5-10 songs to queue
+    const searchResults = Search.currentResults;
+    if (searchResults && searchResults.length > 0) {
+      const currentIndex = searchResults.findIndex(t => t.id === track.id);
+      if (currentIndex !== -1) {
+        const nextSongs = searchResults.slice(currentIndex + 1, currentIndex + 11);
+        nextSongs.forEach(song => Queue.add(song));
+      }
+    }
+    
     Queue.renderPanel();
     LikedSongs.updatePlayerBtn();
     this.updateTrackHighlights();
