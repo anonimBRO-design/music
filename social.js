@@ -308,6 +308,9 @@
   color:var(--text-muted);letter-spacing:.04em;cursor:pointer;
   padding:6px 10px;border-radius:var(--radius-full);transition:all .2s;
 }
+@media(max-width:768px){
+  .sb-topbar-status{display:none}
+}
 .sb-topbar-status:hover{background:var(--bg-hover);color:var(--text-primary)}
 .sb-topbar-dot{width:6px;height:6px;border-radius:50%;background:var(--neon-green);animation:pulse 2s infinite}
 `;

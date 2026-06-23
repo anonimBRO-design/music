@@ -423,6 +423,11 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .mobile-nav-item svg{width:22px;height:22px}
 .mobile-nav-item.active{color:var(--neon-green)}
 
+/* Mobile navbar optimizations */
+@media(max-width:768px){
+  .topbar-actions .btn-icon[title="Settings"] { display: none; }
+}
+
 /* Logo Theme Switching */
 .logo-icon img.light-logo { display: none; }
 body.light-theme .logo-icon img.dark-logo { display: none; }
@@ -623,7 +628,7 @@ display:none!important;
       <div class="search-container">
         <div class="search-input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="searchInput" type="text" placeholder="Search songs, artists…" autocomplete="off"/>
+          <input id="searchInput" name="music-search" type="search" placeholder="Search songs, artists…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
           <button class="search-clear" id="searchClear" onclick="Search.clear()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
