@@ -27,7 +27,7 @@
 /* ============================================
    NONIMSONG — Embedded Styles
    ============================================ */
-:root{--bg-void:#121212;--bg-surface:#181818;--bg-card:#121212;--bg-hover:#242424;--text-primary:#FFFFFF;--text-secondary:#B3B3B3;--text-muted:#8E8E8E;--divider:rgba(255,255,255,.08);--accent:#3B82F6;--danger:#EF4444;--success:#22C55E;--radius-sm:4px;--radius-md:8px;--radius-lg:10px;--radius-xl:14px;--player-h:60px;--sidebar-w:240px;--navbar-h:56px;--transition:0.15s ease;--transition-slow:0.2s ease}
+:root{--bg-void:#121212;--bg-surface:#181818;--bg-card:#121212;--bg-hover:#242424;--text-primary:#FFFFFF;--text-secondary:#B3B3B3;--text-muted:#8E8E8E;--divider:rgba(255,255,255,.08);--accent:#3B82F6;--danger:#EF4444;--success:#22C55E;--radius-sm:4px;--radius-md:8px;--radius-lg:10px;--radius-xl:14px;--player-h:60px;--sidebar-w:255px;--navbar-h:56px;--transition:0.15s ease;--transition-slow:0.2s ease}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px}
 body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-primary);overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -42,7 +42,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 #sidebar{grid-column:1;grid-row:1;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:10}
 .sidebar-logo{width:100%;padding:20px 16px 20px;display:flex;align-items:center;gap:6px;text-decoration:none;flex-shrink:0;cursor:pointer;transition:transform 0.15s ease}
 .sidebar-logo:hover{transform:scale(1.03)}
-.logo-wordmark{color:var(--text-primary);font-size:20px;font-weight:800;letter-spacing:.02em;font-family:'Syne',sans-serif;white-space:nowrap;line-height:1;min-width:0}
+.logo-wordmark{color:var(--text-primary);font-size:20px;font-weight:800;letter-spacing:.02em;font-family:'Syne',sans-serif;white-space:nowrap;line-height:1}
 .logo-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .logo-icon img{height:44px;width:auto;object-fit:contain}
 .logo-text{font-size:22px;font-weight:800;letter-spacing:.05em;background:linear-gradient(90deg,#fff 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -71,10 +71,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .btn-settings svg{width:18px;height:18px}
 #main{grid-column:2;grid-row:1;display:flex;flex-direction:column;overflow:hidden;position:relative;z-index:5}
 #topbar{height:var(--navbar-h);display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--bg-surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:20}
-.nav-arrows{display:flex;gap:6px;flex-shrink:0}
-.btn-nav{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease}
-.btn-nav:hover{background:rgba(255,255,255,.1);color:var(--text-primary)}
-.btn-nav svg{width:18px;height:18px}
+.nav-arrows{display:none}
+/* Removed .btn-nav */
 .search-container{flex:1;max-width:560px;position:relative}
 .search-input-wrap{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--radius-full);padding:0 14px;height:40px;transition:all 0.15s ease}
 .search-input-wrap:focus-within{border-color:var(--accent);background:rgba(255,255,255,.08);box-shadow:0 0 0 2px rgba(59,130,246,0.2)}
@@ -611,15 +609,7 @@ display:none!important;
   <main id="main">
     <!-- Topbar -->
     <div id="topbar"><button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
-      <div class="nav-arrows">
-        <button class="btn-nav" onclick="history.back()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <button class="btn-nav" onclick="history.forward()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-
+      
       <div class="search-container">
         <div class="search-input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
