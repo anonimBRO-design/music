@@ -433,54 +433,55 @@ const AudioVisualizer = (() => {
     }
   }
 
-  function setMode(m) {
-    mode = m;
-    if (m === 'off') {
-      canvas.style.opacity = '0';
-      cancelAnimationFrame(rafId);
-    } else {
-      canvas.style.opacity = '0.18';
-      if (isActive) startLoop();
-    }
-    // Update mode buttons
-    document.querySelectorAll('[data-viz-mode]').forEach(el => {
-      el.classList.toggle('active', el.dataset.vizMode === m);
-    });
-  }
-
   function injectUI() {
-    // Inject mode switcher into fullscreen player
+    // Inject Lyrics button into fullscreen player bottom-right
     const fsControls = document.getElementById('fullscreenPlayer');
     if (!fsControls) return;
 
     const wrap = document.createElement('div');
-    wrap.id = 'vizModeWrap';
+    wrap.id = 'fsLyricsBtnWrap';
     wrap.style.cssText = `
       position:absolute; bottom:24px; right:24px;
-      display:flex; gap:8px; z-index:10;
+      z-index:10;
     `;
     wrap.innerHTML = `
       <style>
-        .viz-btn {
-          padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.12);
-          background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.5);
-          font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
-          cursor:pointer; transition:all 0.2s; letter-spacing:0.06em; text-transform:uppercase;
+        #fsLyricsBtn {
+          display:flex; align-items:center; gap:7px;
+          padding:8px 18px; border-radius:24px;
+          border:1px solid rgba(255,255,255,0.12);
+          background:rgba(255,255,255,0.06);
+          backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+          color:rgba(255,255,255,0.55);
+          font-family:'Syne',sans-serif; font-size:12px; font-weight:700;
+          letter-spacing:0.04em; text-transform:uppercase;
+          cursor:pointer; transition:all 0.25s ease;
         }
-        .viz-btn.active, .viz-btn:hover {
-          background:rgba(29,185,84,0.15); border-color:rgba(29,185,84,0.4);
+        #fsLyricsBtn:hover {
+          background:rgba(255,255,255,0.12);
+          border-color:rgba(255,255,255,0.22);
+          color:rgba(255,255,255,0.85);
+          transform:translateY(-1px);
+          box-shadow:0 4px 20px rgba(0,0,0,0.3);
+        }
+        #fsLyricsBtn.active {
+          background:rgba(29,185,84,0.15);
+          border-color:rgba(29,185,84,0.4);
           color:var(--dyn-accent, #1db954);
         }
+        #fsLyricsBtn svg { width:16px; height:16px; flex-shrink:0; }
       </style>
-      <button class="viz-btn active" data-viz-mode="spectrum" onclick="AudioVisualizer.setMode('spectrum')">Bars</button>
-      <button class="viz-btn"        data-viz-mode="circular" onclick="AudioVisualizer.setMode('circular')">Circle</button>
-      <button class="viz-btn"        data-viz-mode="particles" onclick="AudioVisualizer.setMode('particles')">Particles</button>
-      <button class="viz-btn"        data-viz-mode="off"      onclick="AudioVisualizer.setMode('off')">Off</button>
+      <button id="fsLyricsBtn" onclick="if(typeof Lyrics!=='undefined'){Lyrics.toggle()}else{window.Toast?.show('Lyrics coming soon','info')}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 10h12M4 14h16M4 18h8"/>
+        </svg>
+        Lyrics
+      </button>
     `;
     fsControls.appendChild(wrap);
   }
 
-  return { init, setMode, tryConnectAudio };
+  return { init, tryConnectAudio };
 })();
 
 
