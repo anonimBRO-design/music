@@ -350,19 +350,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
 .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
 .modal-close:hover{background:rgba(255,255,255,.12);color:var(--text-primary)}
 .modal-close svg{width:16px;height:16px}
-.form-group{margin-bottom:20px}
-.form-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:8px}
-.form-input{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:'Syne',sans-serif;font-size:14px;transition:all var(--transition);outline:none}
-.form-input:focus{border-color:var(--neon-green);background:rgba(255,255,255,.09);box-shadow:0 0 0 3px var(--neon-green-dim)}
-.form-input::placeholder{color:var(--text-muted)}
-.form-hint{margin-top:6px;font-size:12px;color:var(--text-muted)}
-.btn-primary{width:100%;padding:14px;border-radius:var(--radius-md);border:none;background:var(--neon-green);color:#000;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all var(--spring);box-shadow:0 4px 20px var(--neon-green-glow)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--neon-green-glow)}
+
 .btn-secondary{width:100%;padding:14px;border-radius:var(--radius-md);border:1px solid var(--border);background:transparent;color:var(--text-primary);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all var(--transition);margin-top:10px}
 .btn-secondary:hover{background:rgba(255,255,255,.06)}
-.api-test-result{padding:12px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:600;margin-top:12px;display:none}
-.api-test-result.success{background:var(--neon-green-dim);border:1px solid var(--border-glow);color:var(--neon-green);display:block}
-.api-test-result.error{background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.2);color:var(--pink);display:block}
+
 .context-menu{position:fixed;background:rgba(18,18,28,.98);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-md);padding:6px;z-index:500;min-width:200px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none}
 .context-menu.open{display:block;animation:fadeIn .1s ease}
 .context-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all var(--transition);border:none;background:none;width:100%;text-align:left;font-family:'Syne',sans-serif}
@@ -422,10 +413,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg-void);color:var(--text-pr
   .topbar-actions .btn-icon[title="Settings"] { display: none; }
 }
 
-/* Logo Theme Switching */
-.logo-icon img.light-logo { display: none; }
-body.light-theme .logo-icon img.dark-logo { display: none; }
-body.light-theme .logo-icon img.light-logo { display: block; }
+
 /* Playlist page */
 #playlistPage{padding:32px}
 .playlist-page-hero{display:flex;align-items:flex-end;gap:28px;padding:40px 0 32px;margin-bottom:32px;border-bottom:1px solid var(--border)}
@@ -962,17 +950,6 @@ display:none!important;
     </div>
     <div class="modal-body">
       <div class="settings-section">
-        <div class="settings-section-title">YouTube API</div>
-        <div class="form-group">
-          <label class="form-label" for="apiKeyInput">API Key</label>
-          <input class="form-input" id="apiKeyInput" type="password" placeholder="AIza…"/>
-          <div class="form-hint">Get your free key at <a href="https://console.cloud.google.com" target="_blank" style="color:var(--neon-green)">Google Cloud Console</a> → YouTube Data API v3</div>
-        </div>
-        <button class="btn-primary" onclick="Settings.saveKey()">Save API Key</button>
-        <button class="btn-secondary" onclick="Settings.testKey()">Test Connection</button>
-        <div class="api-test-result" id="apiTestResult"></div>
-      </div>
-      <div class="settings-section">
         <div class="settings-section-title">Playback</div>
         <div class="settings-row">
           <div>
@@ -980,13 +957,6 @@ display:none!important;
             <div class="settings-row-sub">Play next song automatically</div>
           </div>
           <button class="toggle on" id="toggleAutoplay" onclick="Settings.toggle('autoplay', this)"></button>
-        </div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">Light Mode</div>
-            <div class="settings-row-sub">Switch to light theme</div>
-          </div>
-          <button class="toggle" id="toggleTheme" onclick="Settings.toggleTheme(this)"></button>
         </div>
         <div class="settings-row">
           <div>
@@ -998,10 +968,7 @@ display:none!important;
       </div>
       <div class="settings-section">
         <div class="settings-section-title">Account</div>
-        <div class="settings-row">
-          <div id="settingsUsername">Username: Loading...</div>
-        </div>
-        <button class="btn-secondary" onclick="Social.signOut()" style="margin-top:10px;color:var(--pink);border-color:rgba(255,45,120,.3)">Logout</button>
+        <button class="btn-secondary" onclick="Social.signOut()" style="margin-top:0;color:var(--pink);border-color:rgba(255,45,120,.3)">Logout</button>
       </div>
 
       <div class="settings-section">
@@ -1317,7 +1284,6 @@ const App = {
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
-    this.initTheme();
     this.initSidebar();
     YTPlayer.init();
     Player.init();
@@ -1327,10 +1293,7 @@ const App = {
     ProfilePage.initAvatar();
   },
 
-  initTheme() {
-    const isLight = Store.get('nonimid_light_mode', false);
-    document.body.classList.toggle('light-theme', isLight);
-  },
+
 
   initSidebar() {
     const collapsed = Store.get('nonimid_sidebar_collapsed', false);
@@ -1372,8 +1335,6 @@ const App = {
   openSettings() {
     const m = document.getElementById('settingsModal');
     m.classList.add('open');
-    const k = Store.get(KEYS.API,'');
-    document.getElementById('apiKeyInput').value = k ? '•'.repeat(Math.min(k.length,20)) : '';
     const s = Store.get(KEYS.SETTINGS, {});
     document.getElementById('toggleAutoplay').className = 'toggle ' + (s.autoplay !== false ? 'on' : '');
     document.getElementById('toggleHQ').className = 'toggle ' + (s.hqthumb !== false ? 'on' : '');
@@ -1381,7 +1342,6 @@ const App = {
 
   closeSettings() {
     document.getElementById('settingsModal').classList.remove('open');
-    document.getElementById('apiTestResult').className = 'api-test-result';
   },
 
   updateApiStatus() {
@@ -2529,38 +2489,11 @@ const Player = {
 
 // ── Settings ───────────────────────────────────
 const Settings = {
-  saveKey() {
-    Toast.show('API key is managed server-side via environment variables.', 'info');
-  },
-
-  async testKey() {
-    this.showResult('Testing…', null);
-    try {
-      const r = await fetch('/api/search?q=test&maxResults=1');
-      const d = await r.json();
-      if (r.ok && d.items) this.showResult('✓ Backend connected & API key valid!', true);
-      else if (r.status === 429 || (d.error && d.error.toLowerCase().includes('quota'))) this.showResult('⚠ Quota exceeded — key works but limit reached', true);
-      else this.showResult(`✗ ${d.error || d.message || 'Connection failed'}`, false);
-    } catch { this.showResult('✗ Network error — is the server running?', false); }
-  },
-
-  showResult(msg, success) {
-    const el = document.getElementById('apiTestResult');
-    el.textContent = msg;
-    el.className = 'api-test-result ' + (success === true ? 'success' : success === false ? 'error' : '');
-  },
-
   toggle(key, btn) {
     btn.classList.toggle('on');
     const s = Store.get(KEYS.SETTINGS, {});
     s[key] = btn.classList.contains('on');
     Store.set(KEYS.SETTINGS, s);
-  },
-
-  toggleTheme(btn) {
-    const isLight = btn.classList.toggle('on');
-    document.body.classList.toggle('light-theme', isLight);
-    Store.set('nonimid_light_mode', isLight);
   },
 
   clearData() {
