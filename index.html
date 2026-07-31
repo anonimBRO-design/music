@@ -1164,6 +1164,7 @@ const YTPlayer = {
   player: null,
   ready: false,
   pendingVideoId: null,
+  pendingAction: 'load',
   onReady: null,
   onStateChange: null,
   onError: null,
@@ -1186,7 +1187,11 @@ const YTPlayer = {
             const v = Store.get(KEYS.VOLUME, 80);
             e.target.setVolume(v);
             if (this.pendingVideoId) {
-              this.loadVideo(this.pendingVideoId);
+              if (this.pendingAction === 'cue') {
+                this.cueVideo(this.pendingVideoId);
+              } else {
+                this.loadVideo(this.pendingVideoId);
+              }
               this.pendingVideoId = null;
             }
             this.onReady?.();
@@ -1199,11 +1204,22 @@ const YTPlayer = {
   },
 
   loadVideo(id) {
-    if (!this.ready) { this.pendingVideoId = id; return; }
+    if (!this.ready) { this.pendingVideoId = id; this.pendingAction = 'load'; return; }
     this.player.loadVideoById(id);
   },
 
-  play() { this.ready && this.player.playVideo(); },
+  cueVideo(id) {
+    if (!this.ready) { this.pendingVideoId = id; this.pendingAction = 'cue'; return; }
+    this.player.cueVideoById(id);
+  },
+
+  play() {
+    if (!this.ready) {
+      if (this.pendingVideoId) this.pendingAction = 'load';
+      return;
+    }
+    this.player.playVideo();
+  },
   pause() { this.ready && this.player.pauseVideo(); },
   seekTo(s) { this.ready && this.player.seekTo(s, true); },
   setVolume(v) { this.ready && this.player.setVolume(v); },
@@ -2187,7 +2203,11 @@ const Player = {
   init() {
     Queue.load();
     const last = Store.get(KEYS.LAST);
-    if (last) this.updateUI(last, false);
+    if (last) {
+      this.current = last;
+      this.updateUI(last, false);
+      YTPlayer.cueVideo(last.id);
+    }
     this.volume = Store.get(KEYS.VOLUME, 80);
     document.getElementById('volumeFill').style.width = this.volume + '%';
 
