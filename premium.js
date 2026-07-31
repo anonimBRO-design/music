@@ -5,7 +5,6 @@
    1. Dynamic Theme Engine  — warna UI ikuti cover album (CSS vars)
    2. Advanced Audio Visualizer — Web Audio API (spectrum + circular + particles)
    3. NONIMID Wrapped       — statistik tahunan + share card PNG
-   4. AI DJ                 — rekomendasi queue berdasarkan lagu aktif
    5. Achievement System    — badge, level, XP
    6. PWA                   — Service Worker + install prompt
    ================================================================ */
@@ -832,225 +831,6 @@ const Wrapped = (() => {
 })();
 
 
-/* ───────────────────────────────────────────────────────────────
-   4. AI DJ
-   Membangun queue otomatis berdasarkan lagu aktif + mood
-   ─────────────────────────────────────────────────────────────── */
-const AIDj = (() => {
-  let _isActive = false;
-  let _btn      = null;
-  let _mode     = 'similar'; // 'similar' | 'vibe' | 'discovery'
-
-  const MOODS = {
-    phonk:    { label: '🚗 Phonk Mode',      query: 'phonk drift underground' },
-    chill:    { label: '☁️ Chill Mode',       query: 'lofi chill beats study' },
-    hype:     { label: '⚡ Hype Mode',        query: 'phonk hype energy workout' },
-    night:    { label: '🌙 Night Mode',       query: 'night drive synthwave melancholic' },
-    focus:    { label: '🎯 Focus Mode',       query: 'focus deep work ambient' },
-    discover: { label: '🌍 Discovery Mode',   query: 'new music hidden gems' },
-  };
-
-  function init() {
-    injectButton();
-  }
-
-  function injectButton() {
-    // Inject into player right controls
-    const playerRight = document.querySelector('.player-right');
-    if (!playerRight) return;
-
-    _btn = document.createElement('button');
-    _btn.id    = 'aiDjBtn';
-    _btn.title = 'AI DJ — Build smart queue';
-    _btn.className = 'ctrl-btn';
-    _btn.style.cssText = `position:relative;`;
-    _btn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-      </svg>
-      <span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#9b59ff;display:none" id="djActiveDot"></span>
-    `;
-    _btn.onclick = showPanel;
-    playerRight.insertBefore(_btn, playerRight.firstChild);
-
-    // Inject styles
-    const s = document.createElement('style');
-    s.textContent = `
-      #aiDjPanel {
-        position:fixed; bottom:calc(var(--player-h) + 12px); left:50%; transform:translateX(-50%) translateY(10px);
-        background:rgba(13,13,20,0.98); backdrop-filter:blur(30px);
-        border:1px solid rgba(255,255,255,0.08); border-radius:20px;
-        padding:20px; width:340px; max-width:calc(100vw - 32px);
-        box-shadow:0 -20px 60px rgba(0,0,0,0.5);
-        z-index:150; opacity:0; pointer-events:none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-      }
-      #aiDjPanel.open {
-        opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0);
-      }
-      .dj-mode-btn {
-        padding:7px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.1);
-        background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.5);
-        font-family:'Syne',sans-serif; font-size:11px; font-weight:700;
-        cursor:pointer; transition:all 0.15s; white-space:nowrap;
-      }
-      .dj-mode-btn:hover, .dj-mode-btn.active {
-        background:rgba(155,89,255,0.15); border-color:rgba(155,89,255,0.4); color:#9b59ff;
-      }
-      #aiDjBtn.dj-on { color:#9b59ff; }
-    `;
-    document.head.appendChild(s);
-
-    // Panel
-    const panel = document.createElement('div');
-    panel.id = 'aiDjPanel';
-    panel.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div>
-          <div style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px">
-            <span style="color:#9b59ff">✦</span> AI DJ
-            <span id="djLoadingDot" style="display:none;width:8px;height:8px;border-radius:50%;background:#9b59ff;animation:pulse 1s infinite"></span>
-          </div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Auto-builds your queue</div>
-        </div>
-        <button onclick="AIDj.hide()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:18px;line-height:1">✕</button>
-      </div>
-
-      <!-- Mood chips -->
-      <div style="margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:8px">Mood</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${Object.entries(MOODS).map(([key, m]) =>
-            `<button class="dj-mode-btn" data-dj-mood="${key}" onclick="AIDj.setMood('${key}')">${m.label}</button>`
-          ).join('')}
-        </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div style="display:flex;gap:8px">
-        <button id="djBuildBtn" onclick="AIDj.build()" style="
-          flex:1; padding:10px; border-radius:10px; border:none;
-          background:linear-gradient(90deg,#9b59ff,#6b35cc); color:white;
-          font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
-          cursor:pointer; transition:all 0.2s;
-        ">⚡ Build Queue</button>
-        <button onclick="AIDj.stop()" style="
-          padding:10px 14px; border-radius:10px; border:1px solid rgba(255,45,120,0.3);
-          background:rgba(255,45,120,0.08); color:#ff2d78;
-          font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer;
-        ">Stop</button>
-      </div>
-      <div id="djStatus" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:10px;min-height:18px;text-align:center"></div>
-    `;
-    document.body.appendChild(panel);
-
-    // Close on outside click
-    document.addEventListener('click', (e) => {
-      if (!panel.contains(e.target) && e.target !== _btn && !_btn?.contains(e.target)) {
-        hide();
-      }
-    });
-  }
-
-  let _selectedMood = null;
-
-  function setMood(key) {
-    _selectedMood = key;
-    document.querySelectorAll('[data-dj-mood]').forEach(el => {
-      el.classList.toggle('active', el.dataset.djMood === key);
-    });
-  }
-
-  function showPanel() {
-    const panel = document.getElementById('aiDjPanel');
-    if (panel) panel.classList.toggle('open');
-  }
-
-  function hide() {
-    const panel = document.getElementById('aiDjPanel');
-    if (panel) panel.classList.remove('open');
-  }
-
-  async function build() {
-    const current = window.Player?.current;
-    const status  = document.getElementById('djStatus');
-    const dot     = document.getElementById('djLoadingDot');
-    const btn     = document.getElementById('djBuildBtn');
-
-    if (!current) {
-      status && (status.textContent = '⚠ Play a song first');
-      return;
-    }
-
-    if (dot) dot.style.display = 'inline-block';
-    if (btn) btn.disabled = true;
-    if (status) status.textContent = 'Analyzing your taste…';
-
-    try {
-      let query;
-      if (_selectedMood) {
-        query = MOODS[_selectedMood].query;
-      } else {
-        // Smart query: extract keywords from current track
-        const keywords = current.title
-          .replace(/\(.*?\)|\[.*?\]|official|video|audio|lyrics|ft\.|feat\./gi, '')
-          .trim().split(' ').slice(0, 3).join(' ');
-        query = `${keywords} similar music 2024`;
-      }
-
-      if (status) status.textContent = `Finding ${_selectedMood ? MOODS[_selectedMood].label : 'similar tracks'}…`;
-
-      const res = await window.YT_API?.search(query, 15);
-      const items = (res?.items || []);
-
-      if (!items.length) {
-        status && (status.textContent = '⚠ No results found');
-        return;
-      }
-
-      // Filter out current track
-      const tracks = items
-        .map(i => window.makeTrack?.(i) || i)
-        .filter(t => t.id !== current.id);
-
-      // Clear queue and populate
-      if (window.Queue) {
-        window.Queue.list = [];
-        tracks.slice(0, 10).forEach(t => window.Queue.list.push(t));
-        window.Queue.save();
-        window.Queue.renderPanel();
-      }
-
-      _isActive = true;
-      _btn?.classList.add('dj-on');
-      const dot2 = document.getElementById('djActiveDot');
-      if (dot2) dot2.style.display = 'block';
-
-      status && (status.textContent = `✓ Added ${tracks.slice(0, 10).length} tracks to queue`);
-      window.Toast?.show(`AI DJ: ${tracks.slice(0,10).length} tracks queued ✦`, 'success');
-
-      setTimeout(hide, 1500);
-    } catch (e) {
-      status && (status.textContent = '⚠ Error building queue');
-    } finally {
-      if (dot) dot.style.display = 'none';
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  function stop() {
-    _isActive = false;
-    window.Queue?.clear();
-    _btn?.classList.remove('dj-on');
-    const dot = document.getElementById('djActiveDot');
-    if (dot) dot.style.display = 'none';
-    hide();
-    window.Toast?.show('AI DJ stopped', 'info');
-  }
-
-  return { init, build, stop, setMood, hide, showPanel };
-})();
-
 
 
 /* ───────────────────────────────────────────────────────────────
@@ -1206,7 +986,6 @@ function initKeyboardExtension() {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'w' || e.key === 'W') Wrapped.open();
-    if (e.key === 'd' || e.key === 'D') AIDj.showPanel();
   });
 }
 
@@ -1270,8 +1049,6 @@ function hookProfilePage() {
       console.log('[NONIMID Premium] Removed legacy achievements data');
     } catch(e) {}
 
-    // 3. AI DJ
-    AIDj.init();
 
     // 4. PWA
     PWAManager.init();
@@ -1292,11 +1069,10 @@ function hookProfilePage() {
     window.ThemeEngine    = ThemeEngine;
     window.AudioVisualizer= AudioVisualizer;
     window.Wrapped        = Wrapped;
-    window.AIDj           = AIDj;
     window.PWAManager     = PWAManager;
 
     console.log('[NONIMID Premium] ✓ All systems online');
-    console.log('[NONIMID Premium] Shortcuts: W=Wrapped, D=AI DJ');
+    console.log('[NONIMID Premium] Shortcuts: W=Wrapped');
   };
 
   if (document.readyState === 'loading') {
