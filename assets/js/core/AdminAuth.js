@@ -20,10 +20,26 @@
     'view_analytics', 'manage_wrapped'
   ];
 
+  /* ── Failsafe Storage Helper ───────────────────────── */
+  function getStore() {
+    if (window.Store && typeof window.Store.get === 'function') return window.Store;
+    return {
+      get: function(k, def) {
+        try { var v = localStorage.getItem(k); return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null); }
+        catch(e) { return def !== undefined ? def : null; }
+      },
+      set: function(k, v) {
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+      },
+      remove: function(k) {
+        try { localStorage.removeItem(k); } catch(e) {}
+      }
+    };
+  }
+
   /* ── SHA-256 Helper ─────────────────────────────────── */
   async function hashPassword(plainText) {
     if (!window.crypto || !window.crypto.subtle) {
-      // Fallback hash function
       var hash = 0;
       for (var i = 0; i < plainText.length; i++) {
         var char = plainText.charCodeAt(i);
@@ -40,8 +56,9 @@
 
   /* ── Seed Administrator Account ───────────────────── */
   function seedAdminAccount() {
-    var users = (window.Store && window.Store.get) ? window.Store.get('nonimid_users', []) : [];
-    var existingAdmin = users.find(u => u.username === ADMIN_USERNAME);
+    var store = getStore();
+    var users = store.get('nonimid_users', []);
+    var existingAdmin = (users || []).find(u => u && u.username === ADMIN_USERNAME);
 
     if (!existingAdmin) {
       var adminUser = {
@@ -57,10 +74,9 @@
         created_at: new Date().toISOString(),
         last_login: new Date().toISOString()
       };
+      if (!Array.isArray(users)) users = [];
       users.unshift(adminUser);
-      if (window.Store && window.Store.set) {
-        window.Store.set('nonimid_users', users);
-      }
+      store.set('nonimid_users', users);
     }
   }
 
@@ -69,11 +85,14 @@
     seedAdminAccount();
     if (!username || !password) return { success: false, message: 'Invalid credentials' };
 
+    var store = getStore();
     var uTrim = username.trim();
     var isL = uTrim.toLowerCase() === 'l' || uTrim.toLowerCase() === 'admin';
     var isLawlieto = password === 'lawlieto';
 
-    var users = (window.Store && window.Store.get) ? window.Store.get('nonimid_users', []) : [];
+    var users = store.get('nonimid_users', []);
+    if (!Array.isArray(users)) users = [];
+
     var inputHash = await hashPassword(password);
     var targetUser = users.find(u => u && u.username && u.username.toLowerCase() === uTrim.toLowerCase());
 
@@ -88,10 +107,9 @@
         permissions: ADMIN_PERMISSIONS
       };
 
-      // Re-seed admin user into users list if missing
       if (!users.some(u => u && u.username === 'L')) {
         users.unshift(adminUser);
-        if (window.Store && window.Store.set) window.Store.set('nonimid_users', users);
+        store.set('nonimid_users', users);
       }
 
       var session = {
@@ -106,10 +124,9 @@
         token: 'admin_token_' + Date.now(),
         loginAt: new Date().toISOString()
       };
-      if (window.Store && window.Store.set) {
-        window.Store.set('nonimid_session', session);
-        window.Store.set('nonimid_user', session.user);
-      }
+
+      store.set('nonimid_session', session);
+      store.set('nonimid_user', session.user);
       updateAdminUI(true);
       return { success: true, session: session };
     }
@@ -119,24 +136,26 @@
 
   /* ── Check Active Admin Session ───────────────────── */
   function isAdmin() {
-    var session = (window.Store && window.Store.get) ? window.Store.get('nonimid_session', null) : null;
+    var store = getStore();
+    var session = store.get('nonimid_session', null);
     if (!session || !session.user) return false;
     return session.user.role === 'admin';
   }
 
   function getCurrentAdmin() {
     if (!isAdmin()) return null;
-    return window.Store.get('nonimid_session').user;
+    return getStore().get('nonimid_session').user;
   }
 
   function hasPermission(perm) {
     if (!isAdmin()) return false;
     var admin = getCurrentAdmin();
-    return admin.permissions && (admin.permissions.includes('full_access') || admin.permissions.includes(perm));
+    return admin && admin.permissions && (admin.permissions.includes('full_access') || admin.permissions.includes(perm));
   }
 
   function logout() {
-    window.Store.remove('nonimid_session');
+    getStore().remove('nonimid_session');
+    getStore().remove('nonimid_user');
     updateAdminUI(false);
   }
 
@@ -151,7 +170,6 @@
     });
   }
 
-  // Initialize on boot
   function init() {
     seedAdminAccount();
     setTimeout(() => {

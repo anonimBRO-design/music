@@ -30,13 +30,31 @@
   var _statsData = null;
   var _containerEl = null;
 
+  /* ── Failsafe Storage Helper ───────────────────────── */
+  function getStore() {
+    if (window.Store && typeof window.Store.get === 'function') return window.Store;
+    return {
+      get: function(k, def) {
+        try { var v = localStorage.getItem(k); return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null); }
+        catch(e) { return def !== undefined ? def : null; }
+      },
+      set: function(k, v) {
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+      },
+      remove: function(k) {
+        try { localStorage.removeItem(k); } catch(e) {}
+      }
+    };
+  }
+
   /* ── Compute 100% Real-Data Wrapped Statistics ──────── */
   function calculateWrappedData() {
-    var history   = (window.Store && window.Store.get) ? window.Store.get('nonimid_history', []) : [];
-    var liked     = (window.Store && window.Store.get) ? window.Store.get('nonimid_liked', []) : [];
-    var stats     = (window.Store && window.Store.get) ? window.Store.get('nonimid_stats', { plays: 0, seconds: 0 }) : { plays: 0, seconds: 0 };
-    var playlists = (window.Store && window.Store.get) ? window.Store.get('nonimid_playlists', []) : [];
-    var recent    = (window.Store && window.Store.get) ? window.Store.get('nonimid_recent', []) : [];
+    var store = getStore();
+    var history   = store.get('nonimid_history', []);
+    var liked     = store.get('nonimid_liked', []);
+    var stats     = store.get('nonimid_stats', { plays: 0, seconds: 0 });
+    var playlists = store.get('nonimid_playlists', []);
+    var recent    = store.get('nonimid_recent', []);
 
     // 1. Calculate Top Songs from Real History
     var songCounts = {};

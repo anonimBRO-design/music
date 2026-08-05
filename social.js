@@ -6,6 +6,23 @@
 (function () {
   'use strict';
 
+  /* ── Failsafe Storage Helper ───────────────────────── */
+  function getStore() {
+    if (window.Store && typeof window.Store.get === 'function') return window.Store;
+    return {
+      get: function(k, def) {
+        try { var v = localStorage.getItem(k); return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null); }
+        catch(e) { return def !== undefined ? def : null; }
+      },
+      set: function(k, v) {
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+      },
+      remove: function(k) {
+        try { localStorage.removeItem(k); } catch(e) {}
+      }
+    };
+  }
+
   /* ── Config ─────────────────────────────────────────── */
   var SUPABASE_URL  = 'https://qfloggalcslkifakbybb.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_iSXk_pq-XfRXmKFEOU3Hmw_uRIZd5eE';
@@ -338,7 +355,9 @@
                 badge: 'ADMIN',
                 verified: true
               };
-              window.Store.set(KEYS.USER, adminProfile);
+              var storeKey = (window.KEYS && window.KEYS.USER) ? window.KEYS.USER : 'nonimid_user';
+              var storeSess = (window.KEYS && window.KEYS.SESSION) ? window.KEYS.SESSION : 'nonimid_session';
+              getStore().set(storeKey, adminProfile);
               _profile = adminProfile;
               onLoggedIn();
               if (window.Toast) window.Toast.show('Welcome back, Administrator L', 'success');
@@ -368,8 +387,10 @@
             token: 'admin_token_' + Date.now(),
             loginAt: new Date().toISOString()
           };
-          window.Store.set(KEYS.SESSION, adminSession);
-          window.Store.set(KEYS.USER, adminProfile);
+          var storeKey = (window.KEYS && window.KEYS.USER) ? window.KEYS.USER : 'nonimid_user';
+          var storeSess = (window.KEYS && window.KEYS.SESSION) ? window.KEYS.SESSION : 'nonimid_session';
+          getStore().set(storeSess, adminSession);
+          getStore().set(storeKey, adminProfile);
           _profile = adminProfile;
           onLoggedIn();
           if (window.Toast) window.Toast.show('Welcome back, Administrator L', 'success');

@@ -7,6 +7,23 @@
 (function () {
   'use strict';
 
+  /* ── Failsafe Storage Helper ───────────────────────── */
+  function getStore() {
+    if (window.Store && typeof window.Store.get === 'function') return window.Store;
+    return {
+      get: function(k, def) {
+        try { var v = localStorage.getItem(k); return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null); }
+        catch(e) { return def !== undefined ? def : null; }
+      },
+      set: function(k, v) {
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+      },
+      remove: function(k) {
+        try { localStorage.removeItem(k); } catch(e) {}
+      }
+    };
+  }
+
   function renderAdminDashboard() {
     var el = document.getElementById('adminPage');
     if (!el) return;
@@ -24,11 +41,12 @@
       return;
     }
 
-    var users = window.Store.get('nonimid_users', []);
-    var playlists = window.Store.get('nonimid_playlists', []);
-    var stats = window.Store.get('nonimid_stats', { plays: 0, seconds: 0 });
-    var history = window.Store.get('nonimid_history', []);
-    var liked = window.Store.get('nonimid_liked', []);
+    var store = getStore();
+    var users = store.get('nonimid_users', []);
+    var playlists = store.get('nonimid_playlists', []);
+    var stats = store.get('nonimid_stats', { plays: 0, seconds: 0 });
+    var history = store.get('nonimid_history', []);
+    var liked = store.get('nonimid_liked', []);
 
     var hours = Math.floor((stats.seconds || 0) / 3600);
     var minutes = Math.floor(((stats.seconds || 0) % 3600) / 60);
@@ -158,11 +176,12 @@
   }
 
   function toggleBadge(userId) {
-    var users = window.Store.get('nonimid_users', []);
-    var idx = users.findIndex(u => u.id === userId);
+    var store = getStore();
+    var users = store.get('nonimid_users', []);
+    var idx = (users || []).findIndex(u => u && u.id === userId);
     if (idx >= 0) {
       users[idx].badge = users[idx].badge === 'VERIFIED' ? null : 'VERIFIED';
-      window.Store.set('nonimid_users', users);
+      store.set('nonimid_users', users);
       if (window.Toast) window.Toast.show(`Updated badge for @${users[idx].username}`, 'info');
       renderAdminDashboard();
     }
@@ -170,18 +189,20 @@
 
   function deleteUser(userId) {
     if (!confirm('Are you sure you want to delete this user?')) return;
-    var users = window.Store.get('nonimid_users', []);
-    users = users.filter(u => u.id !== userId);
-    window.Store.set('nonimid_users', users);
+    var store = getStore();
+    var users = store.get('nonimid_users', []);
+    users = (users || []).filter(u => u && u.id !== userId);
+    store.set('nonimid_users', users);
     if (window.Toast) window.Toast.show('User account removed', 'success');
     renderAdminDashboard();
   }
 
   function deletePlaylist(playlistId) {
     if (!confirm('Are you sure you want to delete this playlist?')) return;
-    var playlists = window.Store.get('nonimid_playlists', []);
-    playlists = playlists.filter(p => p.id !== playlistId);
-    window.Store.set('nonimid_playlists', playlists);
+    var store = getStore();
+    var playlists = store.get('nonimid_playlists', []);
+    playlists = (playlists || []).filter(p => p && p.id !== playlistId);
+    store.set('nonimid_playlists', playlists);
     if (window.Toast) window.Toast.show('Playlist removed', 'success');
     renderAdminDashboard();
   }
