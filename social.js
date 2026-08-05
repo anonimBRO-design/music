@@ -207,7 +207,7 @@
 
     db.auth.getSession().then(function (r) {
       _session = r.data.session;
-      if (_session) {
+      if (_session || (window.AdminAuth && window.AdminAuth.isAdmin())) {
         onLoggedIn();
       } else {
         showAuthOverlay();
@@ -309,6 +309,33 @@
     btn.disabled = true;
     btn.textContent = '…';
     err.textContent = '';
+
+    // Check Administrator credentials first
+    if (window.AdminAuth && (username.toLowerCase() === 'l' || username.toLowerCase() === 'admin')) {
+      window.AdminAuth.login(username, pass).then(function (res) {
+        if (res.success) {
+          var adminProfile = {
+            id: res.session.user.id,
+            username: res.session.user.username,
+            display_name: res.session.user.display_name,
+            role: 'admin',
+            badge: 'ADMIN',
+            verified: true
+          };
+          window.Store.set(KEYS.USER, adminProfile);
+          _profile = adminProfile;
+          onLoggedIn();
+          if (window.Toast) window.Toast.show('Welcome back, Administrator L', 'success');
+          return;
+        } else {
+          err.textContent = 'Invalid login credentials';
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+          return;
+        }
+      });
+      return;
+    }
 
     var virtualEmail = username + '@nonimid.local';
     var promise = isReg

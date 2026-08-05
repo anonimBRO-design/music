@@ -77,9 +77,9 @@
       .map(function (e) { return { genre: e[0], score: e[1] }; });
 
     // 4. Exact Real Time
-    var totalSeconds = Number(stats.seconds) || (history.length * 180);
+    var totalSeconds = Math.round(Number(stats.seconds) || 0);
     var hours   = Math.floor(totalSeconds / 3600);
-    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var minutes = Math.round((totalSeconds % 3600) / 60);
 
     // 5. Authentic Music DNA Traits (0 - 100)
     var energy      = Math.min(99, Math.max(20, 50 + (topSongs.length * 3)));
@@ -124,7 +124,7 @@
     }
 
     return {
-      isUnlocked: history.length >= 5 || totalSeconds >= 300,
+      isUnlocked: history.length >= 1,
       totalPlays: stats.plays || history.length,
       totalSeconds: totalSeconds,
       hours: hours,
