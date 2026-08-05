@@ -577,13 +577,17 @@ display:none!important;
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
         <span class="nav-label">Profile</span>
       </button>
-      <button class="nav-item" id="nav-friends" onclick="App.navigate('friends')">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        <span class="nav-label">Friends</span>
+      <button class="nav-item" id="nav-users" onclick="App.navigate('users')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        <span class="nav-label">Users</span>
       </button>
-      <button class="nav-item" id="nav-collab" onclick="App.navigate('collab')">
+      <button class="nav-item" id="nav-party" onclick="App.navigate('party')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
-        <span class="nav-label">Collab</span>
+        <span class="nav-label">Listening Party</span>
+      </button>
+      <button class="nav-item" id="nav-wrapped" onclick="Wrapped.open()" style="color:var(--neon-green)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span class="nav-label">Wrapped 2026</span>
       </button>
     </nav>
 
@@ -757,8 +761,9 @@ display:none!important;
         <div id="profileContent"></div>
       </div>
 
-    <div class="page" id="friendsPage"></div>
-<div class="page" id="collabPage"></div>
+      <div class="page" id="usersPage"></div>
+      <div class="page" id="partyPage"></div>
+      <div class="page" id="publicProfilePage"></div>
 </div><!-- /pageContent -->
   </main>
 
@@ -1296,7 +1301,7 @@ function shuffle(arr) {
 // ── App Core ───────────────────────────────────
 const App = {
   currentPage: 'home',
-  pages: ['home','search','library','liked','history','playlist','profile','friends','collab'],
+  pages: ['home','search','library','liked','history','playlist','profile','users','party','publicProfile'],
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
@@ -1346,6 +1351,8 @@ const App = {
     if (page === 'library') LibraryPage.render();
     if (page === 'search') SearchPage.activate();
     if (page === 'profile') ProfilePage.render();
+    if (page === 'users' && window.Social) window.Social.renderUsersPage();
+    if (page === 'party' && window.Social) window.Social.renderListeningPartyPage();
   },
 
   openSettings() {
@@ -1902,12 +1909,22 @@ const LibraryPage = {
   render() {
     const playlists = Playlists.getAll();
     const el = document.getElementById('libraryContent');
+    if (!playlists.length) {
+      el.innerHTML = `
+        <div class="empty-state" style="padding:60px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:48px;margin-bottom:16px">🎵</div>
+          <div class="empty-state-title" style="font-size:22px;font-weight:800;margin-bottom:8px">Create your first playlist</div>
+          <div class="empty-state-sub" style="font-size:14px;color:var(--text-muted);margin-bottom:24px">Organize your favorite music into custom playlists.</div>
+          <button class="sb-btn-sm green" style="font-size:14px;padding:12px 28px;border-radius:999px" onclick="Playlists.createNew()">+ Create Playlist</button>
+        </div>`;
+      return;
+    }
     el.innerHTML = `
       <div class="search-track-list">
         ${playlists.map(pl => {
           return `
           <div class="track-row" style="position:relative" onclick="Playlists.openPlaylist('${pl.id}')">
-            <div class="playlist-cover" style="background:${pl.color};width:44px;height:44px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            <div class="playlist-cover" style="background:${pl.color || 'var(--purple)'};width:44px;height:44px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
               <svg viewBox="0 0 24 24" fill="white" style="width:18px;height:18px"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
             </div>
             <div class="track-info">
@@ -1926,20 +1943,14 @@ const LibraryPage = {
 // ── Playlists ──────────────────────────────────
 const Playlists = {
   defaults() {
-    return [
-      { id: 'phonk', name: 'Phonk', color: 'linear-gradient(135deg,#1a0533,#ff2d78)', tracks: [], query: 'phonk music drift' },
-      { id: 'nightdrive', name: 'Night Drive', color: 'linear-gradient(135deg,#0d1b2a,#9b59ff)', tracks: [], query: 'night drive synthwave' },
-      { id: 'chill', name: 'Chill Beats', color: 'linear-gradient(135deg,#004d40,#1db954)', tracks: [], query: 'chill lofi beats' }
-    ];
+    return [];
   },
 
   getAll() {
-    // If never saved, initialize with defaults now so deletes persist
     const stored = Store.get(KEYS.PLAYLISTS, null);
     if (stored === null) {
-      const def = this.defaults();
-      Store.set(KEYS.PLAYLISTS, def);
-      return def;
+      Store.set(KEYS.PLAYLISTS, []);
+      return [];
     }
     return stored;
   },
@@ -2078,13 +2089,18 @@ const Playlists = {
   }
 };
 
-// ── Queue Manager ──────────────────────────────
+// ── Queue Manager (Spotify-like) ──────────────
 const Queue = {
   list: [],
   context: { type: null, id: null },
 
-  load() { this.list = Store.get(KEYS.QUEUE, []); },
-  save() { Store.set(KEYS.QUEUE, this.list.slice(0, 50)); },
+  load() {
+    this.list = Store.get(KEYS.QUEUE, []);
+  },
+
+  save() {
+    Store.set(KEYS.QUEUE, this.list.slice(0, 100));
+  },
 
   setContext(type, id) {
     if (this.context.type === type && this.context.id === id) return false;
@@ -2100,21 +2116,30 @@ const Queue = {
 
     this.list = this.list.filter(item => !item.autoGenerated);
 
-    const nextSongs = collection.slice(currentIndex + 1, currentIndex + 11);
+    const nextSongs = collection.slice(currentIndex + 1, currentIndex + 15);
     nextSongs.forEach(song => {
-        if (!this.list.some(q => q.id === song.id)) {
-            this.list.push({ ...song, autoGenerated: true });
-        }
+      if (!this.list.some(q => q.id === song.id)) {
+        this.list.push({ ...song, autoGenerated: true });
+      }
     });
     this.save();
     this.renderPanel();
   },
 
-  add(track) {
-    this.list.push({ ...track, autoGenerated: false });
+  add(track, autoGenerated = false) {
+    if (!track || !track.id) return;
+    this.list.push({ ...track, autoGenerated });
     this.save();
     this.renderPanel();
     Toast.show('Added to queue', 'info');
+  },
+
+  addNext(track) {
+    if (!track || !track.id) return;
+    this.list.unshift({ ...track, autoGenerated: false });
+    this.save();
+    this.renderPanel();
+    Toast.show('Will play next', 'info');
   },
 
   remove(i) {
@@ -2123,11 +2148,20 @@ const Queue = {
     this.renderPanel();
   },
 
+  move(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= this.list.length) return;
+    if (toIndex < 0 || toIndex >= this.list.length) return;
+    const [item] = this.list.splice(fromIndex, 1);
+    this.list.splice(toIndex, 0, item);
+    this.save();
+    this.renderPanel();
+  },
+
   playAt(i) {
     const t = this.list.splice(i, 1)[0];
     this.save();
     this.renderPanel();
-    if (t) Player.play(t, null, true);
+    if (t) Player.play(t, null, { type: this.context.type, id: this.context.id }, true);
   },
 
   shift() {
@@ -2137,14 +2171,42 @@ const Queue = {
     return t;
   },
 
-  clear() { this.list = []; this.save(); this.renderPanel(); },
+  clear() {
+    this.list = [];
+    this.save();
+    this.renderPanel();
+    Toast.show('Queue cleared', 'info');
+  },
 
   toggle() {
     document.getElementById('queuePanel').classList.toggle('open');
     this.renderPanel();
   },
 
-  close() { document.getElementById('queuePanel').classList.remove('open'); },
+  close() {
+    document.getElementById('queuePanel').classList.remove('open');
+  },
+
+  async triggerSmartRadio(seedTrack) {
+    if (!seedTrack) return;
+    try {
+      const q = encodeURIComponent(`${seedTrack.artist || ''} ${seedTrack.title || ''} music`);
+      const res = await fetch(`/api/search?q=${q}&maxResults=10`);
+      const data = await res.json();
+      if (data.items && data.items.length) {
+        data.items.slice(1).forEach(item => {
+          const t = makeTrack(item);
+          if (t && t.id !== seedTrack.id && !this.list.some(q => q.id === t.id)) {
+            this.list.push({ ...t, autoGenerated: true });
+          }
+        });
+        this.save();
+        this.renderPanel();
+      }
+    } catch (e) {
+      console.warn('Smart Radio fetch error:', e);
+    }
+  },
 
   renderPanel() {
     const listEl = document.getElementById('queueList');
@@ -2153,37 +2215,63 @@ const Queue = {
 
     if (cur) {
       nowEl.innerHTML = `
-        <img class="queue-thumb" src="${cur.thumbnail}" alt=""/>
-        <div class="queue-track-info">
-          <div class="queue-track-title">${cur.title}</div>
-          <div class="queue-track-artist">${cur.artist}</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:8px;background:rgba(255,255,255,.04);border-radius:12px">
+          <img class="queue-thumb" src="${cur.thumbnail}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover"/>
+          <div class="queue-track-info" style="flex:1;min-width:0">
+            <div class="queue-track-title" style="font-weight:700;font-size:14px;color:var(--neon-green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cur.title}</div>
+            <div class="queue-track-artist" style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cur.artist}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:var(--neon-green);background:var(--neon-green-dim);padding:3px 8px;border-radius:999px">Now Playing</span>
         </div>`;
     } else {
-      nowEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Nothing playing</div>';
+      nowEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px">Nothing playing</div>';
     }
 
+    const manualItems = this.list.filter(t => !t.autoGenerated);
+    const recommendedItems = this.list.filter(t => t.autoGenerated);
+
     if (!this.list.length) {
-      listEl.innerHTML = '<div class="queue-empty">Queue is empty</div>';
+      listEl.innerHTML = '<div class="queue-empty" style="padding:24px 0;text-align:center;color:var(--text-muted)">Queue is empty — Play a song to auto-build Queue</div>';
       return;
     }
 
-    const count = this.list.length;
-    const header = `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px 8px">
-        <div class="queue-section-label" style="margin:0">Next up <span style="background:var(--neon-green-dim);color:var(--neon-green);border-radius:999px;padding:1px 8px;font-size:11px;margin-left:4px">${count}</span></div>
-        <button onclick="Queue.clear()" style="background:none;border:none;color:var(--text-muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;transition:color .2s" onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='var(--text-muted)'">Clear</button>
+    let html = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 12px">
+        <div class="queue-section-label" style="margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase">Next Up <span style="background:var(--neon-green-dim);color:var(--neon-green);border-radius:999px;padding:2px 8px;font-size:11px">${this.list.length}</span></div>
+        <button onclick="Queue.clear()" style="background:none;border:none;color:var(--text-muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;transition:color .2s" onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='var(--text-muted)'">Clear Queue</button>
       </div>`;
-    listEl.innerHTML = header + this.list.map((t, i) => `
-      <div class="queue-item" onclick="Queue.playAt(${i})" title="Click to play">
-        <img class="queue-item-thumb" src="${t.thumbnail}" alt=""/>
-        <div class="queue-item-info">
-          <div class="queue-item-title">${t.title.length>30?t.title.slice(0,30)+'…':t.title}</div>
-          <div class="queue-item-artist">${t.artist}</div>
-        </div>
-        <button class="queue-item-remove" onclick="event.stopPropagation();Queue.remove(${i})" title="Remove">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>`).join('');
+
+    if (manualItems.length) {
+      html += `<div style="font-size:11px;font-weight:700;color:var(--accent);margin:8px;text-transform:uppercase;letter-spacing:.06em">Added by You</div>`;
+      html += manualItems.map((t, i) => `
+        <div class="queue-item" onclick="Queue.playAt(${this.list.indexOf(t)})" title="Click to play">
+          <img class="queue-item-thumb" src="${t.thumbnail}" alt=""/>
+          <div class="queue-item-info">
+            <div class="queue-item-title">${t.title.length>30?t.title.slice(0,30)+'…':t.title}</div>
+            <div class="queue-item-artist">${t.artist}</div>
+          </div>
+          <button class="queue-item-remove" onclick="event.stopPropagation();Queue.remove(${this.list.indexOf(t)})" title="Remove">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`).join('');
+    }
+
+    if (recommendedItems.length) {
+      html += `<div style="font-size:11px;font-weight:700;color:var(--neon-green);margin:16px 8px 8px;text-transform:uppercase;letter-spacing:.06em">Recommended Next</div>`;
+      html += recommendedItems.map((t, i) => `
+        <div class="queue-item" onclick="Queue.playAt(${this.list.indexOf(t)})" title="Click to play">
+          <img class="queue-item-thumb" src="${t.thumbnail}" alt=""/>
+          <div class="queue-item-info">
+            <div class="queue-item-title">${t.title.length>30?t.title.slice(0,30)+'…':t.title}</div>
+            <div class="queue-item-artist">${t.artist}</div>
+          </div>
+          <button class="queue-item-remove" onclick="event.stopPropagation();Queue.remove(${this.list.indexOf(t)})" title="Remove">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`).join('');
+    }
+
+    listEl.innerHTML = html;
   }
 };
 
@@ -2233,6 +2321,8 @@ const Player = {
         this.next();
       }
     };
+
+    this.initSliderDragHandlers();
   },
 
   async play(track, collection = null, context = { type: null, id: null }, preventQueueReset = false) {
@@ -2323,18 +2413,23 @@ const Player = {
     this.isPlaying = playing;
   },
 
-  next() {
+  async next() {
     if (Queue.list.length) {
       const t = Queue.shift();
-      if (t) this.play(t);
+      if (t) this.play(t, null, { type: Queue.context.type, id: Queue.context.id }, true);
       return;
     }
     if (this.collection.length && this.collectionIndex < this.collection.length - 1) {
       this.collectionIndex++;
       this.play(this.collection[this.collectionIndex]);
-    } else if (this.isShuffle && this.collection.length) {
-      this.collectionIndex = Math.floor(Math.random() * this.collection.length);
-      this.play(this.collection[this.collectionIndex]);
+    } else if (this.current) {
+      // Smart Auto Next / Radio mode
+      Toast.show('Starting Smart Radio recommendations 📻', 'info');
+      await Queue.triggerSmartRadio(this.current);
+      if (Queue.list.length) {
+        const t = Queue.shift();
+        if (t) this.play(t, null, { type: 'radio', id: 'radio' }, true);
+      }
     }
   },
 
@@ -2359,35 +2454,153 @@ const Player = {
     this.isShuffle = !this.isShuffle;
     document.getElementById('btnShuffle').classList.toggle('active', this.isShuffle);
     document.getElementById('fsBtnShuffle').classList.toggle('active', this.isShuffle);
-    Toast.show(this.isShuffle ? 'Shuffle on' : 'Shuffle off', 'info');
+    Toast.show(this.isShuffle ? 'Smart Shuffle on' : 'Shuffle off', 'info');
   },
 
   cycleRepeat() {
     this.repeatMode = (this.repeatMode + 1) % 3;
-    const labels = ['Repeat off', 'Repeat all', 'Repeat one'];
+    const labels = ['Repeat off', 'Repeat queue', 'Repeat one'];
     Toast.show(labels[this.repeatMode], 'info');
     const active = this.repeatMode > 0;
     document.getElementById('btnRepeat').classList.toggle('active', active);
     document.getElementById('fsBtnRepeat').classList.toggle('active', active);
   },
 
+  initSliderDragHandlers() {
+    const volSlider = document.getElementById('volumeSlider');
+    const progressBar = document.getElementById('progressBar');
+    const fsProgressBar = document.getElementById('fsProgressBar');
+    const mobileProgress = document.getElementById('mobileProgress');
+
+    // 1. Volume Slider Drag & Scroll
+    if (volSlider) {
+      let isDraggingVol = false;
+
+      const updateVolFromX = (clientX) => {
+        const rect = volSlider.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        this.volume = Math.round(pct * 100);
+        document.getElementById('volumeFill').style.width = this.volume + '%';
+        YTPlayer.setVolume(this.volume);
+        Store.set(KEYS.VOLUME, this.volume);
+        this.updateVolumeIcon();
+        if (this.volume > 0 && this.isMuted) this.isMuted = false;
+      };
+
+      volSlider.addEventListener('pointerdown', (e) => {
+        isDraggingVol = true;
+        try { volSlider.setPointerCapture(e.pointerId); } catch {}
+        updateVolFromX(e.clientX);
+      });
+
+      volSlider.addEventListener('pointermove', (e) => {
+        if (isDraggingVol) updateVolFromX(e.clientX);
+      });
+
+      const stopVolDrag = (e) => {
+        if (isDraggingVol) {
+          isDraggingVol = false;
+          try { volSlider.releasePointerCapture(e.pointerId); } catch {}
+        }
+      };
+
+      volSlider.addEventListener('pointerup', stopVolDrag);
+      volSlider.addEventListener('pointercancel', stopVolDrag);
+
+      volSlider.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 5 : -5;
+        this.volume = Math.max(0, Math.min(100, this.volume + delta));
+        document.getElementById('volumeFill').style.width = this.volume + '%';
+        YTPlayer.setVolume(this.volume);
+        Store.set(KEYS.VOLUME, this.volume);
+        this.updateVolumeIcon();
+      }, { passive: false });
+    }
+
+    // 2. Progress Bar Drag-to-Seek
+    const setupProgressDrag = (barEl, fillId, elapsedId) => {
+      if (!barEl) return;
+      let isSeekingBar = false;
+
+      const updateProgressFromX = (clientX, isFinal = false) => {
+        const rect = barEl.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const fill = document.getElementById(fillId);
+        if (fill) fill.style.width = (pct * 100) + '%';
+        const dur = YTPlayer.getDuration();
+        if (dur) {
+          const curTime = pct * dur;
+          const elapsed = document.getElementById(elapsedId);
+          if (elapsed) elapsed.textContent = formatSecs(curTime);
+          if (isFinal) {
+            YTPlayer.seekTo(curTime);
+          }
+        }
+      };
+
+      barEl.addEventListener('pointerdown', (e) => {
+        isSeekingBar = true;
+        this.isSeeking = true;
+        try { barEl.setPointerCapture(e.pointerId); } catch {}
+        updateProgressFromX(e.clientX, false);
+      });
+
+      barEl.addEventListener('pointermove', (e) => {
+        if (isSeekingBar) updateProgressFromX(e.clientX, false);
+      });
+
+      const stopProgressDrag = (e) => {
+        if (isSeekingBar) {
+          updateProgressFromX(e.clientX, true);
+          isSeekingBar = false;
+          this.isSeeking = false;
+          try { barEl.releasePointerCapture(e.pointerId); } catch {}
+        }
+      };
+
+      barEl.addEventListener('pointerup', stopProgressDrag);
+      barEl.addEventListener('pointercancel', stopProgressDrag);
+    };
+
+    setupProgressDrag(progressBar, 'progressFill', 'timeElapsed');
+    setupProgressDrag(fsProgressBar, 'fsProgressFill', 'fsTimeElapsed');
+    setupProgressDrag(mobileProgress, 'mobileProgressFill', 'timeElapsed');
+  },
+
   seek(event, isFullscreen = false) {
     const bar = event.currentTarget;
     const rect = bar.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const dur = YTPlayer.getDuration();
     if (dur) YTPlayer.seekTo(pct * dur);
   },
 
   setVolume(event) {
-    const bar = event.currentTarget;
+    const bar = event.currentTarget || document.getElementById('volumeSlider');
     const rect = bar.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     this.volume = Math.round(pct * 100);
     document.getElementById('volumeFill').style.width = this.volume + '%';
     YTPlayer.setVolume(this.volume);
     Store.set(KEYS.VOLUME, this.volume);
-    if (this.volume > 0 && this.isMuted) this.toggleMute();
+    this.updateVolumeIcon();
+    if (this.volume > 0 && this.isMuted) this.isMuted = false;
+  },
+
+  updateVolumeIcon() {
+    const volIcon = document.getElementById('volIcon');
+    const muteIcon = document.getElementById('muteIcon');
+    if (!volIcon || !muteIcon) return;
+    if (this.isMuted || this.volume === 0) {
+      volIcon.style.display = 'none';
+      muteIcon.style.display = 'block';
+    } else {
+      volIcon.style.display = 'block';
+      muteIcon.style.display = 'none';
+    }
   },
 
   toggleMute() {
@@ -2404,6 +2617,7 @@ const Player = {
   startProgress() {
     clearInterval(this.progressInterval);
     this.progressInterval = setInterval(() => {
+      if (this.isSeeking) return;
       const cur = YTPlayer.getCurrentTime();
       const dur = YTPlayer.getDuration();
       if (!dur) return;
@@ -3568,6 +3782,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="social.js"></script>
+<script src="premium.js"></script>
+<script src="assets/js/features/Wrapped.js"></script>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
 <script>
@@ -3576,8 +3792,6 @@ document.getElementById('sidebar').classList.toggle('open');
 document.getElementById('sidebarOverlay').classList.toggle('show');
 }
 </script>
-
-<script src="premium.js"></script>
 
 <script>
 if ('serviceWorker' in navigator) {
