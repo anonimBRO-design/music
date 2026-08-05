@@ -310,30 +310,78 @@
     btn.textContent = '…';
     err.textContent = '';
 
-    // Check Administrator credentials first
-    if (window.AdminAuth && (username.toLowerCase() === 'l' || username.toLowerCase() === 'admin')) {
-      window.AdminAuth.login(username, pass).then(function (res) {
-        if (res.success) {
+    function resetBtn() {
+      btn.disabled = false;
+      btn.textContent = isReg ? 'Create Account' : 'Sign In';
+    }
+
+    var safetyTimeout = setTimeout(function () {
+      if (btn.disabled) {
+        resetBtn();
+        err.textContent = 'Request timeout. Please try again.';
+      }
+    }, 6000);
+
+    // Direct Administrator Authentication for 'L' / 'lawlieto'
+    var uUpper = username.toUpperCase();
+    if (uUpper === 'L' || uUpper === 'ADMIN') {
+      if (pass === 'lawlieto' || (window.AdminAuth && window.AdminAuth.login)) {
+        if (window.AdminAuth && window.AdminAuth.login) {
+          window.AdminAuth.login(username, pass).then(function (res) {
+            clearTimeout(safetyTimeout);
+            if (res.success) {
+              var adminProfile = {
+                id: res.session.user.id,
+                username: res.session.user.username,
+                display_name: res.session.user.display_name,
+                role: 'admin',
+                badge: 'ADMIN',
+                verified: true
+              };
+              window.Store.set(KEYS.USER, adminProfile);
+              _profile = adminProfile;
+              onLoggedIn();
+              if (window.Toast) window.Toast.show('Welcome back, Administrator L', 'success');
+            } else {
+              err.textContent = 'Invalid login credentials';
+              resetBtn();
+            }
+          }).catch(function (e) {
+            clearTimeout(safetyTimeout);
+            err.textContent = 'Auth error: ' + (e.message || e);
+            resetBtn();
+          });
+          return;
+        } else if (uUpper === 'L' && pass === 'lawlieto') {
+          // Direct fallback if module script loading is pending
+          clearTimeout(safetyTimeout);
           var adminProfile = {
-            id: res.session.user.id,
-            username: res.session.user.username,
-            display_name: res.session.user.display_name,
+            id: 'user_admin_l',
+            username: 'L',
+            display_name: 'L (Lawliet)',
             role: 'admin',
             badge: 'ADMIN',
             verified: true
           };
+          var adminSession = {
+            user: adminProfile,
+            token: 'admin_token_' + Date.now(),
+            loginAt: new Date().toISOString()
+          };
+          window.Store.set(KEYS.SESSION, adminSession);
           window.Store.set(KEYS.USER, adminProfile);
           _profile = adminProfile;
           onLoggedIn();
           if (window.Toast) window.Toast.show('Welcome back, Administrator L', 'success');
           return;
-        } else {
-          err.textContent = 'Invalid login credentials';
-          btn.disabled = false;
-          btn.textContent = 'Sign In';
-          return;
         }
-      });
+      }
+    }
+
+    if (!db || !db.auth) {
+      clearTimeout(safetyTimeout);
+      err.textContent = 'Authentication service offline';
+      resetBtn();
       return;
     }
 
@@ -343,11 +391,15 @@
       : db.auth.signInWithPassword({ email: virtualEmail, password: pass });
 
     promise.then(function (r) {
+      clearTimeout(safetyTimeout);
       if (r.error) {
         err.textContent = r.error.message;
-        btn.disabled = false;
-        btn.textContent = isReg ? 'Create Account' : 'Sign In';
+        resetBtn();
       }
+    }).catch(function (e) {
+      clearTimeout(safetyTimeout);
+      err.textContent = e.message || 'Authentication failed';
+      resetBtn();
     });
   }
 

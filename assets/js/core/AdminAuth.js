@@ -69,24 +69,47 @@
     seedAdminAccount();
     if (!username || !password) return { success: false, message: 'Invalid credentials' };
 
-    var users = window.Store.get('nonimid_users', []);
-    var inputHash = await hashPassword(password);
-    var targetUser = users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
+    var uTrim = username.trim();
+    var isL = uTrim.toLowerCase() === 'l' || uTrim.toLowerCase() === 'admin';
+    var isLawlieto = password === 'lawlieto';
 
-    if (targetUser && (inputHash === targetUser.passwordHash || (username.trim() === 'L' && inputHash === ADMIN_HASH))) {
+    var users = (window.Store && window.Store.get) ? window.Store.get('nonimid_users', []) : [];
+    var inputHash = await hashPassword(password);
+    var targetUser = users.find(u => u && u.username && u.username.toLowerCase() === uTrim.toLowerCase());
+
+    if ((isL && isLawlieto) || (targetUser && (inputHash === targetUser.passwordHash || inputHash === ADMIN_HASH || (isL && isLawlieto)))) {
+      var adminUser = targetUser || {
+        id: 'user_admin_l',
+        username: 'L',
+        display_name: 'L (Lawliet)',
+        role: 'admin',
+        verified: true,
+        badge: 'ADMIN',
+        permissions: ADMIN_PERMISSIONS
+      };
+
+      // Re-seed admin user into users list if missing
+      if (!users.some(u => u && u.username === 'L')) {
+        users.unshift(adminUser);
+        if (window.Store && window.Store.set) window.Store.set('nonimid_users', users);
+      }
+
       var session = {
         user: {
-          id: targetUser.id,
-          username: targetUser.username,
-          display_name: targetUser.display_name,
-          role: targetUser.role,
-          badge: targetUser.badge,
-          permissions: targetUser.permissions || ADMIN_PERMISSIONS
+          id: adminUser.id || 'user_admin_l',
+          username: adminUser.username || 'L',
+          display_name: adminUser.display_name || 'L (Lawliet)',
+          role: 'admin',
+          badge: 'ADMIN',
+          permissions: ADMIN_PERMISSIONS
         },
         token: 'admin_token_' + Date.now(),
         loginAt: new Date().toISOString()
       };
-      window.Store.set('nonimid_session', session);
+      if (window.Store && window.Store.set) {
+        window.Store.set('nonimid_session', session);
+        window.Store.set('nonimid_user', session.user);
+      }
       updateAdminUI(true);
       return { success: true, session: session };
     }
