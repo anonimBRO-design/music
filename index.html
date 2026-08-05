@@ -1298,6 +1298,15 @@ function shuffle(arr) {
   return a;
 }
 
+window.Wrapped = window.Wrapped || {
+  open: function () { if (window.Wrapped?.open) window.Wrapped.open(); },
+  close: function () {},
+  nextSlide: function () {},
+  prevSlide: function () {},
+  setFormat: function () {},
+  exportShareCard: function () {}
+};
+
 // ── App Core ───────────────────────────────────
 const App = {
   currentPage: 'home',
@@ -3781,9 +3790,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="social.js"></script>
-<script src="premium.js"></script>
-<script src="assets/js/features/Wrapped.js"></script>
+<script type="module" src="/social.js"></script>
+<script type="module" src="/premium.js"></script>
+<script type="module" src="/assets/js/features/Wrapped.js"></script>
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
 <script>
