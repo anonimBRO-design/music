@@ -23,34 +23,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-<script>
-window.KEYS = window.KEYS || {
-  API: 'nonimid_apikey', LIKED: 'nonimid_liked', HISTORY: 'nonimid_history',
-  QUEUE: 'nonimid_queue', PLAYLISTS: 'nonimid_playlists', VOLUME: 'nonimid_volume',
-  LAST: 'nonimid_last', SETTINGS: 'nonimid_settings', STATS: 'nonimid_stats',
-  PROFILE: 'nonimid_profile', MONTHLY: 'nonimid_monthly', SESSION: 'nonimid_session',
-  USER: 'nonimid_user', USERS: 'nonimid_users'
-};
-
-window.Store = window.Store || {
-  get: function(k, def) {
-    try {
-      var v = localStorage.getItem(k);
-      return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null);
-    } catch(e) {
-      return def !== undefined ? def : null;
-    }
-  },
-  set: function(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
-  },
-  remove: function(k) {
-    try { localStorage.removeItem(k); } catch(e) {}
-  }
-};
-var Store = window.Store;
-var KEYS = window.KEYS;
-</script>
 <style>
 /* ============================================
    NONIMSONG — Embedded Styles
@@ -1070,8 +1042,8 @@ display:none!important;
    NONIMSONG — Complete Application Script
    ============================================ */
 
-// ── Storage Keys ──────────────────────────────
-window.KEYS = Object.assign(window.KEYS || {}, {
+// ── Single-Point Global Storage & Key Registry ──
+window.KEYS = window.KEYS || {
   API: 'nonimid_apikey',
   LIKED: 'nonimid_liked',
   HISTORY: 'nonimid_history',
@@ -1086,11 +1058,19 @@ window.KEYS = Object.assign(window.KEYS || {}, {
   SESSION: 'nonimid_session',
   USER: 'nonimid_user',
   USERS: 'nonimid_users'
-});
-const KEYS = window.KEYS;
+};
 
-// ── Storage Helper ─────────────────────────────
-const Store = window.Store;
+window.Store = window.Store || {
+  get: function(k, def) {
+    try { var v = localStorage.getItem(k); return (v !== null && v !== undefined) ? JSON.parse(v) : (def !== undefined ? def : null); }
+    catch(e) { return def !== undefined ? def : null; }
+  },
+  set: function(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
+  remove: function(k) { try { localStorage.removeItem(k); } catch(e) {} }
+};
+
+var KEYS = window.KEYS;
+var Store = window.Store;
 
 const DEFAULT_API_KEY = "";
 
@@ -1341,9 +1321,9 @@ window.Wrapped = window.Wrapped || {
 };
 
 // ── App Core ───────────────────────────────────
-const App = {
+window.App = {
   currentPage: 'home',
-  pages: ['home','search','library','liked','history','playlist','profile','users','party','publicProfile'],
+  pages: ['home','search','library','liked','history','playlist','profile','users','party','publicProfile','admin'],
 
   init() {
     document.getElementById('greetingText').textContent = greeting();
@@ -1469,6 +1449,7 @@ const DiversityEngine = {
     return result.slice(0, total);
   }
 };
+var App = window.App;
 
 // ── Home Page ──────────────────────────────────
 const Home = {
@@ -2316,7 +2297,7 @@ const Queue = {
 };
 
 // ── Player ─────────────────────────────────────
-const Player = {
+window.Player = {
   current: null,
   isPlaying: false,
   isShuffle: false,
@@ -2778,6 +2759,7 @@ const Player = {
     ProfilePage.trackMonthlyPlay();
   }
 };
+var Player = window.Player;
 
 // ── Settings ───────────────────────────────────
 const Settings = {

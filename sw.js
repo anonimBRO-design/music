@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/social.js',
   '/manifest.json',
   '/icons/logo.png',
-  '/icons/favicon.png'
+  '/icons/favicon.ico'
 ];
 
 self.addEventListener('install', event => {
