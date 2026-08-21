@@ -12,6 +12,7 @@ export const PlaylistTable = ({
   onOpenContextMenu = null
 }) => {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const liveAudioDuration = usePlayerStore((s) => s.duration);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
@@ -21,23 +22,23 @@ export const PlaylistTable = ({
 
   const getTrackDuration = (t) => {
     if (!t) return '--:--';
-    const liveDuration = (currentTrack?.id === t.id && currentTrack?.duration > 0) ? currentTrack.duration : 0;
-    const dur = liveDuration || t.duration || 0;
+    const isCurrent = currentTrack?.id === t.id;
+    const dur = (isCurrent && liveAudioDuration > 0) ? liveAudioDuration : (t.duration || 0);
 
     if (typeof dur === 'string' && dur.includes(':')) {
       return dur;
     }
 
-    const sec = Math.round(Number(dur) || 0);
+    const sec = Math.floor(Number(dur) || 0);
     if (sec > 0) {
       if (sec >= 3600) {
         const h = Math.floor(sec / 3600);
         const m = Math.floor((sec % 3600) / 60);
-        const s = Math.floor(sec % 60);
+        const s = sec % 60;
         return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
       }
       const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
+      const s = sec % 60;
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
     return '--:--';

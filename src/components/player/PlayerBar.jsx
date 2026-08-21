@@ -45,8 +45,15 @@ export const PlayerBar = () => {
   const toggleLike = useUserStore((s) => s.toggleLike);
 
   const formatTime = (sec) => {
-    const m = Math.floor(sec / 60) || 0;
-    const s = Math.floor(sec % 60) || 0;
+    const sInt = Math.floor(Number(sec) || 0);
+    if (sInt >= 3600) {
+      const h = Math.floor(sInt / 3600);
+      const m = Math.floor((sInt % 3600) / 60);
+      const s = sInt % 60;
+      return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+    const m = Math.floor(sInt / 60);
+    const s = sInt % 60;
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
