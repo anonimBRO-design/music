@@ -19,7 +19,7 @@ export const usePlayerStore = create((set, get) => ({
   collectionIndex: -1,
 
   // Audio Engine Bridge Callback
-  _audioCommand: null, // { type: 'LOAD'|'PLAY'|'PAUSE'|'SEEK'|'VOLUME', payload: any }
+  _audioCommand: null, // { type: 'LOAD'|'PLAY'|'PAUSE'|'SEEK'|'VOLUME', payload: any, trackId?: string, timestamp: number }
   setAudioCommand: (cmd) => set({ _audioCommand: cmd }),
 
   setFullscreenOpen: (open) => set({ isFullscreenOpen: open }),
@@ -30,7 +30,12 @@ export const usePlayerStore = create((set, get) => ({
     set({
       currentTrack: track,
       isPlaying: true,
-      _audioCommand: { type: 'LOAD', payload: track.id }
+      _audioCommand: {
+        type: 'LOAD',
+        payload: track.id,
+        trackId: track.id,
+        timestamp: Date.now()
+      }
     });
 
     Storage.set(KEYS.LAST, track);
@@ -51,36 +56,42 @@ export const usePlayerStore = create((set, get) => ({
   },
 
   togglePlay: () => {
-    if (!get().currentTrack) return;
+    const current = get().currentTrack;
+    if (!current?.id) return;
     const isPlaying = !get().isPlaying;
     set({
       isPlaying,
-      _audioCommand: { type: isPlaying ? 'PLAY' : 'PAUSE' }
+      _audioCommand: {
+        type: isPlaying ? 'PLAY' : 'PAUSE',
+        trackId: current.id,
+        timestamp: Date.now()
+      }
     });
   },
 
   pause: () => {
     set({
       isPlaying: false,
-      _audioCommand: { type: 'PAUSE' }
+      _audioCommand: { type: 'PAUSE', timestamp: Date.now() }
     });
   },
 
   next: async () => {
+    // 1. Shift next track from userQueue (Manual Queue) or contextQueue (Collection Queue)
     const nextTrack = useQueueStore.getState().shiftNextTrack();
     if (nextTrack) {
       get().playTrack(nextTrack, null, null, true);
       return;
     }
 
-    const { activeCollection, collectionIndex } = get();
-    if (activeCollection.length && collectionIndex < activeCollection.length - 1) {
-      const newIdx = collectionIndex + 1;
-      set({ collectionIndex: newIdx });
-      get().playTrack(activeCollection[newIdx], null, null, true);
+    // 2. Repeat all mode (repeatMode === 1)
+    const { activeCollection, repeatMode } = get();
+    if (repeatMode === 1 && activeCollection.length > 0) {
+      get().playTrack(activeCollection[0], activeCollection, null, false);
       return;
     }
 
+    // 3. Fallback to Smart Radio
     const current = get().currentTrack;
     if (current) {
       useToastStore.getState().showToast('Starting Smart Radio recommendations 📻', 'info');
@@ -108,7 +119,7 @@ export const usePlayerStore = create((set, get) => ({
   seekTo: (seconds) => {
     set({
       currentTime: seconds,
-      _audioCommand: { type: 'SEEK', payload: seconds }
+      _audioCommand: { type: 'SEEK', payload: seconds, timestamp: Date.now() }
     });
   },
 
@@ -118,7 +129,7 @@ export const usePlayerStore = create((set, get) => ({
     set({
       volume,
       isMuted: volume === 0,
-      _audioCommand: { type: 'VOLUME', payload: volume }
+      _audioCommand: { type: 'VOLUME', payload: volume, timestamp: Date.now() }
     });
   },
 
@@ -126,7 +137,7 @@ export const usePlayerStore = create((set, get) => ({
     const isMuted = !get().isMuted;
     set({
       isMuted,
-      _audioCommand: { type: 'VOLUME', payload: isMuted ? 0 : get().volume }
+      _audioCommand: { type: 'VOLUME', payload: isMuted ? 0 : get().volume, timestamp: Date.now() }
     });
   },
 
