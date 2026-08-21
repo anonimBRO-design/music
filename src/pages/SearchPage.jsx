@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { YouTubeAPI } from '../services/youtubeApi';
 import { PlaylistTable } from '../components/playlist/PlaylistTable';
-import { Search as SearchIcon, Compass, Sparkles } from 'lucide-react';
+import { Search as SearchIcon, Compass, Sparkles, Flame, Music, Radio, Coffee, Zap, Disc, Mic2 } from 'lucide-react';
 
 const CATEGORIES = [
-  { name: 'Phonk', color: 'from-purple-900 to-indigo-950', query: 'phonk drift beats' },
-  { name: 'Lo-Fi Chill', color: 'from-pink-900 to-rose-950', query: 'lofi hip hop beats' },
-  { name: 'Synthwave', color: 'from-cyan-900 to-blue-950', query: 'synthwave retro night' },
-  { name: 'Hip-Hop', color: 'from-amber-900 to-orange-950', query: 'hip hop rap hits' },
-  { name: 'Dark Ambient', color: 'from-zinc-800 to-zinc-950', query: 'dark ambient soundscape' },
-  { name: 'Indie Pop', color: 'from-emerald-900 to-teal-950', query: 'indie pop alternative' },
-  { name: 'Gaming Beats', color: 'from-red-900 to-rose-950', query: 'gaming music epic mix' },
-  { name: 'Anime Vibes', color: 'from-fuchsia-900 to-purple-950', query: 'anime ost lofi mix' }
+  { name: 'Pop Hits', color: 'from-rose-500 to-red-700', query: 'top global pop hits official audio', icon: Flame },
+  { name: 'Indo Pop & Viral', color: 'from-emerald-500 to-teal-700', query: 'top lagu pop indonesia hits viral official', icon: Music },
+  { name: 'K-Pop', color: 'from-pink-500 to-purple-700', query: 'top k-pop songs official music video', icon: Sparkles },
+  { name: 'Hip-Hop & Rap', color: 'from-amber-500 to-orange-700', query: 'top hip hop and rap songs official audio', icon: Mic2 },
+  { name: 'R&B & Soul', color: 'from-indigo-500 to-purple-700', query: 'top rnb and soul hits official audio', icon: Disc },
+  { name: 'Indie & Alternative', color: 'from-teal-600 to-emerald-800', query: 'best indie alternative songs official', icon: Sparkles },
+  { name: 'Acoustic & Coffee', color: 'from-yellow-600 to-amber-800', query: 'acoustic pop chill coffeehouse official', icon: Coffee },
+  { name: 'Dance & EDM', color: 'from-cyan-500 to-blue-700', query: 'electronic dance music edm festival hits official', icon: Zap },
+  { name: 'Rock & Modern', color: 'from-red-600 to-stone-800', query: 'top rock alternative hits official', icon: Flame },
+  { name: 'Viral Hits 2026', color: 'from-fuchsia-500 to-rose-700', query: 'top viral trending hits 2026 official', icon: Zap },
+  { name: 'Lo-Fi Chill', color: 'from-blue-600 to-indigo-900', query: 'lofi hip hop chill study beats official', icon: Radio },
+  { name: 'Anime OST & J-Pop', color: 'from-purple-500 to-pink-700', query: 'popular anime ost j-pop songs official', icon: Sparkles }
 ];
 
 export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
@@ -44,7 +48,7 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
   };
 
   return (
-    <div className="space-y-6 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
       {/* Search Header Bar */}
       <div className="relative max-w-xl">
         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
@@ -69,13 +73,25 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-emerald-400/20 border-t-emerald-400 animate-spin" />
-          <span className="text-xs text-zinc-500 font-semibold">Searching YouTube catalogue...</span>
+          <span className="text-xs text-zinc-500 font-semibold">Searching music catalogue...</span>
         </div>
       ) : searched ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white tracking-wide">Results for "{query}"</h2>
-            <span className="text-xs text-zinc-500">{results.length} songs found</span>
+            <div>
+              <h2 className="text-xl font-extrabold text-white tracking-wide">Results for "{query}"</h2>
+              <span className="text-xs text-zinc-400">{results.length} songs found</span>
+            </div>
+            <button
+              onClick={() => {
+                setSearched(false);
+                setQuery('');
+                setResults([]);
+              }}
+              className="text-xs font-bold text-emerald-400 hover:underline"
+            >
+              ← Back to Categories
+            </button>
           </div>
 
           {results.length === 0 ? (
@@ -94,25 +110,30 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-lg font-bold text-white tracking-wide">Browse All Categories</h2>
+            <h2 className="text-xl font-extrabold text-white tracking-wide">Browse All Categories</h2>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {CATEGORIES.map((cat) => (
-              <div
-                key={cat.name}
-                onClick={() => {
-                  setQuery(cat.query);
-                  performSearch(cat.query);
-                }}
-                className={`p-6 rounded-2xl bg-gradient-to-br ${cat.color} border border-white/5 hover:border-white/20 transition-all cursor-pointer shadow-lg hover:scale-105 group relative overflow-hidden h-32 flex items-end`}
-              >
-                <span className="text-base md:text-lg font-extrabold text-white group-hover:underline">
-                  {cat.name}
-                </span>
-                <Sparkles className="absolute top-4 right-4 w-6 h-6 text-white/20 group-hover:text-white/50 transition-colors" />
-              </div>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon || Sparkles;
+              return (
+                <div
+                  key={cat.name}
+                  onClick={() => {
+                    setQuery(cat.name);
+                    performSearch(cat.query);
+                  }}
+                  className={`p-5 rounded-2xl bg-gradient-to-br ${cat.color} border border-white/10 hover:border-white/20 transition-all cursor-pointer shadow-lg hover:shadow-2xl hover:scale-[1.03] group relative overflow-hidden h-36 flex flex-col justify-between`}
+                >
+                  <span className="text-base md:text-lg font-black text-white leading-tight group-hover:underline">
+                    {cat.name}
+                  </span>
+                  <div className="self-end p-2.5 rounded-full bg-black/20 backdrop-blur-md text-white/80 group-hover:text-white transition-all transform group-hover:scale-110">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
