@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
+  plugins: [react()],
   root: '.',
   publicDir: 'public',
   build: {
@@ -23,7 +26,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/assets/js'
+      '@': path.resolve(__dirname, './src')
     }
   }
 });
