@@ -40,17 +40,26 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
       }`}
     >
       {/* Brand Logo */}
-      <div className="flex items-center justify-between p-5 border-b border-white/5">
+      <div
+        onClick={() => onSelectTab('home')}
+        className="flex items-center justify-between p-4 px-5 border-b border-white/5 cursor-pointer hover:opacity-90 transition-opacity"
+      >
         {!isCollapsed ? (
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Music className="w-4 h-4 text-black stroke-[2.5]" />
-            </div>
-            <span className="text-base font-extrabold text-white tracking-wider">NONIMSONG</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/icons/logo.png"
+              alt="NONIMSONG"
+              className="w-9 h-9 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(0,255,135,0.2)]"
+            />
+            <span className="text-lg font-black text-white tracking-wider">NONIMSONG</span>
           </div>
         ) : (
-          <div className="mx-auto w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center">
-            <Music className="w-4 h-4 text-black stroke-[2.5]" />
+          <div className="mx-auto">
+            <img
+              src="/icons/logo.png"
+              alt="NONIMSONG"
+              className="w-8 h-8 object-contain drop-shadow-[0_2px_8px_rgba(0,255,135,0.2)]"
+            />
           </div>
         )}
       </div>

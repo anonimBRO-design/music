@@ -66,8 +66,9 @@ export const SettingsModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="text-center text-[10px] text-zinc-500 pt-5 mt-2">
-          NONIMSONG v2.5 · Powered by YouTube Engine
+        <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 pt-5 mt-2">
+          <img src="/icons/logo.png" alt="NONIMSONG" className="w-4 h-4 object-contain" />
+          <span>NONIMSONG v2.5 · Powered by YouTube Engine</span>
         </div>
       </div>
     </div>
