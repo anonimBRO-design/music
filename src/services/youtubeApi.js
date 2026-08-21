@@ -1,8 +1,17 @@
 export function makeTrack(raw) {
   if (!raw) return null;
-  const id = raw.id || (raw.id?.videoId) || raw.videoId;
-  if (!id) return null;
-  
+  let id = '';
+  if (typeof raw.id === 'string') {
+    id = raw.id;
+  } else if (raw.id && typeof raw.id.videoId === 'string') {
+    id = raw.id.videoId;
+  } else if (typeof raw.videoId === 'string') {
+    id = raw.videoId;
+  }
+
+  id = String(id || '').trim();
+  if (!id || id === '[object Object]') return null;
+
   const title = (raw.title || raw.snippet?.title || 'Unknown Title')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
@@ -13,8 +22,8 @@ export function makeTrack(raw) {
     .replace(/&#39;/g, "'")
     .replace(/&amp;/g, '&');
 
-  const thumbnail = raw.thumbnail || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
-  const thumbnailHQ = raw.thumbnailHQ || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const thumbnail = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+  const thumbnailHQ = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
   let genre = raw.genre;
   if (!genre) {

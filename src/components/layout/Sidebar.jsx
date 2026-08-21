@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import logoBanner from '../../assets/logo.png';
+import logoIcon from '../../assets/icon-192.png';
 
 export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, onOpenSettings }) => {
   const playlists = usePlaylistStore((s) => s.playlists);
@@ -46,14 +48,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
       >
         {!isCollapsed ? (
           <img
-            src="/icons/logo.png"
+            src={logoBanner}
             alt="NONIMSONG"
             className="h-8 max-w-[170px] object-contain drop-shadow-[0_2px_8px_rgba(0,255,135,0.15)]"
           />
         ) : (
           <div className="mx-auto">
             <img
-              src="/icons/icon-192.png"
+              src={logoIcon}
               alt="NONIMSONG"
               className="w-8 h-8 rounded-xl object-contain shadow-md"
             />
