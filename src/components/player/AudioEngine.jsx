@@ -28,13 +28,16 @@ export const AudioEngine = () => {
         playerRef.current = new window.YT.Player('yt-hidden-player-mount', {
           height: '1',
           width: '1',
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             autoplay: 1,
             controls: 0,
             disablekb: 1,
             fs: 0,
             playsinline: 1,
-            rel: 0
+            rel: 0,
+            enablejsapi: 1,
+            origin: window.location.origin
           },
           events: {
             onReady: (event) => {
