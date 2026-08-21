@@ -11,6 +11,8 @@ import { PartyPage } from './pages/PartyPage';
 import { WrappedPage } from './pages/WrappedPage';
 import { AdminPage } from './pages/AdminPage';
 
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
+
 export function App() {
   const [currentTab, setCurrentTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,7 +104,9 @@ export function App() {
       contextMenuState={contextMenuState}
       onCloseContextMenu={handleCloseContextMenu}
     >
-      {renderActiveView()}
+      <ErrorBoundary>
+        {renderActiveView()}
+      </ErrorBoundary>
     </MainLayout>
   );
 }

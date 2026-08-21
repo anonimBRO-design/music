@@ -20,6 +20,7 @@ export const PlaylistTable = ({
   const showToast = useToastStore((s) => s.showToast);
 
   const getTrackDuration = (t) => {
+    if (!t) return '--:--';
     const liveDuration = (currentTrack?.id === t.id && currentTrack?.duration > 0) ? currentTrack.duration : 0;
     const dur = liveDuration || t.duration || 0;
 
@@ -57,6 +58,7 @@ export const PlaylistTable = ({
   };
 
   const isCustomPlaylist = !!playlistId;
+  const validTracks = (tracks || []).filter((t) => t && (t.id || t.title));
 
   return (
     <div className="w-full font-syne select-none">
@@ -80,27 +82,38 @@ export const PlaylistTable = ({
 
       {/* Table Rows */}
       <div className="divide-y divide-white/[0.02]">
-        {tracks.map((t, idx) => {
-          const isThisPlaying = currentTrack?.id === t.id && isPlaying;
-          const isThisCurrent = currentTrack?.id === t.id;
-          const liked = isLiked(t.id);
-          const addedDate = t.addedAt
-            ? new Date(t.addedAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              })
-            : 'Recently';
+        {validTracks.map((t, idx) => {
+          const trackId = typeof t.id === 'string' ? t.id : (t.id?.videoId || String(t.id || idx));
+          const isThisPlaying = currentTrack?.id === trackId && isPlaying;
+          const isThisCurrent = currentTrack?.id === trackId;
+          const liked = isLiked(trackId);
+
+          let addedDate = 'Recently';
+          const rawDate = t.addedAt || t.playedAt;
+          if (rawDate) {
+            try {
+              const d = new Date(rawDate);
+              if (!isNaN(d.getTime())) {
+                addedDate = d.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                });
+              }
+            } catch (e) {
+              addedDate = 'Recently';
+            }
+          }
 
           return (
             <div
-              key={`${t.id}-${idx}`}
+              key={`${trackId}-${idx}`}
               draggable={!!onReorder}
               onDragStart={(e) => handleDragStart(e, idx)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => handleDrop(e, idx)}
               onDoubleClick={() =>
-                playTrack(t, tracks, { type: playlistId ? 'playlist' : 'collection', id: playlistId, title: collectionTitle })
+                playTrack(t, validTracks, { type: playlistId ? 'playlist' : 'collection', id: playlistId, title: collectionTitle })
               }
               onContextMenu={(e) => {
                 e.preventDefault();
@@ -129,7 +142,7 @@ export const PlaylistTable = ({
                     <span className="text-xs text-zinc-500 font-mono group-hover:hidden">{idx + 1}</span>
                     <button
                       onClick={() =>
-                        playTrack(t, tracks, { type: playlistId ? 'playlist' : 'collection', id: playlistId, title: collectionTitle })
+                        playTrack(t, validTracks, { type: playlistId ? 'playlist' : 'collection', id: playlistId, title: collectionTitle })
                       }
                       className="hidden group-hover:flex items-center justify-center"
                     >
@@ -142,19 +155,19 @@ export const PlaylistTable = ({
               {/* Title & Artist */}
               <div className="flex items-center gap-3.5 min-w-0">
                 <img
-                  src={t.thumbnail || `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`}
+                  src={t.thumbnail || `https://i.ytimg.com/vi/${trackId}/mqdefault.jpg`}
                   alt=""
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    e.currentTarget.src = `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`;
+                    e.currentTarget.src = `https://i.ytimg.com/vi/${trackId}/mqdefault.jpg`;
                   }}
                   className="w-10 h-10 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
                 />
                 <div className="min-w-0 flex-1">
                   <div className={`text-xs font-bold truncate ${isThisCurrent ? 'text-emerald-400' : 'text-white'}`}>
-                    {t.title}
+                    {t.title || 'Unknown Title'}
                   </div>
-                  <div className="text-[11px] text-zinc-400 truncate">{t.artist}</div>
+                  <div className="text-[11px] text-zinc-400 truncate">{t.artist || 'Unknown Artist'}</div>
                 </div>
               </div>
 

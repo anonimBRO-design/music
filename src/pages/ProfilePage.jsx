@@ -66,7 +66,14 @@ export const ProfilePage = () => {
           )}
           <div className="text-xs text-zinc-400 flex items-center justify-center sm:justify-start gap-1.5">
             <Calendar className="w-3.5 h-3.5" />
-            Member since {new Date(profile.memberSince || Date.now()).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+            Member since {(() => {
+              try {
+                const d = new Date(profile.memberSince || Date.now());
+                return !isNaN(d.getTime()) ? d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '2026';
+              } catch (e) {
+                return '2026';
+              }
+            })()}
           </div>
         </div>
       </div>
