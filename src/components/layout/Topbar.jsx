@@ -90,7 +90,15 @@ export const Topbar = ({ onNavigateSearch, onNavigateProfile }) => {
                   }}
                   className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors group"
                 >
-                  <img src={track.thumbnail} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                  <img
+                    src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
+                    }}
+                    className="w-9 h-9 rounded-lg object-cover shrink-0 bg-zinc-900"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
                       {track.title}

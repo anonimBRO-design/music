@@ -77,9 +77,13 @@ export const FullscreenPlayer = () => {
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 my-auto max-w-4xl mx-auto w-full">
         <div className="relative group">
           <img
-            src={currentTrack.thumbnailHQ || currentTrack.thumbnail}
+            src={currentTrack.thumbnailHQ || currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`}
             alt=""
-            className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl transition-all duration-500 ${
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+            }}
+            className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl transition-all duration-500 bg-zinc-900 ${
               isPlaying ? 'scale-100 shadow-emerald-500/20 ring-4 ring-emerald-500/20' : 'scale-95 opacity-80'
             }`}
           />

@@ -178,7 +178,15 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
                   key={t.id}
                   className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 transition-colors"
                 >
-                  <img src={t.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                  <img
+                    src={t.thumbnail || `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`;
+                    }}
+                    className="w-10 h-10 rounded-lg object-cover bg-zinc-900"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-white truncate">{t.title}</div>
                     <div className="text-[11px] text-zinc-400 truncate">{t.artist}</div>

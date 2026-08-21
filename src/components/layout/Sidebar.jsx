@@ -42,23 +42,20 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
       {/* Brand Logo */}
       <div
         onClick={() => onSelectTab('home')}
-        className="flex items-center justify-between p-4 px-5 border-b border-white/5 cursor-pointer hover:opacity-90 transition-opacity"
+        className="flex items-center p-4 px-5 border-b border-white/5 cursor-pointer hover:opacity-90 transition-opacity"
       >
         {!isCollapsed ? (
-          <div className="flex items-center gap-3">
-            <img
-              src="/icons/logo.png"
-              alt="NONIMSONG"
-              className="w-9 h-9 object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(0,255,135,0.2)]"
-            />
-            <span className="text-lg font-black text-white tracking-wider">NONIMSONG</span>
-          </div>
+          <img
+            src="/icons/logo.png"
+            alt="NONIMSONG"
+            className="h-8 max-w-[170px] object-contain drop-shadow-[0_2px_8px_rgba(0,255,135,0.15)]"
+          />
         ) : (
           <div className="mx-auto">
             <img
-              src="/icons/logo.png"
+              src="/icons/icon-192.png"
               alt="NONIMSONG"
-              className="w-8 h-8 object-contain drop-shadow-[0_2px_8px_rgba(0,255,135,0.2)]"
+              className="w-8 h-8 rounded-xl object-contain shadow-md"
             />
           </div>
         )}

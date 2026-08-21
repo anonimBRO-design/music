@@ -59,9 +59,13 @@ export const QueuePanel = () => {
           {currentTrack ? (
             <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
               <img
-                src={currentTrack.thumbnail}
+                src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
                 alt=""
-                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+                }}
+                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
               />
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold text-emerald-400 truncate">{currentTrack.title}</div>
@@ -116,7 +120,15 @@ export const QueuePanel = () => {
                   className="flex items-center gap-2 p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-colors group"
                 >
                   <GripVertical className="w-3.5 h-3.5 text-zinc-500 shrink-0 cursor-grab opacity-40 group-hover:opacity-100" />
-                  <img src={track.thumbnail} alt="" className="w-9 h-9 rounded-md object-cover shrink-0" />
+                  <img
+                    src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
+                    }}
+                    className="w-9 h-9 rounded-md object-cover shrink-0 bg-zinc-900"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
                       {track.title}
@@ -160,7 +172,15 @@ export const QueuePanel = () => {
                     {idx + 1}
                   </span>
                   <Play className="w-3.5 h-3.5 text-emerald-400 hidden group-hover:block shrink-0" />
-                  <img src={track.thumbnail} alt="" className="w-9 h-9 rounded-md object-cover shrink-0" />
+                  <img
+                    src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
+                    }}
+                    className="w-9 h-9 rounded-md object-cover shrink-0 bg-zinc-900"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-zinc-200 truncate group-hover:text-white transition-colors">
                       {track.title}

@@ -112,7 +112,15 @@ export const PlaylistTable = ({
 
               {/* Title & Artist */}
               <div className="flex items-center gap-3.5 min-w-0">
-                <img src={t.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 shadow" />
+                <img
+                  src={t.thumbnail || `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://i.ytimg.com/vi/${t.id}/mqdefault.jpg`;
+                  }}
+                  className="w-10 h-10 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
+                />
                 <div className="min-w-0 flex-1">
                   <div className={`text-xs font-bold truncate ${isThisCurrent ? 'text-emerald-400' : 'text-white'}`}>
                     {t.title}

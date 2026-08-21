@@ -114,7 +114,15 @@ export const PartyPage = () => {
             </div>
             {currentTrack ? (
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                <img src={currentTrack.thumbnail} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                <img
+                  src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+                  }}
+                  className="w-14 h-14 rounded-xl object-cover bg-zinc-900"
+                />
                 <div>
                   <div className="text-sm font-bold text-white">{currentTrack.title}</div>
                   <div className="text-xs text-zinc-400">{currentTrack.artist}</div>

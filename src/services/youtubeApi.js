@@ -13,14 +13,8 @@ export function makeTrack(raw) {
     .replace(/&#39;/g, "'")
     .replace(/&amp;/g, '&');
 
-  const thumbnail = raw.thumbnail || 
-    raw.snippet?.thumbnails?.medium?.url || 
-    raw.snippet?.thumbnails?.default?.url || 
-    `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-    
-  const thumbnailHQ = raw.thumbnailHQ || 
-    raw.snippet?.thumbnails?.high?.url || 
-    `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+  const thumbnail = raw.thumbnail || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+  const thumbnailHQ = raw.thumbnailHQ || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
   let genre = raw.genre;
   if (!genre) {

@@ -2,30 +2,136 @@ import React, { useState, useEffect } from 'react';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { useUserStore } from '../stores/useUserStore';
 import { YouTubeAPI } from '../services/youtubeApi';
-import { Play, Sparkles, Flame, Radio } from 'lucide-react';
+import { Play, Sparkles, Flame, Radio, Heart, Disc, Music } from 'lucide-react';
 
-const MOODS = ['Phonk', 'Synthwave', 'Lo-Fi Chill', 'Hip-Hop Vibes', 'Dark Ambient', 'Indie Pop', 'Night Drive'];
+const MOODS = ['Trending Hits', 'Chill Beats', 'Pop Vibes', 'Night Drive', 'Indie', 'Hip-Hop', 'Synthwave', 'Lo-Fi', 'R&B'];
+
+// Diversity Engine to filter out hour-long full album loop mixes and diversify artists
+const DiversityEngine = {
+  filterCleanTracks(items) {
+    const channelCount = {};
+    return (items || []).filter((item) => {
+      if (!item || !item.id) return false;
+      const title = (item.title || '').toLowerCase();
+      // Filter out hour-long compilations/mixes
+      if (
+        title.includes('1 hour') ||
+        title.includes('2 hours') ||
+        title.includes('3 hours') ||
+        title.includes('10 hours') ||
+        title.includes('full album') ||
+        title.includes('mix 202')
+      ) {
+        return false;
+      }
+      const artist = (item.artist || '').toLowerCase();
+      channelCount[artist] = (channelCount[artist] || 0) + 1;
+      return channelCount[artist] <= 2;
+    });
+  }
+};
 
 export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
   const playTrack = usePlayerStore((s) => s.playTrack);
   const profile = useUserStore((s) => s.profile);
-  const [featuredTracks, setFeaturedTracks] = useState([]);
-  const [trendingTracks, setTrendingTracks] = useState([]);
+  const history = useUserStore((s) => s.history);
+  const likedSongs = useUserStore((s) => s.likedSongs);
+
+  const [sections, setSections] = useState([]);
+  const [quickGrid, setQuickGrid] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadHomeData = async () => {
+    const loadSmartHome = async () => {
       setLoading(true);
-      const [featRes, trendRes] = await Promise.all([
-        YouTubeAPI.search('aesthetic phonk lofi night drive beats', 8),
-        YouTubeAPI.search('popular hits music 2026', 8)
-      ]);
-      setFeaturedTracks(featRes.items || []);
-      setTrendingTracks(trendRes.items || []);
-      setLoading(false);
+
+      // 1. Analyze User Taste
+      const recentTracks = [...history, ...likedSongs];
+      const artistMap = {};
+      recentTracks.forEach((t) => {
+        if (t.artist) artistMap[t.artist] = (artistMap[t.artist] || 0) + 1;
+      });
+
+      const topArtists = Object.keys(artistMap).sort((a, b) => artistMap[b] - artistMap[a]);
+      const favArtist = topArtists[0] || null;
+      const secondArtist = topArtists[1] || null;
+
+      // 2. Build Section Queries
+      const sectionConfigs = [];
+      if (favArtist) {
+        sectionConfigs.push({
+          id: 'sec_fav',
+          title: `🎯 Because you listened to ${favArtist}`,
+          query: `${favArtist} official audio music`,
+          icon: Disc,
+          color: 'text-emerald-400'
+        });
+      }
+
+      if (secondArtist) {
+        sectionConfigs.push({
+          id: 'sec_sim',
+          title: `🎵 Similar to ${secondArtist}`,
+          query: `${secondArtist} similar songs music`,
+          icon: Sparkles,
+          color: 'text-cyan-400'
+        });
+      } else if (!favArtist) {
+        sectionConfigs.push({
+          id: 'sec_featured',
+          title: `✨ Curated For You`,
+          query: `top global hit songs official audio`,
+          icon: Sparkles,
+          color: 'text-emerald-400'
+        });
+      }
+
+      sectionConfigs.push({
+        id: 'sec_trending',
+        title: `🔥 Global Trending Hits`,
+        query: `trending popular music songs 2026`,
+        icon: Flame,
+        color: 'text-pink-500'
+      });
+
+      sectionConfigs.push({
+        id: 'sec_chill',
+        title: `🌙 Late Night Vibes`,
+        query: `aesthetic chill indie pop songs`,
+        icon: Radio,
+        color: 'text-purple-400'
+      });
+
+      // 3. Fetch sections in parallel
+      try {
+        const results = await Promise.all(
+          sectionConfigs.map((sec) => YouTubeAPI.search(sec.query, 12))
+        );
+
+        const loadedSections = sectionConfigs.map((sec, idx) => ({
+          ...sec,
+          tracks: DiversityEngine.filterCleanTracks(results[idx]?.items || []).slice(0, 8)
+        }));
+
+        setSections(loadedSections);
+
+        // Build quick grid (up to 6 cards from liked or top tracks)
+        const gridItems = [
+          ...likedSongs.slice(0, 3),
+          ...history.slice(0, 3),
+          ...(loadedSections[0]?.tracks || []).slice(0, 6)
+        ].slice(0, 6);
+
+        setQuickGrid(gridItems);
+      } catch (err) {
+        console.warn('Home recommendation load error:', err);
+      } finally {
+        setLoading(false);
+      }
     };
-    loadHomeData();
-  }, []);
+
+    loadSmartHome();
+  }, [history, likedSongs]);
 
   const greeting = () => {
     const hr = new Date().getHours();
@@ -37,19 +143,55 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
   return (
     <div className="space-y-8 p-6 md:p-8 font-syne select-none">
       {/* Hero Welcome */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-white">
-            {greeting()}, {profile.username || 'Listener'}
-          </h1>
-          <p className="text-xs md:text-sm text-zinc-400 mt-1">
-            Handcrafted soundscapes and instant YouTube streaming.
-          </p>
-        </div>
+      <div className="space-y-1">
+        <h1 className="text-2xl md:text-4xl font-extrabold text-white">
+          {greeting()}, {profile.username || 'Listener'}
+        </h1>
+        <p className="text-xs md:text-sm text-zinc-400">
+          Personalized music tailored to your listening taste.
+        </p>
       </div>
 
-      {/* Mood Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Quick Access Grid */}
+      {quickGrid.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {quickGrid.map((track, i) => (
+            <div
+              key={`${track.id}-${i}`}
+              onClick={() => playTrack(track, quickGrid, { type: 'home_quick', title: 'Quick Picks' })}
+              className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 hover:border-white/10 transition-all cursor-pointer group shadow-md"
+            >
+              <img
+                src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
+                }}
+                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                  {track.title}
+                </div>
+                <div className="text-[11px] text-zinc-400 truncate">{track.artist}</div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playTrack(track, quickGrid, { type: 'home_quick', title: 'Quick Picks' });
+                }}
+                className="w-8 h-8 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all shrink-0 hover:scale-105"
+              >
+                <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Mood Filter Chips */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {MOODS.map((mood) => (
           <button
             key={mood}
@@ -61,107 +203,77 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
         ))}
       </div>
 
-      {/* Featured Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-emerald-400" />
-          <h2 className="text-lg font-bold text-white tracking-wide">Featured Vibes</h2>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-56 rounded-2xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {featuredTracks.map((track) => (
-              <div
-                key={track.id}
-                onClick={() => playTrack(track, featuredTracks, { type: 'home_featured', title: 'Featured Vibes' })}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  if (onOpenContextMenu) onOpenContextMenu(e, track);
-                }}
-                className="group relative p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl"
-              >
-                <div className="relative aspect-square mb-3 overflow-hidden rounded-xl">
-                  <img
-                    src={track.thumbnail}
-                    alt=""
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playTrack(track, featuredTracks, { type: 'home_featured', title: 'Featured Vibes' });
-                    }}
-                    className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"
-                  >
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
-                  </button>
-                </div>
-                <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
-                  {track.title}
-                </div>
-                <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
+      {/* Dynamic Recommendation Sections */}
+      {loading ? (
+        <div className="space-y-8">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-4">
+              <div className="h-6 w-48 bg-white/5 rounded-lg animate-pulse" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="h-56 rounded-2xl bg-white/5 animate-pulse" />
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Trending Hits Section */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center gap-2">
-          <Flame className="w-5 h-5 text-pink-500" />
-          <h2 className="text-lg font-bold text-white tracking-wide">Popular Right Now</h2>
+            </div>
+          ))}
         </div>
+      ) : (
+        <div className="space-y-10">
+          {sections.map((sec) => {
+            const Icon = sec.icon || Sparkles;
+            if (!sec.tracks?.length) return null;
+            return (
+              <div key={sec.id} className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Icon className={`w-5 h-5 ${sec.color}`} />
+                  <h2 className="text-lg font-bold text-white tracking-wide">{sec.title}</h2>
+                </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-56 rounded-2xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {trendingTracks.map((track) => (
-              <div
-                key={track.id}
-                onClick={() => playTrack(track, trendingTracks, { type: 'home_trending', title: 'Popular Hits' })}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  if (onOpenContextMenu) onOpenContextMenu(e, track);
-                }}
-                className="group relative p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl"
-              >
-                <div className="relative aspect-square mb-3 overflow-hidden rounded-xl">
-                  <img
-                    src={track.thumbnail}
-                    alt=""
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playTrack(track, trendingTracks, { type: 'home_trending', title: 'Popular Hits' });
-                    }}
-                    className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"
-                  >
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
-                  </button>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {sec.tracks.map((track) => (
+                    <div
+                      key={track.id}
+                      onClick={() => playTrack(track, sec.tracks, { type: 'home_section', id: sec.id, title: sec.title })}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        if (onOpenContextMenu) onOpenContextMenu(e, track);
+                      }}
+                      className="group relative p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-zinc-900">
+                        <img
+                          src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
+                          }}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playTrack(track, sec.tracks, { type: 'home_section', id: sec.id, title: sec.title });
+                          }}
+                          className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"
+                        >
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
+                        </button>
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                          {track.title}
+                        </div>
+                        <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
-                  {track.title}
-                </div>
-                <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

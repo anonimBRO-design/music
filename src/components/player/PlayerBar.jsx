@@ -61,9 +61,13 @@ export const PlayerBar = () => {
           <>
             <div className="relative group shrink-0">
               <img
-                src={currentTrack.thumbnail}
+                src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
                 alt=""
-                className={`w-14 h-14 rounded-xl object-cover shadow-lg transition-transform ${
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+                }}
+                className={`w-14 h-14 rounded-xl object-cover shadow-lg transition-transform bg-zinc-900 ${
                   isPlaying ? 'ring-2 ring-emerald-400/40 scale-100' : 'opacity-90'
                 }`}
               />
