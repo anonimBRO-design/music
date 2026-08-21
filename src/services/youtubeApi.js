@@ -78,13 +78,23 @@ export function makeTrack(raw) {
     else genre = 'Pop';
   }
 
+  const durationRaw = raw.duration || raw.snippet?.duration || 0;
+  let duration = 0;
+  if (typeof durationRaw === 'number' && !isNaN(durationRaw)) {
+    duration = durationRaw;
+  } else if (typeof durationRaw === 'string' && durationRaw.includes(':')) {
+    const parts = durationRaw.split(':').map((p) => parseInt(p, 10) || 0);
+    if (parts.length === 3) duration = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    else if (parts.length === 2) duration = parts[0] * 60 + parts[1];
+  }
+
   return {
     id,
     title,
     artist,
     thumbnail,
     thumbnailHQ,
-    duration: raw.duration || 180,
+    duration: duration || 0,
     genre,
     addedAt: raw.addedAt || new Date().toISOString()
   };

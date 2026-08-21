@@ -47,8 +47,10 @@ export default async function handler(req, res) {
         snippet: {
           title: video.title?.text || 'Untitled',
           channelTitle: video.author?.name || 'Unknown',
-          publishedAt: video.published_time?.text || ''
-        }
+          publishedAt: video.published_time?.text || '',
+          duration: video.duration?.seconds || (typeof video.duration?.text === 'string' ? video.duration.text : 0)
+        },
+        duration: video.duration?.seconds || 0
       }));
     
     console.log(`[api/search] Query: "${query}", Results mapped: ${items.length}`);

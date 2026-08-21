@@ -20,20 +20,26 @@ export const PlaylistTable = ({
   const showToast = useToastStore((s) => s.showToast);
 
   const getTrackDuration = (t) => {
-    if (typeof t.duration === 'string' && t.duration.includes(':')) {
-      return t.duration;
+    const liveDuration = (currentTrack?.id === t.id && currentTrack?.duration > 0) ? currentTrack.duration : 0;
+    const dur = liveDuration || t.duration || 0;
+
+    if (typeof dur === 'string' && dur.includes(':')) {
+      return dur;
     }
-    if (typeof t.duration === 'number' && t.duration > 0 && t.duration !== 180) {
-      const m = Math.floor(t.duration / 60);
-      const s = Math.floor(t.duration % 60);
+
+    const sec = Math.round(Number(dur) || 0);
+    if (sec > 0) {
+      if (sec >= 3600) {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = Math.floor(sec % 60);
+        return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+      }
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
-    // Realistic deterministic duration based on video ID hash
-    const hash = (t.id || 'track').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const secs = 135 + (hash % 110); // Between 2:15 and 4:05
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+    return '--:--';
   };
 
   const handleDragStart = (e, index) => {
