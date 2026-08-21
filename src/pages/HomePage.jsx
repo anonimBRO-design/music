@@ -2,14 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { useUserStore } from '../stores/useUserStore';
 import { YouTubeAPI } from '../services/youtubeApi';
-import { Play, Sparkles, Flame, Radio, Heart, Disc, Music } from 'lucide-react';
+import { Play, Sparkles, Flame, Radio, Coffee, Zap, Music2, Disc } from 'lucide-react';
 
-const MOODS = ['Trending Hits', 'Chill Beats', 'Pop Vibes', 'Night Drive', 'Indie', 'Hip-Hop', 'Synthwave', 'Lo-Fi', 'R&B'];
+const CATEGORY_PILLS = [
+  { id: 'all', label: 'All' },
+  { id: 'pop', label: 'Pop', query: 'Top Pop Hits official audio' },
+  { id: 'indie', label: 'Indie', query: 'Best Indie Pop Alternative songs official' },
+  { id: 'kpop', label: 'K-Pop', query: 'Popular K-Pop hits official' },
+  { id: 'rnb', label: 'R&B / Soul', query: 'Top R&B Soul Hits official' },
+  { id: 'hiphop', label: 'Hip-Hop', query: 'Hip-Hop Rap Hits official' },
+  { id: 'acoustic', label: 'Acoustic', query: 'Acoustic pop coffee chill official' },
+  { id: 'rock', label: 'Rock', query: 'Modern Rock Alternative hits official' },
+  { id: 'edm', label: 'EDM & Dance', query: 'Electronic Dance Music hits official' },
+  { id: 'anime', label: 'Anime OST', query: 'Popular Anime OST songs official' }
+];
 
 // Diversity Engine to filter out hour-long full album loop mixes and diversify artists
 const DiversityEngine = {
   filterCleanTracks(items) {
-    const channelCount = {};
+    const artistCount = {};
     return (items || []).filter((item) => {
       if (!item || !item.id) return false;
       const title = (item.title || '').toLowerCase();
@@ -20,13 +31,14 @@ const DiversityEngine = {
         title.includes('3 hours') ||
         title.includes('10 hours') ||
         title.includes('full album') ||
-        title.includes('mix 202')
+        title.includes('mix 202') ||
+        title.includes('compilation')
       ) {
         return false;
       }
       const artist = (item.artist || '').toLowerCase();
-      channelCount[artist] = (channelCount[artist] || 0) + 1;
-      return channelCount[artist] <= 2;
+      artistCount[artist] = (artistCount[artist] || 0) + 1;
+      return artistCount[artist] <= 2;
     });
   }
 };
@@ -37,6 +49,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
   const history = useUserStore((s) => s.history);
   const likedSongs = useUserStore((s) => s.likedSongs);
 
+  const [activePill, setActivePill] = useState('all');
   const [sections, setSections] = useState([]);
   const [quickGrid, setQuickGrid] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,24 +58,55 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
     const loadSmartHome = async () => {
       setLoading(true);
 
-      // 1. Analyze User Taste
+      // If a specific genre pill is selected
+      if (activePill !== 'all') {
+        const pill = CATEGORY_PILLS.find((p) => p.id === activePill);
+        if (pill?.query) {
+          const res = await YouTubeAPI.search(pill.query, 24);
+          const cleanTracks = DiversityEngine.filterCleanTracks(res.items || []);
+          setSections([
+            {
+              id: `sec_${activePill}`,
+              title: `${pill.label} — Top Picks`,
+              icon: Music2,
+              color: 'text-emerald-400',
+              tracks: cleanTracks.slice(0, 16)
+            }
+          ]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 1. Analyze User Taste for "Made For You"
       const recentTracks = [...history, ...likedSongs];
       const artistMap = {};
       recentTracks.forEach((t) => {
-        if (t.artist) artistMap[t.artist] = (artistMap[t.artist] || 0) + 1;
+        if (t.artist && !t.artist.toLowerCase().includes('lirik') && !t.artist.toLowerCase().includes('topic')) {
+          artistMap[t.artist] = (artistMap[t.artist] || 0) + 1;
+        }
       });
 
       const topArtists = Object.keys(artistMap).sort((a, b) => artistMap[b] - artistMap[a]);
       const favArtist = topArtists[0] || null;
       const secondArtist = topArtists[1] || null;
 
-      // 2. Build Section Queries
-      const sectionConfigs = [];
+      // 2. Build Spotify-Grade Sections
+      const sectionConfigs = [
+        {
+          id: 'sec_top_hits',
+          title: "🔥 Today's Top Hits",
+          query: 'Todays Top Hits Billboard global pop songs official',
+          icon: Flame,
+          color: 'text-rose-400'
+        }
+      ];
+
       if (favArtist) {
         sectionConfigs.push({
           id: 'sec_fav',
-          title: `🎯 Because you listened to ${favArtist}`,
-          query: `${favArtist} official audio music`,
+          title: `✨ Daily Mix: ${favArtist} & Similar`,
+          query: `${favArtist} official music video audio`,
           icon: Disc,
           color: 'text-emerald-400'
         });
@@ -71,35 +115,35 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
       if (secondArtist) {
         sectionConfigs.push({
           id: 'sec_sim',
-          title: `🎵 Similar to ${secondArtist}`,
-          query: `${secondArtist} similar songs music`,
+          title: `🎯 Recommended: More of ${secondArtist}`,
+          query: `${secondArtist} popular songs official`,
           icon: Sparkles,
           color: 'text-cyan-400'
-        });
-      } else if (!favArtist) {
-        sectionConfigs.push({
-          id: 'sec_featured',
-          title: `✨ Curated For You`,
-          query: `top global hit songs official audio`,
-          icon: Sparkles,
-          color: 'text-emerald-400'
         });
       }
 
       sectionConfigs.push({
-        id: 'sec_trending',
-        title: `🔥 Global Trending Hits`,
-        query: `trending popular music songs 2026`,
-        icon: Flame,
-        color: 'text-pink-500'
+        id: 'sec_pop_rising',
+        title: '🌟 Pop Rising & Viral Hits',
+        query: 'Pop Rising Spotify viral songs official',
+        icon: Zap,
+        color: 'text-amber-400'
       });
 
       sectionConfigs.push({
         id: 'sec_chill',
-        title: `🌙 Late Night Vibes`,
-        query: `aesthetic chill indie pop songs`,
-        icon: Radio,
+        title: '☕ Chill & Acoustic Afternoon',
+        query: 'Acoustic Pop coffee chill songs official audio',
+        icon: Coffee,
         color: 'text-purple-400'
+      });
+
+      sectionConfigs.push({
+        id: 'sec_night',
+        title: '🌙 Late Night Drive & Synth',
+        query: 'Synthwave Night Drive retro pop songs official',
+        icon: Radio,
+        color: 'text-indigo-400'
       });
 
       // 3. Fetch sections in parallel
@@ -131,7 +175,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
     };
 
     loadSmartHome();
-  }, [history, likedSongs]);
+  }, [activePill, history, likedSongs]);
 
   const greeting = () => {
     const hr = new Date().getHours();
@@ -148,11 +192,11 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
           {greeting()}, {profile.username || 'Listener'}
         </h1>
         <p className="text-xs md:text-sm text-zinc-400">
-          Personalized music tailored to your listening taste.
+          Handpicked soundscapes and Spotify-curated global charts.
         </p>
       </div>
 
-      {/* Quick Access Grid */}
+      {/* Quick Access 6-Card Grid */}
       {quickGrid.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {quickGrid.map((track, i) => (
@@ -168,7 +212,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                 }}
-                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow"
+                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
               />
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
@@ -190,17 +234,24 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
         </div>
       )}
 
-      {/* Mood Filter Chips */}
+      {/* Spotify Category Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {MOODS.map((mood) => (
-          <button
-            key={mood}
-            onClick={() => onNavigateSearch(mood)}
-            className="px-4 py-2 rounded-full text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 hover:text-white transition-all shrink-0 hover:scale-105"
-          >
-            {mood}
-          </button>
-        ))}
+        {CATEGORY_PILLS.map((pill) => {
+          const isActive = activePill === pill.id;
+          return (
+            <button
+              key={pill.id}
+              onClick={() => setActivePill(pill.id)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+                isActive
+                  ? 'bg-emerald-400 text-black shadow-lg shadow-emerald-500/20 scale-105'
+                  : 'bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white'
+              }`}
+            >
+              {pill.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Dynamic Recommendation Sections */}

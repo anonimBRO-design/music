@@ -1,3 +1,50 @@
+export function cleanMusicMeta(rawTitle, rawArtist) {
+  let title = (rawTitle || 'Unknown Title')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .trim();
+
+  let artist = (rawArtist || 'Unknown Artist')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/ - Topic$/i, '')
+    .replace(/VEVO$/i, '')
+    .trim();
+
+  // If title has "Artist - Song Title" format, extract genuine artist
+  if (title.includes(' - ')) {
+    const parts = title.split(' - ');
+    if (parts.length >= 2) {
+      const possibleArtist = parts[0].trim();
+      const possibleTitle = parts.slice(1).join(' - ').trim();
+      if (
+        artist.toLowerCase().includes('lirik') ||
+        artist.toLowerCase().includes('lyrics') ||
+        artist.toLowerCase().includes('music') ||
+        artist.toLowerCase().includes('channel') ||
+        artist.toLowerCase().includes('records') ||
+        artist.toLowerCase().includes('indo') ||
+        artist.toLowerCase().includes('sound')
+      ) {
+        artist = possibleArtist;
+      }
+      title = possibleTitle;
+    }
+  }
+
+  // Clean clutter suffixes like (Official Music Video), [Lyric Video], etc.
+  title = title
+    .replace(/\s*[\(\[]\s*(official\s*(music\s*)?video|official\s*audio|official\s*lyric\s*video|lyric\s*video|audio|visualizer|clip\s*officiel|video\s*clip|mv|lyrics?)\s*[\)\]]/gi, '')
+    .replace(/\s*\|\s*lirik\s*lagu.*$/gi, '')
+    .replace(/\s*\|\s*terjemahan.*$/gi, '')
+    .replace(/\s*\|\s*official.*$/gi, '')
+    .trim();
+
+  return { title, artist };
+}
+
 export function makeTrack(raw) {
   if (!raw) return null;
   let id = '';
@@ -12,15 +59,10 @@ export function makeTrack(raw) {
   id = String(id || '').trim();
   if (!id || id === '[object Object]') return null;
 
-  const title = (raw.title || raw.snippet?.title || 'Unknown Title')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&');
-    
-  const artist = (raw.artist || raw.snippet?.channelTitle || raw.channelTitle || 'Unknown Artist')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&');
+  const rawTitle = raw.title || raw.snippet?.title || 'Unknown Title';
+  const rawArtist = raw.artist || raw.snippet?.channelTitle || raw.channelTitle || 'Unknown Artist';
+
+  const { title, artist } = cleanMusicMeta(rawTitle, rawArtist);
 
   const thumbnail = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
   const thumbnailHQ = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
@@ -33,7 +75,7 @@ export function makeTrack(raw) {
     else if (t.includes('lofi') || t.includes('chill') || t.includes('relax')) genre = 'Lo-Fi';
     else if (t.includes('hip') || t.includes('rap') || t.includes('trap')) genre = 'Hip-Hop';
     else if (t.includes('pop') || t.includes('indie')) genre = 'Indie Pop';
-    else genre = 'Electronic';
+    else genre = 'Pop';
   }
 
   return {
