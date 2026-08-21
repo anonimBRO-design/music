@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useUserStore } from '../../stores/useUserStore';
+import { useSleepTimerStore } from '../../stores/useSleepTimerStore';
+import { useMediaSession } from '../../hooks/useMediaSession';
 
 export const AudioEngine = () => {
   const playerRef = useRef(null);
@@ -13,6 +15,9 @@ export const AudioEngine = () => {
   const syncAudioState = usePlayerStore((state) => state.syncAudioState);
   const next = usePlayerStore((state) => state.next);
   const addPlayedSeconds = useUserStore((state) => state.addPlayedSeconds);
+
+  // Mount Media Session API (lockscreen/browser media controls)
+  useMediaSession();
 
   useEffect(() => {
     // Load YouTube IFrame API script once
@@ -54,6 +59,8 @@ export const AudioEngine = () => {
               } else if (event.data === 0) { // Ended
                 syncAudioState({ isPlaying: false });
                 stopProgressLoop();
+                // Notify sleep timer
+                useSleepTimerStore.getState().onTrackEnded();
                 if (repeatMode === 2) {
                   playerRef.current?.seekTo(0);
                   playerRef.current?.playVideo();

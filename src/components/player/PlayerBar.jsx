@@ -2,6 +2,7 @@ import React from 'react';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
 import { useUserStore } from '../../stores/useUserStore';
+import { useSleepTimerStore } from '../../stores/useSleepTimerStore';
 import {
   Play,
   Pause,
@@ -14,7 +15,9 @@ import {
   VolumeX,
   Heart,
   ListMusic,
-  Maximize2
+  Maximize2,
+  Mic2,
+  Moon
 } from 'lucide-react';
 
 export const PlayerBar = () => {
@@ -43,6 +46,8 @@ export const PlayerBar = () => {
 
   const isLiked = useUserStore((s) => s.isLiked);
   const toggleLike = useUserStore((s) => s.toggleLike);
+
+  const sleepTimerActive = useSleepTimerStore((s) => s.isActive);
 
   const formatTime = (sec) => {
     const sInt = Math.floor(Number(sec) || 0);
@@ -179,7 +184,36 @@ export const PlayerBar = () => {
       </div>
 
       {/* 3. Volume & Extras (Right) */}
-      <div className="flex items-center justify-end gap-4 w-1/4 min-w-[180px]">
+      <div className="flex items-center justify-end gap-3 w-1/4 min-w-[180px]">
+        {/* Lyrics Button */}
+        <button
+          onClick={() => {
+            usePlayerStore.getState().setFullscreenOpen(true);
+          }}
+          className="text-zinc-400 hover:text-white p-2 transition-colors hidden sm:block"
+          title="Lyrics (F for Fullscreen)"
+        >
+          <Mic2 className="w-4 h-4" />
+        </button>
+
+        {/* Sleep Timer Button */}
+        <button
+          onClick={() => {
+            // Dispatch custom event to open sleep timer modal
+            window.dispatchEvent(new CustomEvent('nonimsong:open-sleep-timer'));
+          }}
+          className={`relative p-2 transition-colors hidden sm:block ${
+            sleepTimerActive ? 'text-indigo-400' : 'text-zinc-400 hover:text-white'
+          }`}
+          title="Sleep Timer"
+        >
+          <Moon className="w-4 h-4" />
+          {sleepTimerActive && (
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+          )}
+        </button>
+
+        {/* Queue */}
         <button
           onClick={toggleQueue}
           className={`relative p-2 rounded-xl transition-colors ${
@@ -193,6 +227,7 @@ export const PlayerBar = () => {
           )}
         </button>
 
+        {/* Fullscreen */}
         <button
           onClick={() => setFullscreenOpen(true)}
           className="text-zinc-400 hover:text-white p-2 transition-colors hidden sm:block"
@@ -201,6 +236,7 @@ export const PlayerBar = () => {
           <Maximize2 className="w-4 h-4" />
         </button>
 
+        {/* Volume */}
         <div className="flex items-center gap-2">
           <button onClick={toggleMute} className="text-zinc-400 hover:text-white p-1">
             {isMuted || volume === 0 ? (

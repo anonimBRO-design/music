@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { PlayerBar } from '../player/PlayerBar';
@@ -8,8 +8,12 @@ import { QueuePanel } from '../queue/QueuePanel';
 import { PlaylistEditModal } from '../modals/PlaylistEditModal';
 import { PlaylistPickerModal } from '../modals/PlaylistPickerModal';
 import { SettingsModal } from '../modals/SettingsModal';
+import { SleepTimerModal } from '../modals/SleepTimerModal';
+import { EqualizerModal } from '../modals/EqualizerModal';
 import { ContextMenu } from '../ui/ContextMenu';
 import { ToastContainer } from '../ui/ToastContainer';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useEqualizerStore } from '../../stores/useEqualizerStore';
 
 export const MainLayout = ({
   activeTab,
@@ -21,6 +25,27 @@ export const MainLayout = ({
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSleepTimerOpen, setIsSleepTimerOpen] = useState(false);
+
+  const isEqOpen = useEqualizerStore((s) => s.isOpen);
+  const setEqOpen = useEqualizerStore((s) => s.setOpen);
+
+  // Global keyboard shortcuts
+  useKeyboardShortcuts();
+
+  // Listen for custom events from PlayerBar buttons
+  useEffect(() => {
+    const handleOpenSleepTimer = () => setIsSleepTimerOpen(true);
+    const handleOpenEqualizer = () => setEqOpen(true);
+
+    window.addEventListener('nonimsong:open-sleep-timer', handleOpenSleepTimer);
+    window.addEventListener('nonimsong:open-equalizer', handleOpenEqualizer);
+
+    return () => {
+      window.removeEventListener('nonimsong:open-sleep-timer', handleOpenSleepTimer);
+      window.removeEventListener('nonimsong:open-equalizer', handleOpenEqualizer);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-zinc-950 text-white flex overflow-hidden font-syne antialiased selection:bg-emerald-500 selection:text-black">
@@ -66,7 +91,20 @@ export const MainLayout = ({
       {/* Global Modals */}
       <PlaylistEditModal />
       <PlaylistPickerModal />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onOpenSleepTimer={() => {
+          setIsSettingsOpen(false);
+          setIsSleepTimerOpen(true);
+        }}
+        onOpenEqualizer={() => {
+          setIsSettingsOpen(false);
+          setEqOpen(true);
+        }}
+      />
+      <SleepTimerModal isOpen={isSleepTimerOpen} onClose={() => setIsSleepTimerOpen(false)} />
+      <EqualizerModal isOpen={isEqOpen} onClose={() => setEqOpen(false)} />
 
       {/* Context Menu & Notifications */}
       <ContextMenu state={contextMenuState} onClose={onCloseContextMenu} />

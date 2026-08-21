@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useUserStore } from '../../stores/useUserStore';
+import { useLyricsStore } from '../../stores/useLyricsStore';
+import { LyricsPanel } from './LyricsPanel';
 import {
   X,
   Play,
@@ -11,8 +13,7 @@ import {
   Repeat,
   Repeat1,
   Heart,
-  Volume2,
-  VolumeX
+  Mic2
 } from 'lucide-react';
 
 export const FullscreenPlayer = () => {
@@ -22,8 +23,6 @@ export const FullscreenPlayer = () => {
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const currentTime = usePlayerStore((s) => s.currentTime);
   const duration = usePlayerStore((s) => s.duration);
-  const volume = usePlayerStore((s) => s.volume);
-  const isMuted = usePlayerStore((s) => s.isMuted);
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const isShuffle = usePlayerStore((s) => s.isShuffle);
 
@@ -31,13 +30,16 @@ export const FullscreenPlayer = () => {
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
   const seekTo = usePlayerStore((s) => s.seekTo);
-  const setVolume = usePlayerStore((s) => s.setVolume);
-  const toggleMute = usePlayerStore((s) => s.toggleMute);
   const toggleShuffle = usePlayerStore((s) => s.toggleShuffle);
   const cycleRepeat = usePlayerStore((s) => s.cycleRepeat);
 
   const isLiked = useUserStore((s) => s.isLiked);
   const toggleLike = useUserStore((s) => s.toggleLike);
+
+  const lyrics = useLyricsStore((s) => s.lyrics);
+  const plainLyrics = useLyricsStore((s) => s.plainLyrics);
+
+  const [showLyrics, setShowLyrics] = useState(false);
 
   if (!isOpen || !currentTrack) return null;
 
@@ -56,6 +58,7 @@ export const FullscreenPlayer = () => {
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const liked = isLiked(currentTrack.id);
+  const hasLyrics = lyrics.length > 0 || !!plainLyrics;
 
   return (
     <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col justify-between p-6 md:p-12 animate-in fade-in zoom-in-95 duration-300 font-syne select-none overflow-hidden">
@@ -72,49 +75,99 @@ export const FullscreenPlayer = () => {
             Now Playing
           </span>
         </div>
-        <button
-          onClick={() => setOpen(false)}
-          className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Center Artwork & Info */}
-      <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 my-auto max-w-4xl mx-auto w-full">
-        <div className="relative group">
-          <img
-            src={currentTrack.thumbnailHQ || currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`}
-            alt=""
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
-            }}
-            className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl transition-all duration-500 bg-zinc-900 ${
-              isPlaying ? 'scale-100 shadow-emerald-500/20 ring-4 ring-emerald-500/20' : 'scale-95 opacity-80'
-            }`}
-          />
-        </div>
-
-        <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md">
-          <div className="text-2xl md:text-4xl font-extrabold text-white mb-2 leading-tight">
-            {currentTrack.title}
-          </div>
-          <div className="text-base md:text-lg text-zinc-400 font-semibold mb-6">
-            {currentTrack.artist}
-          </div>
+        <div className="flex items-center gap-2">
+          {/* Lyrics Toggle */}
           <button
-            onClick={() => toggleLike(currentTrack)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-bold transition-colors ${
-              liked
-                ? 'bg-pink-500/10 border-pink-500/40 text-pink-400'
-                : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+            onClick={() => setShowLyrics(!showLyrics)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              showLyrics
+                ? 'bg-emerald-500/20 text-emerald-400'
+                : 'bg-white/10 hover:bg-white/20 text-white'
             }`}
+            title="Toggle Lyrics"
           >
-            <Heart className={`w-4 h-4 ${liked ? 'fill-pink-500 text-pink-500' : ''}`} />
-            {liked ? 'Saved to Liked Songs' : 'Save to Liked Songs'}
+            <Mic2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
+      </div>
+
+      {/* Center: Artwork + Info OR Lyrics */}
+      <div className="relative z-10 my-auto max-w-5xl mx-auto w-full flex-1 flex items-center min-h-0">
+        {showLyrics ? (
+          /* Lyrics Mode: Artwork small left + Lyrics right */
+          <div className="flex flex-col md:flex-row items-center md:items-stretch gap-6 w-full h-full max-h-[60vh]">
+            {/* Small Artwork + Info */}
+            <div className="flex flex-col items-center gap-4 shrink-0 md:w-64">
+              <img
+                src={currentTrack.thumbnailHQ || currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+                }}
+                className={`w-48 h-48 md:w-56 md:h-56 rounded-2xl object-cover shadow-2xl bg-zinc-900 ${
+                  isPlaying ? 'ring-2 ring-emerald-500/30' : 'opacity-80'
+                }`}
+              />
+              <div className="text-center space-y-1">
+                <div className="text-lg font-extrabold text-white leading-tight truncate max-w-[14rem]">
+                  {currentTrack.title}
+                </div>
+                <div className="text-sm text-zinc-400 font-semibold truncate max-w-[14rem]">
+                  {currentTrack.artist}
+                </div>
+              </div>
+            </div>
+
+            {/* Lyrics Panel */}
+            <div className="flex-1 min-h-0 overflow-hidden rounded-2xl bg-black/20">
+              <LyricsPanel className="h-full" />
+            </div>
+          </div>
+        ) : (
+          /* Standard Mode: Big Artwork + Info */
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full">
+            <div className="relative group">
+              <img
+                src={currentTrack.thumbnailHQ || currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
+                }}
+                className={`w-64 h-64 md:w-80 md:h-80 rounded-3xl object-cover shadow-2xl transition-all duration-500 bg-zinc-900 ${
+                  isPlaying ? 'scale-100 shadow-emerald-500/20 ring-4 ring-emerald-500/20' : 'scale-95 opacity-80'
+                }`}
+              />
+            </div>
+
+            <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md">
+              <div className="text-2xl md:text-4xl font-extrabold text-white mb-2 leading-tight">
+                {currentTrack.title}
+              </div>
+              <div className="text-base md:text-lg text-zinc-400 font-semibold mb-6">
+                {currentTrack.artist}
+              </div>
+              <button
+                onClick={() => toggleLike(currentTrack)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-bold transition-colors ${
+                  liked
+                    ? 'bg-pink-500/10 border-pink-500/40 text-pink-400'
+                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${liked ? 'fill-pink-500 text-pink-500' : ''}`} />
+                {liked ? 'Saved to Liked Songs' : 'Save to Liked Songs'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Controls */}
