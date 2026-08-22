@@ -45,6 +45,58 @@ export function cleanMusicMeta(rawTitle, rawArtist) {
   return { title, artist };
 }
 
+export function extractTrackTags(title = '', artist = '') {
+  const combined = `${title} ${artist}`.toLowerCase();
+  const tags = new Set();
+  const genres = new Set();
+
+  const genreMap = [
+    { genre: 'Phonk', keywords: ['phonk', 'drift', 'brazilian phonk', 'kordhell'] },
+    { genre: 'Synthwave', keywords: ['synthwave', 'retrowave', 'night drive', 'cyberpunk', 'synth'] },
+    { genre: 'Lo-Fi', keywords: ['lofi', 'lo-fi', 'chillhop', 'study beats', 'chill vibes'] },
+    { genre: 'Hip-Hop', keywords: ['hiphop', 'hip-hop', 'rap', 'trap', 'drill', 'boombap'] },
+    { genre: 'R&B', keywords: ['rnb', 'r&b', 'soul', 'neo-soul'] },
+    { genre: 'Indie', keywords: ['indie', 'alternative', 'alt-rock', 'bedroom pop'] },
+    { genre: 'K-Pop', keywords: ['kpop', 'k-pop', 'bts', 'blackpink', 'twice', 'newjeans', 'aespa'] },
+    { genre: 'Pop', keywords: ['pop', 'hits', 'billboard', 'viral'] },
+    { genre: 'Acoustic', keywords: ['acoustic', 'guitar', 'unplugged', 'coffee', 'piano'] },
+    { genre: 'EDM', keywords: ['edm', 'dance', 'house', 'techno', 'remix', 'electronic', 'club'] },
+    { genre: 'Rock', keywords: ['rock', 'metal', 'punk', 'grunge'] },
+    { genre: 'Anime', keywords: ['anime', 'ost', 'opening', 'ending', 'j-pop', 'jpop'] }
+  ];
+
+  genreMap.forEach(({ genre, keywords }) => {
+    if (keywords.some((kw) => combined.includes(kw))) {
+      genres.add(genre);
+      tags.add(genre.toLowerCase());
+    }
+  });
+
+  // Additional mood/vibe tags
+  const moodMap = [
+    { tag: 'chill', keywords: ['chill', 'relax', 'sleep', 'peaceful', 'ambient'] },
+    { tag: 'energetic', keywords: ['upbeat', 'dance', 'workout', 'energy', 'party', 'hype'] },
+    { tag: 'sad', keywords: ['sad', 'heartbreak', 'melancholy', 'cry', 'alone'] },
+    { tag: 'focus', keywords: ['focus', 'study', 'work', 'instrumental', 'coding'] },
+    { tag: 'retro', keywords: ['80s', '90s', 'retro', 'vintage', 'classic', 'oldies'] }
+  ];
+
+  moodMap.forEach(({ tag, keywords }) => {
+    if (keywords.some((kw) => combined.includes(kw))) {
+      tags.add(tag);
+    }
+  });
+
+  if (genres.size === 0) genres.add('Pop');
+  if (tags.size === 0) tags.add('pop');
+
+  return {
+    genres: Array.from(genres),
+    tags: Array.from(tags),
+    primaryGenre: Array.from(genres)[0] || 'Pop'
+  };
+}
+
 export function makeTrack(raw) {
   if (!raw) return null;
   let id = '';
@@ -67,16 +119,8 @@ export function makeTrack(raw) {
   const thumbnail = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
   const thumbnailHQ = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
-  let genre = raw.genre;
-  if (!genre) {
-    const t = title.toLowerCase();
-    if (t.includes('phonk') || t.includes('drift')) genre = 'Phonk';
-    else if (t.includes('synth') || t.includes('night') || t.includes('wave')) genre = 'Synthwave';
-    else if (t.includes('lofi') || t.includes('chill') || t.includes('relax')) genre = 'Lo-Fi';
-    else if (t.includes('hip') || t.includes('rap') || t.includes('trap')) genre = 'Hip-Hop';
-    else if (t.includes('pop') || t.includes('indie')) genre = 'Indie Pop';
-    else genre = 'Pop';
-  }
+  const { genres, tags, primaryGenre } = extractTrackTags(title, artist);
+  const genre = raw.genre || primaryGenre;
 
   const durationRaw = raw.duration || raw.snippet?.duration || 0;
   let duration = 0;
@@ -96,6 +140,8 @@ export function makeTrack(raw) {
     thumbnailHQ,
     duration: duration || 0,
     genre,
+    genres: raw.genres || genres,
+    tags: raw.tags || tags,
     addedAt: raw.addedAt || new Date().toISOString()
   };
 }

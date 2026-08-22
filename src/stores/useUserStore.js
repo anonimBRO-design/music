@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Storage, KEYS } from '../services/storage';
+import { useTasteStore } from './useTasteStore';
 
 export const useUserStore = create((set, get) => ({
   likedSongs: Storage.get(KEYS.LIKED, []),
@@ -27,8 +28,10 @@ export const useUserStore = create((set, get) => ({
     let updated;
     if (exists) {
       updated = liked.filter((t) => t.id !== track.id);
+      useTasteStore.getState().logTrackEvent(track, 'UNLIKE');
     } else {
       updated = [track, ...liked];
+      useTasteStore.getState().logTrackEvent(track, 'LIKE');
     }
     Storage.set(KEYS.LIKED, updated);
     set({ likedSongs: updated });

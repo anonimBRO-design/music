@@ -3,6 +3,7 @@ import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useSleepTimerStore } from '../../stores/useSleepTimerStore';
 import { useToastStore } from '../../stores/useToastStore';
+import { useTasteStore } from '../../stores/useTasteStore';
 import { useMediaSession } from '../../hooks/useMediaSession';
 
 export const AudioEngine = React.memo(() => {
@@ -12,6 +13,13 @@ export const AudioEngine = React.memo(() => {
   const pendingCommandRef = useRef(null);
   const currentLoadedVideoIdRef = useRef(null);
   const isTransitioningRef = useRef(false);
+
+  // Taste Tracking Refs
+  const loggedNormalPlayTrackIdRef = useRef(null);
+  const loggedFinishTrackIdRef = useRef(null);
+  const trackPlayStartRef = useRef(0);
+  const lastActiveTrackRef = useRef(null);
+  const lastTrackSecondsRef = useRef(0);
 
   // Subscribed values
   const _audioCommand = usePlayerStore((state) => state._audioCommand);
@@ -34,6 +42,26 @@ export const AudioEngine = React.memo(() => {
   // Mount Media Session API (lockscreen/browser media controls)
   useMediaSession();
 
+  // Watch track changes for Skip detection
+  useEffect(() => {
+    if (lastActiveTrackRef.current && currentTrack?.id !== lastActiveTrackRef.current.id) {
+      const playedSec = lastTrackSecondsRef.current;
+      const prevTrack = lastActiveTrackRef.current;
+      // If previous track played between 3s and 30s without reaching normal play -> SKIP
+      if (playedSec >= 3 && playedSec < 30 && loggedNormalPlayTrackIdRef.current !== prevTrack.id) {
+        useTasteStore.getState().logTrackEvent(prevTrack, 'SKIP', { playedSeconds: playedSec, playedRatio: playedSec / 180 });
+      }
+    }
+
+    if (currentTrack?.id) {
+      lastActiveTrackRef.current = currentTrack;
+      lastTrackSecondsRef.current = 0;
+      trackPlayStartRef.current = Date.now();
+      loggedNormalPlayTrackIdRef.current = null;
+      loggedFinishTrackIdRef.current = null;
+    }
+  }, [currentTrack?.id]);
+
   const startProgressLoop = () => {
     stopProgressLoop();
     progressIntervalRef.current = setInterval(() => {
@@ -43,6 +71,22 @@ export const AudioEngine = React.memo(() => {
           const duration = playerRef.current.getDuration() || 180;
           syncAudioState({ currentTime, duration });
           addPlayedSeconds(0.5);
+          lastTrackSecondsRef.current = currentTime;
+
+          const track = currentTrackRef.current;
+          if (track?.id) {
+            // Log NORMAL_PLAY at 30s
+            if (currentTime >= 30 && loggedNormalPlayTrackIdRef.current !== track.id) {
+              loggedNormalPlayTrackIdRef.current = track.id;
+              useTasteStore.getState().logTrackEvent(track, 'NORMAL_PLAY', { playedSeconds: currentTime, playedRatio: currentTime / duration });
+            }
+
+            // Log PLAY_FINISH at 80% duration
+            if (duration > 10 && currentTime >= duration * 0.8 && loggedFinishTrackIdRef.current !== track.id) {
+              loggedFinishTrackIdRef.current = track.id;
+              useTasteStore.getState().logTrackEvent(track, 'PLAY_FINISH', { playedSeconds: currentTime, playedRatio: currentTime / duration });
+            }
+          }
         } catch (e) {}
       }
     }, 500);
