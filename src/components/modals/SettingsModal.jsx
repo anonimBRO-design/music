@@ -1,10 +1,12 @@
 import React from 'react';
 import { useUserStore } from '../../stores/useUserStore';
 import { useToastStore } from '../../stores/useToastStore';
-import { X, Trash2, Sliders, Moon, Keyboard } from 'lucide-react';
+import { X, Trash2, Sliders, Moon, Sun, Keyboard } from 'lucide-react';
 
 export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualizer }) => {
   const settings = useUserStore((s) => s.settings);
+  const theme = useUserStore((s) => s.theme);
+  const setTheme = useUserStore((s) => s.setTheme);
   const updateSettings = useUserStore((s) => s.updateSettings);
   const clearAllData = useUserStore((s) => s.clearAllData);
   const showToast = useToastStore((s) => s.showToast);
@@ -22,6 +24,36 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
         </div>
 
         <div className="space-y-3">
+          {/* Theme Appearance Selector */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
+            <div>
+              <div className="text-xs font-bold text-white">Appearance Theme</div>
+              <div className="text-[11px] text-zinc-400">Spatial Dark or Sky Light</div>
+            </div>
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/[0.06] border border-white/10">
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ios-btn-spring cursor-pointer ${
+                  theme === 'dark' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Moon className="w-3 h-3" />
+                Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ios-btn-spring cursor-pointer ${
+                  theme === 'light' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Sun className="w-3 h-3 text-amber-500" />
+                Light
+              </button>
+            </div>
+          </div>
+
           {/* Playback Settings */}
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
             <div>

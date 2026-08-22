@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+:root,
+[data-theme='dark'] {
   --bg-base: #040408;
   --bg-surface: #0c0c16;
   --bg-elevated: #141424;
@@ -24,6 +25,28 @@
   --border-bright: rgba(255, 255, 255, 0.22);
 }
 
+[data-theme='light'] {
+  --bg-base: #e8f1f8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f4f8fc;
+  --bg-card: rgba(255, 255, 255, 0.65);
+  --bg-card-hover: rgba(255, 255, 255, 0.85);
+  --neon-green: #248a3d;
+  --neon-green-dim: rgba(36, 138, 61, 0.15);
+  --spotify-green: #1db954;
+  --ios-blue: #0071e3;
+  --ios-indigo: #4b48d6;
+  --pink: #d70035;
+  --purple: #9a35cc;
+  --cyan: #0091cc;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --text-dim: #9ca3af;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-bright: rgba(0, 0, 0, 0.15);
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -33,6 +56,7 @@ body {
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Custom iOS Frosted Scrollbars */
@@ -51,14 +75,21 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.35);
 }
+[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+[data-theme='light'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
 
-/* iOS 27 Liquid Glass Classes */
+/* iOS 27 Liquid Glass Classes (Dark) */
 .ios-glass-dock {
   background: rgba(14, 14, 24, 0.72);
   backdrop-filter: blur(32px) saturate(200%);
   -webkit-backdrop-filter: blur(32px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transition: all 0.3s ease;
 }
 
 .ios-glass-panel {
@@ -66,6 +97,7 @@ body {
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
   border: 1px solid var(--border);
+  transition: all 0.3s ease;
 }
 
 .ios-card {
@@ -81,6 +113,63 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-3px) scale(1.012);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Light Theme Overrides for Glass */
+[data-theme='light'] .ios-glass-dock {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 50px rgba(15, 50, 110, 0.12), inset 0 1px 1px rgba(255, 255, 255, 1);
+}
+
+[data-theme='light'] .ios-glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 30px rgba(15, 50, 110, 0.06);
+}
+
+[data-theme='light'] .ios-card {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(15, 50, 110, 0.06);
+}
+[data-theme='light'] .ios-card:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 14px 32px rgba(15, 50, 110, 0.12);
+}
+
+/* Light Theme Text Helpers */
+[data-theme='light'] .text-white {
+  color: #111827 !important;
+}
+[data-theme='light'] .text-zinc-400 {
+  color: #4b5563 !important;
+}
+[data-theme='light'] .text-zinc-300 {
+  color: #374151 !important;
+}
+[data-theme='light'] .text-zinc-500 {
+  color: #6b7280 !important;
+}
+[data-theme='light'] .bg-white\/5,
+[data-theme='light'] .bg-white\/\[0\.05\],
+[data-theme='light'] .bg-white\/\[0\.06\] {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+}
+[data-theme='light'] .bg-white\/10,
+[data-theme='light'] .bg-white\/\[0\.08\],
+[data-theme='light'] .bg-white\/\[0\.09\] {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+[data-theme='light'] .border-white\/10,
+[data-theme='light'] .border-white\/\[0\.08\],
+[data-theme='light'] .border-white\/\[0\.06\] {
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+[data-theme='light'] .bg-black\/20,
+[data-theme='light'] .bg-black\/25 {
+  background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* iOS Tactile Spring Touch/Click */

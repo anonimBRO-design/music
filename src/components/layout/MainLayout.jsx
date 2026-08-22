@@ -14,6 +14,7 @@ import { ContextMenu } from '../ui/ContextMenu';
 import { ToastContainer } from '../ui/ToastContainer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useEqualizerStore } from '../../stores/useEqualizerStore';
+import { useUserStore } from '../../stores/useUserStore';
 
 export const MainLayout = ({
   activeTab,
@@ -27,6 +28,7 @@ export const MainLayout = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSleepTimerOpen, setIsSleepTimerOpen] = useState(false);
 
+  const theme = useUserStore((s) => s.theme);
   const isEqOpen = useEqualizerStore((s) => s.isOpen);
   const setEqOpen = useEqualizerStore((s) => s.setOpen);
 
@@ -48,7 +50,21 @@ export const MainLayout = ({
   }, []);
 
   return (
-    <div className="relative h-screen w-screen bg-iosBg text-white flex overflow-hidden font-syne antialiased selection:bg-iosBlue selection:text-white">
+    <div className={`relative h-screen w-screen flex overflow-hidden font-syne antialiased selection:bg-iosBlue selection:text-white transition-colors duration-500 ${
+      theme === 'light' ? 'bg-[#e8f1f8] text-zinc-900' : 'bg-iosBg text-white'
+    }`}>
+      {/* Dynamic Theme Wallpaper Background */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-90"
+        style={{
+          backgroundImage: theme === 'light' ? "url('/wallpapers/bg-light.png')" : "url('/wallpapers/bg-dark.png')"
+        }}
+      />
+      {/* Subtle Spatial Tint Overlay */}
+      <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${
+        theme === 'light' ? 'bg-white/20' : 'bg-black/30'
+      }`} />
+
       {/* iOS 27 Spatial Ambient Lighting Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-iosBlue/15 to-iosPurple/10 rounded-full blur-[120px] animate-float-ambient" />

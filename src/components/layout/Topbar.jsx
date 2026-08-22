@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useUserStore } from '../../stores/useUserStore';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { YouTubeAPI } from '../../services/youtubeApi';
-import { Search, X, User, Play, Sparkles } from 'lucide-react';
+import { Search, X, User, Play, Sparkles, Sun, Moon } from 'lucide-react';
 
 export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
   const profile = useUserStore((s) => s.profile);
+  const theme = useUserStore((s) => s.theme);
+  const toggleTheme = useUserStore((s) => s.toggleTheme);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
   const [query, setQuery] = useState('');
@@ -122,8 +124,22 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         <div className="flex-1" />
       )}
 
-      {/* Right Controls (Backend status + User avatar) */}
-      <div className="flex items-center gap-3 md:gap-4">
+      {/* Right Controls (Theme Toggle + Backend status + User avatar) */}
+      <div className="flex items-center gap-2.5 md:gap-3.5">
+        {/* Theme Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 text-white transition-all ios-btn-spring shadow-sm cursor-pointer"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-amber-300 transition-transform duration-300 rotate-0 hover:rotate-45" />
+          ) : (
+            <Moon className="w-4 h-4 text-iosBlue transition-transform duration-300 rotate-0 hover:-rotate-12" />
+          )}
+        </button>
+
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-iosEmerald/10 border border-iosEmerald/25 text-[11px] font-bold text-iosEmerald shadow-[0_0_12px_rgba(48,209,88,0.15)]">
           <span className="w-1.5 h-1.5 rounded-full bg-iosEmerald animate-pulse" />
           Ready
@@ -131,7 +147,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
 
         <button
           onClick={onNavigateProfile}
-          className="flex items-center gap-2.5 p-1 pr-3 rounded-full hover:bg-white/10 border border-white/10 ios-btn-spring transition-all"
+          className="flex items-center gap-2.5 p-1 pr-3 rounded-full hover:bg-white/10 border border-white/10 ios-btn-spring transition-all cursor-pointer"
         >
           <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-iosPurple to-iosPink flex items-center justify-center text-white text-xs font-extrabold shadow">
             {profile.username ? profile.username[0].toUpperCase() : 'L'}

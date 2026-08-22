@@ -2,7 +2,25 @@ import { create } from 'zustand';
 import { Storage, KEYS } from '../services/storage';
 import { useTasteStore } from './useTasteStore';
 
+function applyThemeToDOM(theme) {
+  if (typeof document !== 'undefined') {
+    if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }
+}
+
+const initialTheme = Storage.get(KEYS.THEME, 'dark');
+applyThemeToDOM(initialTheme);
+
 export const useUserStore = create((set, get) => ({
+  theme: initialTheme,
   likedSongs: Storage.get(KEYS.LIKED, []),
   history: Storage.get(KEYS.HISTORY, []),
   profile: Storage.get(KEYS.PROFILE, {
@@ -16,6 +34,17 @@ export const useUserStore = create((set, get) => ({
     volume: 80
   }),
   stats: Storage.get(KEYS.STATS, { plays: 0, seconds: 0 }),
+
+  setTheme: (theme) => {
+    Storage.set(KEYS.THEME, theme);
+    applyThemeToDOM(theme);
+    set({ theme });
+  },
+
+  toggleTheme: () => {
+    const next = get().theme === 'dark' ? 'light' : 'dark';
+    get().setTheme(next);
+  },
 
   isLiked: (trackId) => {
     return get().likedSongs.some((t) => t.id === trackId);

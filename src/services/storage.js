@@ -7,7 +7,8 @@ export const KEYS = {
   LAST: 'nonim_last_v2',
   STATS: 'nonim_stats_v2',
   PROFILE: 'nonim_profile_v2',
-  QUEUE: 'nonim_queue_v2'
+  QUEUE: 'nonim_queue_v2',
+  THEME: 'nonim_theme_v2'
 };
 
 export const Storage = {
