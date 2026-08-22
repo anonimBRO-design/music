@@ -182,13 +182,13 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
             </div>
 
             {isLoadingTaste && !tasteSections.dailyMix1?.tracks?.length ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="h-64 rounded-[26px] bg-white/5 animate-pulse" />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {tasteSections.dailyMix1?.tracks?.length > 0 && (
                   <DailyMix mix={tasteSections.dailyMix1} index={0} />
                 )}

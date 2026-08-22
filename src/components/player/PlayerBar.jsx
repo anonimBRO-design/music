@@ -20,7 +20,7 @@ import {
   Moon
 } from 'lucide-react';
 
-export const PlayerBar = () => {
+export const PlayerBar = ({ isSidebarCollapsed = false }) => {
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const currentTime = usePlayerStore((s) => s.currentTime);
@@ -66,7 +66,11 @@ export const PlayerBar = () => {
   const liked = currentTrack ? isLiked(currentTrack.id) : false;
 
   return (
-    <footer className="fixed bottom-[74px] md:bottom-3 left-3 right-3 md:left-24 md:right-6 lg:left-72 lg:right-8 h-14 md:h-[82px] ios-glass-dock rounded-[22px] md:rounded-[26px] z-40 px-3 md:px-6 flex items-center justify-between font-syne select-none transition-all duration-300 shadow-2xl overflow-hidden">
+    <footer
+      className={`fixed bottom-[74px] md:bottom-3 left-3.5 right-3.5 ${
+        isSidebarCollapsed ? 'md:left-[96px] md:right-6' : 'md:left-[276px] md:right-6'
+      } h-14 md:h-[78px] ios-glass-dock rounded-[22px] md:rounded-[26px] z-40 px-3 md:px-5 flex items-center justify-between font-syne select-none transition-all duration-300 shadow-2xl overflow-hidden`}
+    >
       {/* Mobile Top Progress Line */}
       <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-white/10 md:hidden overflow-hidden">
         <div
@@ -76,7 +80,7 @@ export const PlayerBar = () => {
       </div>
 
       {/* 1. Track Info (Left) */}
-      <div className="flex items-center gap-2.5 md:gap-3 flex-1 md:w-1/4 md:flex-initial min-w-0">
+      <div className="flex items-center gap-2.5 md:gap-3 flex-1 md:w-48 lg:w-60 md:flex-initial min-w-0">
         {currentTrack ? (
           <>
             <div
@@ -161,8 +165,8 @@ export const PlayerBar = () => {
       </div>
 
       {/* 2. Desktop Playback Controls & Scrubber (Center - Hidden on Mobile) */}
-      <div className="hidden md:flex flex-col items-center gap-1.5 max-w-lg w-full px-2 md:px-6">
-        <div className="flex items-center gap-3 md:gap-5">
+      <div className="hidden md:flex flex-col items-center gap-1.5 max-w-sm lg:max-w-lg flex-1 px-2 lg:px-6">
+        <div className="flex items-center gap-3 md:gap-4 lg:gap-5">
           <button
             onClick={toggleShuffle}
             className={`p-1.5 rounded-full ios-btn-spring transition-colors ${
@@ -184,13 +188,13 @@ export const PlayerBar = () => {
           <button
             onClick={togglePlay}
             disabled={!currentTrack}
-            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
+            className="w-9 h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <Pause className="w-5 h-5 fill-current" />
+              <Pause className="w-4 h-4 md:w-5 md:h-5 fill-current" />
             ) : (
-              <Play className="w-5 h-5 fill-current ml-0.5" />
+              <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />
             )}
           </button>
 
@@ -238,13 +242,13 @@ export const PlayerBar = () => {
       </div>
 
       {/* 3. Desktop Volume & Extras (Right - Hidden on Mobile) */}
-      <div className="hidden md:flex items-center justify-end gap-1.5 md:gap-2.5 w-1/4 min-w-0">
+      <div className="hidden md:flex items-center justify-end gap-1.5 lg:gap-2.5 md:w-44 lg:w-60 min-w-0 shrink-0">
         {/* Lyrics Button */}
         <button
           onClick={() => {
             usePlayerStore.getState().setFullscreenOpen(true);
           }}
-          className="text-zinc-400 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden lg:block"
+          className="text-zinc-400 hover:text-white p-1.5 lg:p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden xl:block"
           title="Lyrics"
         >
           <Mic2 className="w-4 h-4" />
@@ -255,7 +259,7 @@ export const PlayerBar = () => {
           onClick={() => {
             window.dispatchEvent(new CustomEvent('nonimsong:open-sleep-timer'));
           }}
-          className={`relative p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden sm:block ${
+          className={`relative p-1.5 lg:p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden sm:block ${
             sleepTimerActive ? 'text-iosIndigo bg-iosIndigo/10' : 'text-zinc-400 hover:text-white'
           }`}
           title="Sleep Timer"
@@ -269,7 +273,7 @@ export const PlayerBar = () => {
         {/* Queue */}
         <button
           onClick={toggleQueue}
-          className={`relative p-2 rounded-2xl ios-btn-spring transition-colors ${
+          className={`relative p-1.5 lg:p-2 rounded-2xl ios-btn-spring transition-colors ${
             isQueueOpen ? 'text-iosEmerald bg-white/10' : 'text-zinc-400 hover:text-white hover:bg-white/5'
           }`}
           title="Queue"

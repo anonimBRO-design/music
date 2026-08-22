@@ -36,6 +36,20 @@ export const MainLayout = ({
   // Global keyboard shortcuts
   useKeyboardShortcuts();
 
+  // Auto-collapse sidebar on tablet screens (768px - 1023px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      } else if (window.innerWidth >= 1024) {
+        setIsSidebarCollapsed(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Listen for custom events from PlayerBar buttons
   useEffect(() => {
     const handleOpenSleepTimer = () => setIsSleepTimerOpen(true);
@@ -99,13 +113,13 @@ export const MainLayout = ({
         />
 
         {/* Scrollable View Content */}
-        <main className="flex-1 overflow-y-auto pb-44 md:pb-36">
+        <main className="flex-1 overflow-y-auto pb-44 md:pb-32">
           {children}
         </main>
       </div>
 
       {/* Bottom Floating Island Player Bar */}
-      <PlayerBar />
+      <PlayerBar isSidebarCollapsed={isSidebarCollapsed} />
 
       {/* Mobile Floating Bottom Navigation Bar */}
       <nav className="fixed bottom-2.5 left-3 right-3 h-14 ios-glass-dock rounded-[22px] z-50 md:hidden flex items-center justify-around px-2 shadow-2xl">
