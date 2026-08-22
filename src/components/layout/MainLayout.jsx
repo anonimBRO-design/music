@@ -76,6 +76,7 @@ export const MainLayout = ({
       >
         {/* Sticky Topbar */}
         <Topbar
+          activeTab={activeTab}
           onNavigateSearch={onNavigateSearch}
           onNavigateProfile={() => onSelectTab('profile')}
         />

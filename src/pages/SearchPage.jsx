@@ -58,12 +58,12 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="What do you want to listen to?"
-          className="w-full bg-white/5 border border-white/10 rounded-full pl-12 pr-28 py-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/60 focus:bg-white/10 transition-all font-syne shadow-xl"
+          className="w-full bg-white/[0.06] border border-white/10 rounded-full pl-12 pr-28 py-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-iosBlue/70 focus:bg-white/[0.09] focus:shadow-[0_0_25px_rgba(10,132,255,0.25)] transition-all font-syne shadow-2xl"
           autoFocus={!initialQuery}
         />
         <button
           onClick={() => performSearch(query)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full text-xs font-bold bg-emerald-400 hover:bg-emerald-300 text-black transition-all shadow-md"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full text-xs font-bold bg-white text-black hover:bg-zinc-200 ios-btn-spring transition-all shadow-md"
         >
           Search
         </button>
@@ -72,8 +72,8 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
       {/* Results or Categories */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-emerald-400/20 border-t-emerald-400 animate-spin" />
-          <span className="text-xs text-zinc-500 font-semibold">Searching music catalogue...</span>
+          <div className="w-8 h-8 rounded-full border-2 border-iosEmerald/20 border-t-iosEmerald animate-spin" />
+          <span className="text-xs text-zinc-400 font-semibold">Searching music catalogue...</span>
         </div>
       ) : searched ? (
         <div className="space-y-4">
@@ -88,7 +88,7 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
                 setQuery('');
                 setResults([]);
               }}
-              className="text-xs font-bold text-emerald-400 hover:underline"
+              className="text-xs font-bold text-iosEmerald hover:underline ios-btn-spring"
             >
               ← Back to Categories
             </button>
@@ -109,7 +109,7 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
       ) : (
         <div className="space-y-4 pt-2">
           <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-emerald-400" />
+            <Compass className="w-5 h-5 text-iosEmerald" />
             <h2 className="text-xl font-extrabold text-white tracking-wide">Browse All Categories</h2>
           </div>
 
@@ -123,12 +123,12 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
                     setQuery(cat.name);
                     performSearch(cat.query);
                   }}
-                  className={`p-5 rounded-2xl bg-gradient-to-br ${cat.color} border border-white/10 hover:border-white/20 transition-all cursor-pointer shadow-lg hover:shadow-2xl hover:scale-[1.03] group relative overflow-hidden h-36 flex flex-col justify-between`}
+                  className={`p-5 rounded-[24px] bg-gradient-to-br ${cat.color} border border-white/10 hover:border-white/25 transition-all cursor-pointer shadow-lg hover:shadow-2xl hover:scale-[1.03] group relative overflow-hidden h-36 flex flex-col justify-between ios-btn-spring`}
                 >
                   <span className="text-base md:text-lg font-black text-white leading-tight group-hover:underline">
                     {cat.name}
                   </span>
-                  <div className="self-end p-2.5 rounded-full bg-black/20 backdrop-blur-md text-white/80 group-hover:text-white transition-all transform group-hover:scale-110">
+                  <div className="self-end p-2.5 rounded-full bg-black/25 backdrop-blur-md text-white/85 group-hover:text-white transition-all transform group-hover:scale-110">
                     <Icon className="w-5 h-5" />
                   </div>
                 </div>
