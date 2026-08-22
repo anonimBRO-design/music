@@ -66,12 +66,23 @@ export const PlayerBar = () => {
   const liked = currentTrack ? isLiked(currentTrack.id) : false;
 
   return (
-    <footer className="fixed bottom-3 left-3 right-3 md:left-24 md:right-6 lg:left-72 lg:right-8 h-20 md:h-[82px] ios-glass-dock rounded-[26px] z-40 px-3.5 md:px-6 flex items-center justify-between font-syne select-none transition-all duration-300">
+    <footer className="fixed bottom-[74px] md:bottom-3 left-3 right-3 md:left-24 md:right-6 lg:left-72 lg:right-8 h-14 md:h-[82px] ios-glass-dock rounded-[22px] md:rounded-[26px] z-40 px-3 md:px-6 flex items-center justify-between font-syne select-none transition-all duration-300 shadow-2xl overflow-hidden">
+      {/* Mobile Top Progress Line */}
+      <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-white/10 md:hidden overflow-hidden">
+        <div
+          style={{ width: `${progressPercent}%` }}
+          className="h-full bg-gradient-to-r from-iosBlue to-iosEmerald rounded-full transition-all"
+        />
+      </div>
+
       {/* 1. Track Info (Left) */}
-      <div className="flex items-center gap-3 w-1/3 md:w-1/4 min-w-0">
+      <div className="flex items-center gap-2.5 md:gap-3 flex-1 md:w-1/4 md:flex-initial min-w-0">
         {currentTrack ? (
           <>
-            <div className="relative group shrink-0">
+            <div
+              onClick={() => setFullscreenOpen(true)}
+              className="relative group shrink-0 cursor-pointer"
+            >
               <img
                 src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
                 alt=""
@@ -79,24 +90,27 @@ export const PlayerBar = () => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
                 }}
-                className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl object-cover shadow-md transition-all duration-300 bg-zinc-900 ${
+                className={`w-9 h-9 md:w-14 md:h-14 rounded-xl md:rounded-2xl object-cover shadow-md transition-all duration-300 bg-zinc-900 ${
                   isPlaying
                     ? 'ring-2 ring-iosEmerald/60 shadow-[0_0_20px_rgba(48,209,88,0.35)] scale-100'
                     : 'opacity-85'
                 }`}
               />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs md:text-sm font-bold text-white truncate hover:text-iosEmerald cursor-pointer transition-colors">
+            <div
+              onClick={() => setFullscreenOpen(true)}
+              className="min-w-0 flex-1 cursor-pointer"
+            >
+              <div className="text-xs md:text-sm font-bold text-white truncate hover:text-iosEmerald transition-colors">
                 {currentTrack.title}
               </div>
-              <div className="text-[11px] md:text-xs text-zinc-400 truncate hover:text-zinc-200 cursor-pointer">
+              <div className="text-[10px] md:text-xs text-zinc-400 truncate hover:text-zinc-200">
                 {currentTrack.artist}
               </div>
             </div>
             <button
               onClick={() => toggleLike(currentTrack)}
-              className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors shrink-0"
+              className="text-zinc-400 hover:text-white p-1 md:p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors shrink-0 hidden sm:block"
               title={liked ? 'Unlike' : 'Like'}
             >
               <Heart
@@ -112,8 +126,42 @@ export const PlayerBar = () => {
         )}
       </div>
 
-      {/* 2. Playback Controls & Scrubber (Center) */}
-      <div className="flex flex-col items-center gap-1.5 max-w-lg w-full px-2 md:px-6">
+      {/* Mobile Right Controls (Play/Pause + Next) */}
+      <div className="flex items-center gap-2 md:hidden shrink-0">
+        <button
+          onClick={() => toggleLike(currentTrack)}
+          className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors shrink-0"
+          title={liked ? 'Unlike' : 'Like'}
+        >
+          <Heart
+            className={`w-4 h-4 ${liked ? 'text-iosPink fill-iosPink' : 'text-zinc-400'}`}
+          />
+        </button>
+
+        <button
+          onClick={togglePlay}
+          disabled={!currentTrack}
+          className="w-9 h-9 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
+          title={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? (
+            <Pause className="w-4 h-4 fill-current" />
+          ) : (
+            <Play className="w-4 h-4 fill-current ml-0.5" />
+          )}
+        </button>
+
+        <button
+          onClick={next}
+          className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
+          title="Next"
+        >
+          <SkipForward className="w-4 h-4 fill-current" />
+        </button>
+      </div>
+
+      {/* 2. Desktop Playback Controls & Scrubber (Center - Hidden on Mobile) */}
+      <div className="hidden md:flex flex-col items-center gap-1.5 max-w-lg w-full px-2 md:px-6">
         <div className="flex items-center gap-3 md:gap-5">
           <button
             onClick={toggleShuffle}
@@ -127,7 +175,7 @@ export const PlayerBar = () => {
 
           <button
             onClick={prev}
-            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors"
+            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
             title="Previous"
           >
             <SkipBack className="w-4 h-4 md:w-5 md:h-5 fill-current" />
@@ -136,7 +184,7 @@ export const PlayerBar = () => {
           <button
             onClick={togglePlay}
             disabled={!currentTrack}
-            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring"
+            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
@@ -148,7 +196,7 @@ export const PlayerBar = () => {
 
           <button
             onClick={next}
-            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors"
+            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
             title="Next"
           >
             <SkipForward className="w-4 h-4 md:w-5 md:h-5 fill-current" />
@@ -189,8 +237,8 @@ export const PlayerBar = () => {
         </div>
       </div>
 
-      {/* 3. Volume & Extras (Right) */}
-      <div className="flex items-center justify-end gap-1.5 md:gap-2.5 w-1/3 md:w-1/4 min-w-0">
+      {/* 3. Desktop Volume & Extras (Right - Hidden on Mobile) */}
+      <div className="hidden md:flex items-center justify-end gap-1.5 md:gap-2.5 w-1/4 min-w-0">
         {/* Lyrics Button */}
         <button
           onClick={() => {

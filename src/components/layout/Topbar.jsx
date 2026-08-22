@@ -50,10 +50,18 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-16 px-6 ios-glass-panel border-b border-white/[0.08] flex items-center justify-between font-syne select-none">
+    <header className="sticky top-0 z-20 h-14 md:h-16 px-4 md:px-6 ios-glass-panel border-b border-white/[0.08] flex items-center justify-between font-syne select-none">
+      {/* Mobile Logo */}
+      <div
+        onClick={() => onNavigateSearch?.('home')}
+        className="flex items-center gap-2 md:hidden shrink-0 mr-2 cursor-pointer"
+      >
+        <img src="/icons/logo.png" alt="NONIMSONG" className="w-7 h-7 object-contain" />
+      </div>
+
       {/* Search Bar (Hidden when on Search Tab) */}
       {!isSearchTab ? (
-        <div ref={containerRef} className="relative w-full max-w-md">
+        <div ref={containerRef} className="relative w-full max-w-md mr-2">
           <div className="relative flex items-center">
             <Search className="absolute left-3.5 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input

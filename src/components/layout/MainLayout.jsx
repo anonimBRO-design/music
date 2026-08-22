@@ -15,6 +15,7 @@ import { ToastContainer } from '../ui/ToastContainer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useEqualizerStore } from '../../stores/useEqualizerStore';
 import { useUserStore } from '../../stores/useUserStore';
+import { Home, Search, Heart, Library, Settings as SettingsIcon } from 'lucide-react';
 
 export const MainLayout = ({
   activeTab,
@@ -75,7 +76,7 @@ export const MainLayout = ({
       {/* Hidden Persistent Audio Engine */}
       <AudioEngine />
 
-      {/* Left Sidebar */}
+      {/* Left Sidebar (Desktop / Tablet only) */}
       <Sidebar
         activeTab={activeTab}
         onSelectTab={onSelectTab}
@@ -87,7 +88,7 @@ export const MainLayout = ({
       {/* Main Container */}
       <div
         className={`relative z-10 flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-20' : 'pl-64'
+          isSidebarCollapsed ? 'pl-0 md:pl-20' : 'pl-0 md:pl-64'
         }`}
       >
         {/* Sticky Topbar */}
@@ -98,13 +99,42 @@ export const MainLayout = ({
         />
 
         {/* Scrollable View Content */}
-        <main className="flex-1 overflow-y-auto pb-36">
+        <main className="flex-1 overflow-y-auto pb-44 md:pb-36">
           {children}
         </main>
       </div>
 
       {/* Bottom Floating Island Player Bar */}
       <PlayerBar />
+
+      {/* Mobile Floating Bottom Navigation Bar */}
+      <nav className="fixed bottom-2.5 left-3 right-3 h-14 ios-glass-dock rounded-[22px] z-50 md:hidden flex items-center justify-around px-2 shadow-2xl">
+        {[
+          { id: 'home', label: 'Home', icon: Home },
+          { id: 'search', label: 'Search', icon: Search },
+          { id: 'liked', label: 'Liked', icon: Heart },
+          { id: 'library', label: 'Library', icon: Library },
+          { id: 'settings', label: 'Settings', icon: SettingsIcon, isSettings: true }
+        ].map((item) => {
+          const Icon = item.icon;
+          const active = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.isSettings) setIsSettingsOpen(true);
+                else onSelectTab(item.id);
+              }}
+              className={`flex flex-col items-center justify-center gap-0.5 w-12 h-11 rounded-xl transition-all ios-btn-spring cursor-pointer ${
+                active ? 'text-iosEmerald font-bold scale-105' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Icon className={`w-5 h-5 ${active ? 'text-iosEmerald' : ''}`} />
+              <span className="text-[10px] tracking-tight">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Slideout Queue Panel */}
       <QueuePanel />

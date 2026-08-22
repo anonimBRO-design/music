@@ -79,13 +79,13 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
     : [...likedSongs.slice(0, 3), ...history.slice(0, 3)];
 
   return (
-    <div className="space-y-8 p-5 md:p-8 font-syne select-none">
+    <div className="space-y-6 md:space-y-8 p-3.5 sm:p-5 md:p-8 font-syne select-none">
       {/* Hero Welcome */}
       <div className="space-y-1">
-        <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-white tracking-tight">
           {greeting()}, <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">{profile.username || 'Listener'}</span>
         </h1>
-        <p className="text-xs md:text-sm text-zinc-400">
+        <p className="text-[11px] md:text-sm text-zinc-400">
           Spatial acoustics curated dynamically to your vector taste.
         </p>
       </div>

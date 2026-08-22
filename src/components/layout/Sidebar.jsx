@@ -37,7 +37,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 ios-glass-panel z-30 flex flex-col transition-all duration-300 select-none font-syne ${
+      className={`fixed top-0 left-0 bottom-0 ios-glass-panel z-30 hidden md:flex flex-col transition-all duration-300 select-none font-syne ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
