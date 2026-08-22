@@ -4,25 +4,19 @@ import { useTasteStore } from './useTasteStore';
 
 function applyThemeToDOM(theme) {
   if (typeof document !== 'undefined') {
-    document.documentElement.classList.remove('dark', 'light');
-    if (theme === 'light-liquid' || theme === 'light') {
+    if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
-      document.documentElement.setAttribute('data-theme', 'light-liquid');
-    } else if (theme === 'dark-liquid') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark-liquid');
+      document.documentElement.setAttribute('data-theme', 'light');
     } else {
+      document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'normal');
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
   }
 }
 
-const rawTheme = Storage.get(KEYS.THEME, 'normal');
-const initialTheme = ['normal', 'dark-liquid', 'light-liquid'].includes(rawTheme)
-  ? rawTheme
-  : (rawTheme === 'light' ? 'light-liquid' : 'normal');
-
+const initialTheme = Storage.get(KEYS.THEME, 'dark');
 applyThemeToDOM(initialTheme);
 
 export const useUserStore = create((set, get) => ({
@@ -48,11 +42,7 @@ export const useUserStore = create((set, get) => ({
   },
 
   toggleTheme: () => {
-    const current = get().theme;
-    let next = 'normal';
-    if (current === 'normal' || current === 'dark') next = 'dark-liquid';
-    else if (current === 'dark-liquid') next = 'light-liquid';
-    else next = 'normal';
+    const next = get().theme === 'dark' ? 'light' : 'dark';
     get().setTheme(next);
   },
 
