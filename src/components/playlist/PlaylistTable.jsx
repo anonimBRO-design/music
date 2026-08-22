@@ -65,7 +65,7 @@ export const PlaylistTable = ({
     <div className="w-full font-syne select-none">
       {/* Table Header */}
       <div
-        className={`grid items-center gap-4 px-4 py-2.5 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-white/5 ${
+        className={`grid items-center gap-4 px-4 py-3 text-[11px] font-bold text-zinc-400 uppercase tracking-wider border-b border-white/[0.08] ${
           isCustomPlaylist
             ? 'grid-cols-[40px_1fr_160px_120px_60px_60px]'
             : 'grid-cols-[40px_1fr_180px_60px_60px]'
@@ -82,7 +82,7 @@ export const PlaylistTable = ({
       </div>
 
       {/* Table Rows */}
-      <div className="divide-y divide-white/[0.02]">
+      <div className="divide-y divide-white/[0.02] mt-1 space-y-1">
         {validTracks.map((t, idx) => {
           const trackId = typeof t.id === 'string' ? t.id : (t.id?.videoId || String(t.id || idx));
           const isThisPlaying = currentTrack?.id === trackId && isPlaying;
@@ -120,14 +120,14 @@ export const PlaylistTable = ({
                 e.preventDefault();
                 if (onOpenContextMenu) onOpenContextMenu(e, t, playlistId);
               }}
-              className={`grid items-center gap-4 px-4 py-2.5 rounded-xl transition-all cursor-pointer group ${
+              className={`grid items-center gap-4 px-4 py-2.5 rounded-2xl transition-all cursor-pointer group ios-btn-spring ${
                 isCustomPlaylist
                   ? 'grid-cols-[40px_1fr_160px_120px_60px_60px]'
                   : 'grid-cols-[40px_1fr_180px_60px_60px]'
               } ${
                 isThisCurrent
-                  ? 'bg-white/10 text-emerald-400'
-                  : 'hover:bg-white/5 text-zinc-300 hover:text-white'
+                  ? 'bg-white/10 text-iosEmerald border border-white/10 shadow-sm'
+                  : 'hover:bg-white/[0.06] text-zinc-300 hover:text-white'
               }`}
             >
               {/* Index / Play / EQ */}
@@ -162,10 +162,10 @@ export const PlaylistTable = ({
                   onError={(e) => {
                     e.currentTarget.src = `https://i.ytimg.com/vi/${trackId}/mqdefault.jpg`;
                   }}
-                  className="w-10 h-10 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
+                  className="w-10 h-10 rounded-xl object-cover shrink-0 shadow bg-zinc-900"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className={`text-xs font-bold truncate ${isThisCurrent ? 'text-emerald-400' : 'text-white'}`}>
+                  <div className={`text-xs font-bold truncate ${isThisCurrent ? 'text-iosEmerald' : 'text-white'}`}>
                     {t.title || 'Unknown Title'}
                   </div>
                   <div className="text-[11px] text-zinc-400 truncate">{t.artist || 'Unknown Artist'}</div>
@@ -193,18 +193,18 @@ export const PlaylistTable = ({
                     const nowLiked = toggleLike(t);
                     showToast(nowLiked ? 'Added to Liked Songs ♥' : 'Removed from Liked Songs', nowLiked ? 'success' : 'info');
                   }}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    liked ? 'text-pink-500 opacity-100' : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-white'
+                  className={`p-1.5 rounded-full hover:bg-white/10 ios-btn-spring transition-colors ${
+                    liked ? 'text-iosPink opacity-100' : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-white'
                   }`}
                 >
-                  <Heart className={`w-4 h-4 ${liked ? 'fill-pink-500' : ''}`} />
+                  <Heart className={`w-4 h-4 ${liked ? 'fill-iosPink' : ''}`} />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     if (onOpenContextMenu) onOpenContextMenu(e, t, playlistId);
                   }}
-                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="p-1.5 text-zinc-400 hover:text-white rounded-full hover:bg-white/10 opacity-0 group-hover:opacity-100 ios-btn-spring transition-opacity"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>

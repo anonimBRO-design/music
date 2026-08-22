@@ -48,7 +48,14 @@ export const MainLayout = ({
   }, []);
 
   return (
-    <div className="h-screen w-screen bg-zinc-950 text-white flex overflow-hidden font-syne antialiased selection:bg-emerald-500 selection:text-black">
+    <div className="relative h-screen w-screen bg-iosBg text-white flex overflow-hidden font-syne antialiased selection:bg-iosBlue selection:text-white">
+      {/* iOS 27 Spatial Ambient Lighting Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-iosBlue/15 to-iosPurple/10 rounded-full blur-[120px] animate-float-ambient" />
+        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-gradient-to-bl from-iosEmerald/10 to-iosIndigo/15 rounded-full blur-[140px] animate-float-ambient" style={{ animationDelay: '4s' }} />
+        <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] bg-gradient-to-t from-iosPink/10 to-transparent rounded-full blur-[130px] animate-float-ambient" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Hidden Persistent Audio Engine */}
       <AudioEngine />
 
@@ -63,7 +70,7 @@ export const MainLayout = ({
 
       {/* Main Container */}
       <div
-        className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
+        className={`relative z-10 flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
           isSidebarCollapsed ? 'pl-20' : 'pl-64'
         }`}
       >
@@ -74,12 +81,12 @@ export const MainLayout = ({
         />
 
         {/* Scrollable View Content */}
-        <main className="flex-1 overflow-y-auto pb-32">
+        <main className="flex-1 overflow-y-auto pb-36">
           {children}
         </main>
       </div>
 
-      {/* Bottom Sticky Player Bar */}
+      {/* Bottom Floating Island Player Bar */}
       <PlayerBar />
 
       {/* Slideout Queue Panel */}

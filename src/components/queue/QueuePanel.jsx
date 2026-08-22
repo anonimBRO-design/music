@@ -36,17 +36,17 @@ export const QueuePanel = () => {
   };
 
   return (
-    <aside className="fixed top-0 right-0 bottom-24 w-80 md:w-96 bg-zinc-950/95 backdrop-blur-2xl border-l border-white/10 z-40 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 font-syne">
+    <aside className="fixed top-3 right-3 bottom-28 w-80 md:w-96 ios-glass-dock rounded-[28px] z-50 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 font-syne select-none">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">Queue</h2>
-          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold text-iosEmerald bg-iosEmerald/15 border border-iosEmerald/30 px-2.5 py-0.5 rounded-full">
             {userQueue.length + contextQueue.length}
           </span>
         </div>
-        <button onClick={close} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
-          <X className="w-5 h-5" />
+        <button onClick={close} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-spring transition-colors">
+          <X className="w-4 h-4" />
         </button>
       </div>
 
@@ -57,7 +57,7 @@ export const QueuePanel = () => {
             Now Playing
           </div>
           {currentTrack ? (
-            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-2xl ios-card border border-white/10">
               <img
                 src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
                 alt=""
@@ -65,38 +65,38 @@ export const QueuePanel = () => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
                 }}
-                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
+                className="w-12 h-12 rounded-xl object-cover shrink-0 shadow bg-zinc-900"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-emerald-400 truncate">{currentTrack.title}</div>
+                <div className="text-xs font-bold text-iosEmerald truncate">{currentTrack.title}</div>
                 <div className="text-[11px] text-zinc-400 truncate">{currentTrack.artist}</div>
               </div>
               <button
                 onClick={() => toggleLike(currentTrack)}
-                className="text-zinc-400 hover:text-white p-1 transition-colors"
+                className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors"
               >
                 <Heart
                   className={`w-4 h-4 ${
-                    isLiked(currentTrack.id) ? 'text-pink-500 fill-pink-500' : 'text-zinc-400'
+                    isLiked(currentTrack.id) ? 'text-iosPink fill-iosPink' : 'text-zinc-400'
                   }`}
                 />
               </button>
             </div>
           ) : (
-            <div className="text-xs text-zinc-500 italic p-2">Nothing playing right now</div>
+            <div className="text-xs text-zinc-500 italic p-3 bg-white/[0.02] rounded-2xl text-center">Nothing playing right now</div>
           )}
         </div>
 
         {/* 2. Next In Queue (Manual) */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+            <div className="text-[11px] font-bold text-iosEmerald uppercase tracking-wider">
               Next In Queue <span className="text-zinc-500 font-normal">({userQueue.length})</span>
             </div>
             {userQueue.length > 0 && (
               <button
                 onClick={clearUserQueue}
-                className="text-[10px] font-bold text-zinc-400 hover:text-rose-400 transition-colors uppercase tracking-wider"
+                className="text-[10px] font-bold text-zinc-400 hover:text-iosPink ios-btn-spring transition-colors uppercase tracking-wider"
               >
                 Clear
               </button>
@@ -104,7 +104,7 @@ export const QueuePanel = () => {
           </div>
 
           {userQueue.length === 0 ? (
-            <div className="text-xs text-zinc-500 italic p-2 bg-white/[0.02] rounded-xl text-center">
+            <div className="text-xs text-zinc-500 italic p-3 bg-white/[0.02] rounded-2xl text-center">
               No manual tracks queued
             </div>
           ) : (
@@ -117,7 +117,7 @@ export const QueuePanel = () => {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => handleDrop(e, idx)}
                   onClick={() => playTrack(track)}
-                  className="flex items-center gap-2 p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-colors group"
+                  className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 cursor-pointer ios-btn-spring transition-colors group"
                 >
                   <GripVertical className="w-3.5 h-3.5 text-zinc-500 shrink-0 cursor-grab opacity-40 group-hover:opacity-100" />
                   <img
@@ -127,10 +127,10 @@ export const QueuePanel = () => {
                     onError={(e) => {
                       e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                     }}
-                    className="w-9 h-9 rounded-md object-cover shrink-0 bg-zinc-900"
+                    className="w-9 h-9 rounded-xl object-cover shrink-0 bg-zinc-900"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                    <div className="text-xs font-bold text-white truncate group-hover:text-iosEmerald transition-colors">
                       {track.title}
                     </div>
                     <div className="text-[10px] text-zinc-400 truncate">{track.artist}</div>
@@ -140,7 +140,7 @@ export const QueuePanel = () => {
                       e.stopPropagation();
                       removeFromUserQueue(idx);
                     }}
-                    className="text-zinc-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-all"
+                    className="text-zinc-500 hover:text-iosPink p-1.5 opacity-0 group-hover:opacity-100 ios-btn-spring transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -157,7 +157,7 @@ export const QueuePanel = () => {
           </div>
 
           {contextQueue.length === 0 ? (
-            <div className="text-xs text-zinc-500 italic p-2 bg-white/[0.02] rounded-xl text-center">
+            <div className="text-xs text-zinc-500 italic p-3 bg-white/[0.02] rounded-2xl text-center">
               No upcoming tracks from collection
             </div>
           ) : (
@@ -166,12 +166,12 @@ export const QueuePanel = () => {
                 <div
                   key={`${track.id}-${idx}`}
                   onClick={() => playTrack(track)}
-                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors group"
+                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/[0.06] cursor-pointer ios-btn-spring transition-colors group"
                 >
                   <span className="w-4 text-center text-[10px] font-bold text-zinc-500 group-hover:hidden">
                     {idx + 1}
                   </span>
-                  <Play className="w-3.5 h-3.5 text-emerald-400 hidden group-hover:block shrink-0" />
+                  <Play className="w-3.5 h-3.5 text-iosEmerald hidden group-hover:block shrink-0" />
                   <img
                     src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
                     alt=""
@@ -179,7 +179,7 @@ export const QueuePanel = () => {
                     onError={(e) => {
                       e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                     }}
-                    className="w-9 h-9 rounded-md object-cover shrink-0 bg-zinc-900"
+                    className="w-9 h-9 rounded-xl object-cover shrink-0 bg-zinc-900"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold text-zinc-200 truncate group-hover:text-white transition-colors">

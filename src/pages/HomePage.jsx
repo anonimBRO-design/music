@@ -185,14 +185,14 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
   };
 
   return (
-    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-5 md:p-8 font-syne select-none">
       {/* Hero Welcome */}
       <div className="space-y-1">
-        <h1 className="text-2xl md:text-4xl font-extrabold text-white">
-          {greeting()}, {profile.username || 'Listener'}
+        <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">
+          {greeting()}, <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">{profile.username || 'Listener'}</span>
         </h1>
         <p className="text-xs md:text-sm text-zinc-400">
-          Handpicked soundscapes and Spotify-curated global charts.
+          Spatial curated acoustics and live charts.
         </p>
       </div>
 
@@ -203,7 +203,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
             <div
               key={`${track.id}-${i}`}
               onClick={() => playTrack(track, quickGrid, { type: 'home_quick', title: 'Quick Picks' })}
-              className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 hover:border-white/10 transition-all cursor-pointer group shadow-md"
+              className="flex items-center gap-3 p-2.5 rounded-2xl ios-card cursor-pointer group shadow-md ios-btn-spring"
             >
               <img
                 src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
@@ -212,10 +212,10 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                 }}
-                className="w-12 h-12 rounded-lg object-cover shrink-0 shadow bg-zinc-900"
+                className="w-12 h-12 rounded-xl object-cover shrink-0 shadow-md bg-zinc-900"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                <div className="text-xs font-bold text-white truncate group-hover:text-iosEmerald transition-colors">
                   {track.title}
                 </div>
                 <div className="text-[11px] text-zinc-400 truncate">{track.artist}</div>
@@ -225,7 +225,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                   e.stopPropagation();
                   playTrack(track, quickGrid, { type: 'home_quick', title: 'Quick Picks' });
                 }}
-                className="w-8 h-8 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all shrink-0 hover:scale-105"
+                className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all shrink-0 hover:scale-105"
               >
                 <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
               </button>
@@ -234,7 +234,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
         </div>
       )}
 
-      {/* Spotify Category Filter Pills */}
+      {/* iOS Category Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {CATEGORY_PILLS.map((pill) => {
           const isActive = activePill === pill.id;
@@ -242,10 +242,10 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
             <button
               key={pill.id}
               onClick={() => setActivePill(pill.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ios-btn-spring ${
                 isActive
-                  ? 'bg-emerald-400 text-black shadow-lg shadow-emerald-500/20 scale-105'
-                  : 'bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white'
+                  ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)] scale-105'
+                  : 'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white'
               }`}
             >
               {pill.label}
@@ -259,10 +259,10 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
         <div className="space-y-8">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="space-y-4">
-              <div className="h-6 w-48 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-6 w-48 bg-white/5 rounded-xl animate-pulse" />
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, j) => (
-                  <div key={j} className="h-56 rounded-2xl bg-white/5 animate-pulse" />
+                  <div key={j} className="h-56 rounded-[22px] bg-white/5 animate-pulse" />
                 ))}
               </div>
             </div>
@@ -289,9 +289,9 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                         e.preventDefault();
                         if (onOpenContextMenu) onOpenContextMenu(e, track);
                       }}
-                      className="group relative p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl flex flex-col justify-between"
+                      className="group relative p-3.5 rounded-[22px] ios-card cursor-pointer shadow-lg flex flex-col justify-between"
                     >
-                      <div className="relative aspect-square mb-3 overflow-hidden rounded-xl bg-zinc-900">
+                      <div className="relative aspect-square mb-3 overflow-hidden rounded-2xl bg-zinc-900 shadow-inner">
                         <img
                           src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
                           alt=""
@@ -299,20 +299,20 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                           onError={(e) => {
                             e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                           }}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             playTrack(track, sec.tracks, { type: 'home_section', id: sec.id, title: sec.title });
                           }}
-                          className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"
+                          className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 hover:scale-105"
                         >
                           <Play className="w-4 h-4 fill-current ml-0.5" />
                         </button>
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                        <div className="text-xs font-bold text-white truncate group-hover:text-iosEmerald transition-colors">
                           {track.title}
                         </div>
                         <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
