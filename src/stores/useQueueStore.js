@@ -21,12 +21,17 @@ export const useQueueStore = create((set, get) => ({
   },
 
   rebuildFromCollection: (collection, currentTrackId, title = null) => {
-    const currentIndex = collection.findIndex((t) => t.id === currentTrackId);
+    const normalized = (collection || []).map((t) => ({
+      ...t,
+      id: t.id || t.trackId,
+      thumbnail: t.thumbnail || `https://i.ytimg.com/vi/${t.id || t.trackId}/mqdefault.jpg`
+    }));
+    const currentIndex = normalized.findIndex((t) => (t.id || t.trackId) === currentTrackId);
     let nextUpcoming = [];
     if (currentIndex === -1) {
-      nextUpcoming = collection.slice(0, 30);
+      nextUpcoming = normalized.slice(0, 30);
     } else {
-      nextUpcoming = collection.slice(currentIndex + 1, currentIndex + 31);
+      nextUpcoming = normalized.slice(currentIndex + 1, currentIndex + 31);
     }
     set((state) => ({
       contextQueue: nextUpcoming,
@@ -35,15 +40,19 @@ export const useQueueStore = create((set, get) => ({
   },
 
   addToQueue: (track) => {
-    if (!track?.id) return;
-    const updated = [...get().userQueue, { ...track, addedAt: Date.now() }];
+    const trackId = track?.id || track?.trackId;
+    if (!trackId) return;
+    const normalized = { ...track, id: trackId };
+    const updated = [...get().userQueue, { ...normalized, addedAt: Date.now() }];
     Storage.set(KEYS.QUEUE, updated);
     set({ userQueue: updated });
   },
 
   playNext: (track) => {
-    if (!track?.id) return;
-    const updated = [{ ...track, addedAt: Date.now() }, ...get().userQueue];
+    const trackId = track?.id || track?.trackId;
+    if (!trackId) return;
+    const normalized = { ...track, id: trackId };
+    const updated = [{ ...normalized, addedAt: Date.now() }, ...get().userQueue];
     Storage.set(KEYS.QUEUE, updated);
     set({ userQueue: updated });
   },

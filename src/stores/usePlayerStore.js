@@ -25,31 +25,49 @@ export const usePlayerStore = create((set, get) => ({
   setFullscreenOpen: (open) => set({ isFullscreenOpen: open }),
 
   playTrack: (track, collection = null, context = null, preventQueueReset = false) => {
-    if (!track?.id) return;
-    
+    if (!track) return;
+    const trackId = track.id || track.trackId;
+    if (!trackId) return;
+
+    const normalizedTrack = {
+      ...track,
+      id: trackId,
+      thumbnail: track.thumbnail || `https://i.ytimg.com/vi/${trackId}/mqdefault.jpg`,
+      thumbnailHQ: track.thumbnailHQ || `https://i.ytimg.com/vi/${trackId}/hqdefault.jpg`
+    };
+
+    const normalizedCollection = Array.isArray(collection) && collection.length > 0
+      ? collection.map((t) => ({
+          ...t,
+          id: t.id || t.trackId,
+          thumbnail: t.thumbnail || `https://i.ytimg.com/vi/${t.id || t.trackId}/mqdefault.jpg`,
+          thumbnailHQ: t.thumbnailHQ || `https://i.ytimg.com/vi/${t.id || t.trackId}/hqdefault.jpg`
+        }))
+      : null;
+
     set({
-      currentTrack: track,
+      currentTrack: normalizedTrack,
       isPlaying: true,
       _audioCommand: {
         type: 'LOAD',
-        payload: track.id,
-        trackId: track.id,
+        payload: trackId,
+        trackId: trackId,
         timestamp: Date.now()
       }
     });
 
-    Storage.set(KEYS.LAST, track);
-    useUserStore.getState().addToHistory(track);
+    Storage.set(KEYS.LAST, normalizedTrack);
+    useUserStore.getState().addToHistory(normalizedTrack);
 
     if (!preventQueueReset) {
       if (context?.type) {
         useQueueStore.getState().setContext(context.type, context.id, context.title || 'Collection');
       }
-      if (collection?.length) {
-        useQueueStore.getState().rebuildFromCollection(collection, track.id, context?.title);
+      if (normalizedCollection?.length) {
+        useQueueStore.getState().rebuildFromCollection(normalizedCollection, trackId, context?.title);
         set({
-          activeCollection: collection,
-          collectionIndex: collection.findIndex((t) => t.id === track.id)
+          activeCollection: normalizedCollection,
+          collectionIndex: normalizedCollection.findIndex((t) => t.id === trackId)
         });
       }
     }
