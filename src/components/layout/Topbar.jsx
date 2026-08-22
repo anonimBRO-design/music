@@ -134,17 +134,25 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
 
       {/* Right Controls (Theme Toggle + Backend status + User avatar) */}
       <div className="flex items-center gap-2.5 md:gap-3.5">
-        {/* Theme Toggle Button */}
+        {/* Theme Toggle Button (3-Mode Cycle: Normal -> Dark Liquid -> Light Liquid) */}
         <button
           type="button"
           onClick={toggleTheme}
           className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 text-white transition-all ios-btn-spring shadow-sm cursor-pointer"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={
+            theme === 'normal'
+              ? 'Theme: Normal (Click for Dark Liquid)'
+              : theme === 'dark-liquid'
+              ? 'Theme: Dark Liquid (Click for Light Liquid)'
+              : 'Theme: Light Liquid (Click for Normal)'
+          }
         >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-300 transition-transform duration-300 rotate-0 hover:rotate-45" />
+          {theme === 'normal' ? (
+            <Moon className="w-4 h-4 text-zinc-300 transition-transform duration-300 rotate-0 hover:-rotate-12" />
+          ) : theme === 'dark-liquid' ? (
+            <Sparkles className="w-4 h-4 text-purple-400 transition-transform duration-300 rotate-0 hover:rotate-45" />
           ) : (
-            <Moon className="w-4 h-4 text-iosBlue transition-transform duration-300 rotate-0 hover:-rotate-12" />
+            <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 rotate-0 hover:rotate-45" />
           )}
         </button>
 

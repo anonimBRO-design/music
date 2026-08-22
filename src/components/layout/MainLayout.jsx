@@ -64,26 +64,54 @@ export const MainLayout = ({
     };
   }, []);
 
+  const isLight = theme === 'light-liquid' || theme === 'light';
+  const isDarkLiquid = theme === 'dark-liquid';
+  const isNormal = theme === 'normal';
+
+  const desktopBg = isDarkLiquid
+    ? "url('/wallpapers/liquid-dark.png')"
+    : isLight
+    ? "url('/wallpapers/liquid-light.png')"
+    : 'none';
+
+  const mobileBg = isDarkLiquid
+    ? "url('/wallpapers/liquid-dark-mobile.png')"
+    : isLight
+    ? "url('/wallpapers/liquid-light-mobile.png')"
+    : 'none';
+
   return (
     <div className={`relative h-screen w-screen flex overflow-hidden font-syne antialiased selection:bg-iosBlue selection:text-white transition-colors duration-500 ${
-      theme === 'light' ? 'bg-[#e8f1f8] text-zinc-900' : 'bg-iosBg text-white'
+      isLight ? 'bg-[#f5effc] text-zinc-900' : isDarkLiquid ? 'bg-[#07010f] text-white' : 'bg-iosBg text-white'
     }`}>
-      {/* Dynamic Theme Wallpaper Background */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-90"
-        style={{
-          backgroundImage: theme === 'light' ? "url('/wallpapers/bg-light.png')" : "url('/wallpapers/bg-dark.png')"
-        }}
-      />
+      {/* Dynamic Theme Wallpaper Background (Desktop Landscape) */}
+      {!isNormal && (
+        <>
+          <div
+            className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-90 hidden sm:block"
+            style={{ backgroundImage: desktopBg }}
+          />
+          {/* Dynamic Theme Wallpaper Background (Mobile Portrait) */}
+          <div
+            className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-all duration-700 opacity-95 sm:hidden"
+            style={{ backgroundImage: mobileBg }}
+          />
+        </>
+      )}
+
       {/* Subtle Spatial Tint Overlay */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${
-        theme === 'light' ? 'bg-white/20' : 'bg-black/30'
+        isLight ? 'bg-white/10' : isDarkLiquid ? 'bg-black/25' : 'bg-black/40'
       }`} />
 
       {/* iOS 27 Spatial Ambient Lighting Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-iosBlue/15 to-iosPurple/10 rounded-full blur-[120px] animate-float-ambient" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-gradient-to-bl from-iosEmerald/10 to-iosIndigo/15 rounded-full blur-[140px] animate-float-ambient" style={{ animationDelay: '4s' }} />
+        <div className={`absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[120px] animate-float-ambient ${
+          isDarkLiquid ? 'bg-gradient-to-tr from-purple-600/25 to-indigo-600/20' : 'bg-gradient-to-tr from-iosBlue/15 to-iosPurple/10'
+        }`} />
+        <div className={`absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full blur-[140px] animate-float-ambient ${
+          isDarkLiquid ? 'bg-gradient-to-bl from-fuchsia-600/20 to-purple-800/25' : 'bg-gradient-to-bl from-iosEmerald/10 to-iosIndigo/15'
+        }`} style={{ animationDelay: '4s' }} />
         <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] bg-gradient-to-t from-iosPink/10 to-transparent rounded-full blur-[130px] animate-float-ambient" style={{ animationDelay: '2s' }} />
       </div>
 
