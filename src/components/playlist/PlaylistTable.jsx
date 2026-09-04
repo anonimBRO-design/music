@@ -22,7 +22,8 @@ export const PlaylistTable = ({
 
   const getTrackDuration = (t) => {
     if (!t) return '--:--';
-    const isCurrent = currentTrack?.id === t.id;
+    const tId = typeof t.id === 'string' ? t.id : (t.id?.videoId || String(t.id));
+    const isCurrent = currentTrack?.id === tId;
     const dur = (isCurrent && liveAudioDuration > 0) ? liveAudioDuration : (t.duration || 0);
 
     if (typeof dur === 'string' && dur.includes(':')) {
