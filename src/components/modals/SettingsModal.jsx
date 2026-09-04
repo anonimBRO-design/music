@@ -18,7 +18,7 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
       <div className="ios-glass-dock rounded-[28px] w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 font-syne select-none">
         <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
           <h2 className="text-lg font-bold text-white">Settings</h2>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-spring transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -87,7 +87,7 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onOpenEqualizer?.()}
-                className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-iosPurple/40 ios-btn-spring transition-all text-left"
+                className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-iosPurple/40 ios-btn-spring transition-all text-left cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-xl bg-iosPurple/15 flex items-center justify-center shrink-0">
                   <Sliders className="w-4 h-4 text-iosPurple" />
@@ -100,7 +100,7 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
 
               <button
                 onClick={() => onOpenSleepTimer?.()}
-                className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-iosIndigo/40 ios-btn-spring transition-all text-left"
+                className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-iosIndigo/40 ios-btn-spring transition-all text-left cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-xl bg-iosIndigo/15 flex items-center justify-center shrink-0">
                   <Moon className="w-4 h-4 text-iosIndigo" />
@@ -142,7 +142,7 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
                   onClose();
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-iosPink/30 text-iosPink hover:bg-iosPink/10 text-xs font-bold ios-btn-spring transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-iosPink/30 text-iosPink hover:bg-iosPink/10 text-xs font-bold ios-btn-spring transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               Clear all app storage

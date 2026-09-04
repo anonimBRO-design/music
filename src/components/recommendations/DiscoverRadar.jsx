@@ -47,7 +47,7 @@ export const DiscoverRadar = ({ section, onOpenContextMenu }) => {
                   e.stopPropagation();
                   playTrack(track, section.tracks, { type: 'discover_radar', title: 'Discover Radar' });
                 }}
-                className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 hover:scale-105"
+                className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
               </button>

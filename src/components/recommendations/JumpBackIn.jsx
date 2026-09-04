@@ -43,7 +43,7 @@ export const JumpBackIn = ({ tracks = [] }) => {
                 e.stopPropagation();
                 playTrack(track, displayTracks, { type: 'jump_back', title: 'Jump Back In' });
               }}
-              className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all shrink-0 hover:scale-105"
+              className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all shrink-0 ios-btn-primary cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </button>

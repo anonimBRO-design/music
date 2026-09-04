@@ -114,11 +114,13 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             </div>
             <button
               onClick={() => toggleLike(currentTrack)}
-              className="text-zinc-400 hover:text-white p-1 md:p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors shrink-0 hidden sm:block"
+              className="text-zinc-400 hover:text-white p-1 md:p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors shrink-0 hidden sm:block"
               title={liked ? 'Unlike' : 'Like'}
             >
               <Heart
-                className={`w-4 h-4 md:w-5 md:h-5 ${liked ? 'text-iosPink fill-iosPink' : 'text-zinc-400'}`}
+                className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${
+                  liked ? 'text-iosPink fill-iosPink animate-heart-pop' : 'text-zinc-400 hover:scale-110'
+                }`}
               />
             </button>
           </>
@@ -134,18 +136,20 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
       <div className="flex items-center gap-2 md:hidden shrink-0">
         <button
           onClick={() => toggleLike(currentTrack)}
-          className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors shrink-0"
+          className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors shrink-0"
           title={liked ? 'Unlike' : 'Like'}
         >
           <Heart
-            className={`w-4 h-4 ${liked ? 'text-iosPink fill-iosPink' : 'text-zinc-400'}`}
+            className={`w-4 h-4 transition-transform ${
+              liked ? 'text-iosPink fill-iosPink animate-heart-pop' : 'text-zinc-400'
+            }`}
           />
         </button>
 
         <button
           onClick={togglePlay}
           disabled={!currentTrack}
-          className="w-9 h-9 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
+          className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ios-btn-primary cursor-pointer"
           title={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
@@ -157,7 +161,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
         <button
           onClick={next}
-          className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
+          className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
           title="Next"
         >
           <SkipForward className="w-4 h-4 fill-current" />
@@ -169,8 +173,8 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         <div className="flex items-center gap-3 md:gap-4 lg:gap-5">
           <button
             onClick={toggleShuffle}
-            className={`p-1.5 rounded-full ios-btn-spring transition-colors ${
-              isShuffle ? 'text-iosEmerald bg-iosEmerald/10' : 'text-zinc-400 hover:text-white'
+            className={`p-2 rounded-full ios-btn-icon ios-btn-spring transition-all ${
+              isShuffle ? 'text-iosEmerald bg-iosEmerald/15 shadow-[0_0_12px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
             }`}
             title="Smart Shuffle"
           >
@@ -179,7 +183,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
           <button
             onClick={prev}
-            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
+            className="text-zinc-300 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
             title="Previous"
           >
             <SkipBack className="w-4 h-4 md:w-5 md:h-5 fill-current" />
@@ -188,7 +192,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           <button
             onClick={togglePlay}
             disabled={!currentTrack}
-            className="w-9 h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full bg-white text-black hover:scale-105 active:scale-90 transition-all flex items-center justify-center shadow-[0_4px_20px_rgba(255,255,255,0.3)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-spring cursor-pointer"
+            className="w-10 h-10 md:w-11 md:h-11 lg:w-12 lg:h-12 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_25px_rgba(255,255,255,0.35)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-primary cursor-pointer"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
@@ -200,7 +204,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
           <button
             onClick={next}
-            className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors cursor-pointer"
+            className="text-zinc-300 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
             title="Next"
           >
             <SkipForward className="w-4 h-4 md:w-5 md:h-5 fill-current" />
@@ -208,8 +212,8 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
           <button
             onClick={cycleRepeat}
-            className={`p-1.5 rounded-full ios-btn-spring transition-colors ${
-              repeatMode > 0 ? 'text-iosEmerald bg-iosEmerald/10' : 'text-zinc-400 hover:text-white'
+            className={`p-2 rounded-full ios-btn-icon ios-btn-spring transition-all ${
+              repeatMode > 0 ? 'text-iosEmerald bg-iosEmerald/15 shadow-[0_0_12px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
             }`}
             title="Repeat"
           >

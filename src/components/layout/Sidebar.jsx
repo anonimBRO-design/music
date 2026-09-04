@@ -74,7 +74,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring ${
+                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer ${
                   active
                     ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
@@ -97,7 +97,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring ${
+                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer ${
                   active
                     ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10'
                     : item.color || 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
@@ -120,7 +120,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               </span>
               <button
                 onClick={openCreateModal}
-                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 ios-btn-spring transition-colors"
+                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
                 title="Create Playlist"
               >
                 <Plus className="w-4 h-4" />
@@ -132,7 +132,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
                 <button
                   key={pl.id}
                   onClick={() => onSelectTab(`playlist:${pl.id}`)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors truncate group ios-btn-spring ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors truncate group ios-btn-spring cursor-pointer ${
                     activeTab === `playlist:${pl.id}`
                       ? 'bg-white/10 text-white border border-white/10'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.05]'

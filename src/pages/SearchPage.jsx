@@ -63,7 +63,7 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
         />
         <button
           onClick={() => performSearch(query)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full text-xs font-bold bg-white text-black hover:bg-zinc-200 ios-btn-spring transition-all shadow-md"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full text-xs font-bold bg-white text-black hover:bg-zinc-200 ios-btn-spring transition-all shadow-md cursor-pointer"
         >
           Search
         </button>
@@ -88,7 +88,7 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
                 setQuery('');
                 setResults([]);
               }}
-              className="text-xs font-bold text-iosEmerald hover:underline ios-btn-spring"
+              className="text-xs font-bold text-iosEmerald hover:underline ios-btn-spring cursor-pointer"
             >
               ← Back to Categories
             </button>

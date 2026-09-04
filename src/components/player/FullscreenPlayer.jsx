@@ -79,7 +79,7 @@ export const FullscreenPlayer = () => {
           {/* Lyrics Toggle */}
           <button
             onClick={() => setShowLyrics(!showLyrics)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center ios-btn-icon ios-btn-spring transition-all cursor-pointer ${
               showLyrics
                 ? 'bg-emerald-500/20 text-emerald-400'
                 : 'bg-white/10 hover:bg-white/20 text-white'
@@ -90,7 +90,7 @@ export const FullscreenPlayer = () => {
           </button>
           <button
             onClick={() => setOpen(false)}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white ios-btn-icon ios-btn-spring transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,13 +156,13 @@ export const FullscreenPlayer = () => {
               </div>
               <button
                 onClick={() => toggleLike(currentTrack)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-bold transition-colors ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-bold transition-all ios-btn-spring cursor-pointer ${
                   liked
-                    ? 'bg-pink-500/10 border-pink-500/40 text-pink-400'
-                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+                    ? 'bg-pink-500/15 border-pink-500/40 text-pink-400 shadow-[0_0_15px_rgba(255,55,95,0.25)]'
+                    : 'bg-white/5 border-white/10 text-zinc-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                <Heart className={`w-4 h-4 ${liked ? 'fill-pink-500 text-pink-500' : ''}`} />
+                <Heart className={`w-4 h-4 transition-transform ${liked ? 'fill-pink-500 text-pink-500 animate-heart-pop' : ''}`} />
                 {liked ? 'Saved to Liked Songs' : 'Save to Liked Songs'}
               </button>
             </div>
@@ -197,29 +197,33 @@ export const FullscreenPlayer = () => {
         <div className="flex items-center justify-between pt-2">
           <button
             onClick={toggleShuffle}
-            className={`p-2 transition-colors ${isShuffle ? 'text-emerald-400' : 'text-zinc-400 hover:text-white'}`}
+            className={`p-2.5 rounded-full ios-btn-icon ios-btn-spring transition-all cursor-pointer ${
+              isShuffle ? 'text-emerald-400 bg-emerald-400/15 shadow-[0_0_15px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
           >
             <Shuffle className="w-5 h-5" />
           </button>
 
-          <button onClick={prev} className="text-zinc-300 hover:text-white p-2">
+          <button onClick={prev} className="text-zinc-300 hover:text-white p-2.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer">
             <SkipBack className="w-6 h-6 fill-current" />
           </button>
 
           <button
             onClick={togglePlay}
-            className="w-14 h-14 rounded-full bg-white text-black hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-2xl"
+            className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white text-black flex items-center justify-center shadow-[0_6px_30px_rgba(255,255,255,0.4)] ios-btn-primary cursor-pointer"
           >
             {isPlaying ? <Pause className="w-7 h-7 fill-current" /> : <Play className="w-7 h-7 fill-current ml-1" />}
           </button>
 
-          <button onClick={next} className="text-zinc-300 hover:text-white p-2">
+          <button onClick={next} className="text-zinc-300 hover:text-white p-2.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer">
             <SkipForward className="w-6 h-6 fill-current" />
           </button>
 
           <button
             onClick={cycleRepeat}
-            className={`p-2 transition-colors ${repeatMode > 0 ? 'text-emerald-400' : 'text-zinc-400 hover:text-white'}`}
+            className={`p-2.5 rounded-full ios-btn-icon ios-btn-spring transition-all cursor-pointer ${
+              repeatMode > 0 ? 'text-emerald-400 bg-emerald-400/15 shadow-[0_0_15px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
           >
             {repeatMode === 2 ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
           </button>

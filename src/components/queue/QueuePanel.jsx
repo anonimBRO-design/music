@@ -45,7 +45,7 @@ export const QueuePanel = () => {
             {userQueue.length + contextQueue.length}
           </span>
         </div>
-        <button onClick={close} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-spring transition-colors">
+        <button onClick={close} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring transition-colors cursor-pointer">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -73,11 +73,11 @@ export const QueuePanel = () => {
               </div>
               <button
                 onClick={() => toggleLike(currentTrack)}
-                className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-spring transition-colors"
+                className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
               >
                 <Heart
-                  className={`w-4 h-4 ${
-                    isLiked(currentTrack.id) ? 'text-iosPink fill-iosPink' : 'text-zinc-400'
+                  className={`w-4 h-4 transition-transform ${
+                    isLiked(currentTrack.id) ? 'text-iosPink fill-iosPink animate-heart-pop' : 'text-zinc-400'
                   }`}
                 />
               </button>
@@ -96,7 +96,7 @@ export const QueuePanel = () => {
             {userQueue.length > 0 && (
               <button
                 onClick={clearUserQueue}
-                className="text-[10px] font-bold text-zinc-400 hover:text-iosPink ios-btn-spring transition-colors uppercase tracking-wider"
+                className="text-[10px] font-bold text-zinc-400 hover:text-iosPink ios-btn-spring transition-colors uppercase tracking-wider cursor-pointer"
               >
                 Clear
               </button>
@@ -140,7 +140,7 @@ export const QueuePanel = () => {
                       e.stopPropagation();
                       removeFromUserQueue(idx);
                     }}
-                    className="text-zinc-500 hover:text-iosPink p-1.5 opacity-0 group-hover:opacity-100 ios-btn-spring transition-all"
+                    className="text-zinc-500 hover:text-iosPink p-1.5 opacity-0 group-hover:opacity-100 ios-btn-icon ios-btn-spring transition-all cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

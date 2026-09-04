@@ -145,7 +145,7 @@ export const PlaylistTable = ({
                       onClick={() =>
                         playTrack(t, validTracks, { type: playlistId ? 'playlist' : 'collection', id: playlistId, title: collectionTitle })
                       }
-                      className="hidden group-hover:flex items-center justify-center"
+                      className="hidden group-hover:flex items-center justify-center p-1 rounded-full hover:bg-white/20 ios-btn-icon ios-btn-spring cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-current text-white" />
                     </button>
@@ -193,18 +193,18 @@ export const PlaylistTable = ({
                     const nowLiked = toggleLike(t);
                     showToast(nowLiked ? 'Added to Liked Songs ♥' : 'Removed from Liked Songs', nowLiked ? 'success' : 'info');
                   }}
-                  className={`p-1.5 rounded-full hover:bg-white/10 ios-btn-spring transition-colors ${
+                  className={`p-1.5 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring transition-colors cursor-pointer ${
                     liked ? 'text-iosPink opacity-100' : 'text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-white'
                   }`}
                 >
-                  <Heart className={`w-4 h-4 ${liked ? 'fill-iosPink' : ''}`} />
+                  <Heart className={`w-4 h-4 transition-transform ${liked ? 'fill-iosPink animate-heart-pop' : ''}`} />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     if (onOpenContextMenu) onOpenContextMenu(e, t, playlistId);
                   }}
-                  className="p-1.5 text-zinc-400 hover:text-white rounded-full hover:bg-white/10 opacity-0 group-hover:opacity-100 ios-btn-spring transition-opacity"
+                  className="p-1.5 text-zinc-400 hover:text-white rounded-full hover:bg-white/10 opacity-0 group-hover:opacity-100 ios-btn-icon ios-btn-spring transition-all cursor-pointer"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>

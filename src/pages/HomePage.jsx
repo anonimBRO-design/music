@@ -98,7 +98,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
             <button
               key={pill.id}
               onClick={() => setActivePill(pill.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ios-btn-spring ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ios-pill-spring cursor-pointer ${
                 isActive
                   ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)] scale-105'
                   : 'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white'
@@ -134,7 +134,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                       e.preventDefault();
                       if (onOpenContextMenu) onOpenContextMenu(e, track);
                     }}
-                    className="group relative p-3.5 rounded-[22px] ios-card cursor-pointer shadow-lg flex flex-col justify-between"
+                    className="group relative p-3.5 rounded-[22px] ios-card cursor-pointer shadow-lg flex flex-col justify-between ios-btn-spring"
                   >
                     <div className="relative aspect-square mb-3 overflow-hidden rounded-2xl bg-zinc-900 shadow-inner">
                       <img
@@ -151,7 +151,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                           e.stopPropagation();
                           playTrack(track, pillSection.tracks, { type: 'pill_section', title: pillSection.title });
                         }}
-                        className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 hover:scale-105"
+                        className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-current ml-0.5" />
                       </button>
@@ -246,7 +246,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                           e.stopPropagation();
                           playTrack(track, tasteSections.dailyMix1.tracks, { type: 'daily_mix', title: tasteSections.dailyMix1.title });
                         }}
-                        className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 hover:scale-105"
+                        className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                       </button>

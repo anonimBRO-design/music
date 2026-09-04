@@ -79,7 +79,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
                   setSuggestions([]);
                   setIsOpen(false);
                 }}
-                className="absolute right-3 text-zinc-400 hover:text-white p-0.5 ios-btn-spring"
+                className="absolute right-3 text-zinc-400 hover:text-white p-1 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -138,7 +138,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         <button
           type="button"
           onClick={toggleTheme}
-          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 text-white transition-all ios-btn-spring shadow-sm cursor-pointer"
+          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.08] hover:bg-white/[0.16] border border-white/10 text-white transition-all ios-btn-icon ios-btn-spring shadow-sm cursor-pointer"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {theme === 'dark' ? (

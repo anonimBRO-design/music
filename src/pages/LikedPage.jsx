@@ -33,14 +33,14 @@ export const LikedPage = ({ onOpenContextMenu }) => {
             <button
               onClick={() => playCollection('liked', 'liked')}
               disabled={likedSongs.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" /> Play
             </button>
             <button
               onClick={() => shuffleCollection('liked', 'liked')}
               disabled={likedSongs.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all ios-btn-spring cursor-pointer"
             >
               <Shuffle className="w-4 h-4" /> Shuffle
             </button>

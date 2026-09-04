@@ -97,20 +97,20 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
             <button
               onClick={() => playCollection('playlist', playlist.id)}
               disabled={totalTracks === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" /> Play
             </button>
             <button
               onClick={() => shuffleCollection('playlist', playlist.id)}
               disabled={totalTracks === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all ios-btn-spring cursor-pointer"
             >
               <Shuffle className="w-4 h-4" /> Shuffle
             </button>
             <button
               onClick={() => openEditModal(playlist.id)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold border border-white/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold border border-white/10 transition-all ios-btn-spring cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit Details
             </button>
@@ -122,7 +122,7 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
                   onNavigateLibrary();
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-rose-400 hover:bg-rose-500/10 text-xs font-bold border border-rose-500/30 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-rose-400 hover:bg-rose-500/15 text-xs font-bold border border-rose-500/30 transition-all ios-btn-spring cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" /> Delete
             </button>
