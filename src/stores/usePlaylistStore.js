@@ -45,12 +45,13 @@ export const usePlaylistStore = create((set, get) => ({
     return get().playlists.find((p) => p.id === id);
   },
 
-  createPlaylist: (name, description = '', color = GRADIENT_PRESETS[0]) => {
+  createPlaylist: (name, description = '', color = GRADIENT_PRESETS[0], image = null) => {
     const newPlaylist = {
       id: `pl_${Date.now()}`,
       name: name || `My Playlist #${get().playlists.length + 1}`,
       description: description || '',
       color: color || GRADIENT_PRESETS[0],
+      image: image || null,
       tracks: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -61,7 +62,7 @@ export const usePlaylistStore = create((set, get) => ({
     return newPlaylist;
   },
 
-  updatePlaylistDetails: (id, name, description, color) => {
+  updatePlaylistDetails: (id, name, description, color, image) => {
     const playlists = get().playlists.map((pl) => {
       if (pl.id === id) {
         return {
@@ -69,6 +70,7 @@ export const usePlaylistStore = create((set, get) => ({
           name: name.trim() || pl.name,
           description: description?.trim() ?? pl.description,
           color: color || pl.color,
+          image: image !== undefined ? image : pl.image,
           updatedAt: new Date().toISOString()
         };
       }

@@ -51,10 +51,14 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
             >
               <div>
                 <div
-                  style={{ background: pl.color || '#7928ca' }}
-                  className="relative aspect-square mb-3.5 rounded-xl flex items-center justify-center shadow-md overflow-hidden"
+                  style={{ background: !pl.image ? (pl.color || '#7928ca') : 'transparent' }}
+                  className="relative aspect-square mb-3.5 rounded-xl flex items-center justify-center shadow-md overflow-hidden bg-zinc-900"
                 >
-                  <Music className="w-12 h-12 text-white/90" />
+                  {pl.image ? (
+                    <img src={pl.image} alt={pl.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Music className="w-12 h-12 text-white/90" />
+                  )}
                   {pl.tracks?.length > 0 && (
                     <button
                       onClick={(e) => {

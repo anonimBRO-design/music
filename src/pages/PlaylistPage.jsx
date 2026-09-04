@@ -67,10 +67,14 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
       {/* Playlist Hero */}
       <div className="flex flex-col md:flex-row items-center md:items-end gap-6 pb-6 border-b border-white/5">
         <div
-          style={{ background: playlist.color || '#7928ca' }}
-          className="w-48 h-48 md:w-56 md:h-56 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl shadow-black/60"
+          style={{ background: !playlist.image ? (playlist.color || '#7928ca') : 'transparent' }}
+          className="w-48 h-48 md:w-56 md:h-56 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl shadow-black/60 overflow-hidden bg-zinc-900"
         >
-          <Music className="w-24 h-24 text-white/90" />
+          {playlist.image ? (
+            <img src={playlist.image} alt={playlist.name} className="w-full h-full object-cover" />
+          ) : (
+            <Music className="w-24 h-24 text-white/90" />
+          )}
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-3 min-w-0">

@@ -139,10 +139,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
                   }`}
                 >
                   <div
-                    style={{ background: pl.color || '#5e5ce6' }}
-                    className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center shadow"
+                    style={{ background: !pl.image ? (pl.color || '#5e5ce6') : 'transparent' }}
+                    className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center shadow overflow-hidden bg-zinc-900"
                   >
-                    <Music className="w-2.5 h-2.5 text-white/90" />
+                    {pl.image ? (
+                      <img src={pl.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Music className="w-2.5 h-2.5 text-white/90" />
+                    )}
                   </div>
                   <span className="truncate">{pl.name}</span>
                 </button>
