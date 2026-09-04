@@ -353,3 +353,53 @@ button:not(:disabled):active {
   0% { height: 12px; }
   100% { height: 4px; }
 }
+
+/* iOS 27 Fluid Tab / Page View Transition */
+@keyframes tabFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.992);
+    filter: blur(4px);
+  }
+  60% {
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-tab-enter {
+  animation: tabFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+
+/* Tab button active highlight indicator */
+.tab-active-glow {
+  position: relative;
+}
+.tab-active-glow::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 22%;
+  bottom: 22%;
+  width: 3.5px;
+  border-radius: 999px;
+  background: #30d158;
+  box-shadow: 0 0 10px rgba(48, 209, 88, 0.8);
+  animation: tabGlowIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes tabGlowIn {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}

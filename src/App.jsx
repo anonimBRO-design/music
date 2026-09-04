@@ -105,7 +105,9 @@ export function App() {
       onCloseContextMenu={handleCloseContextMenu}
     >
       <ErrorBoundary>
-        {renderActiveView()}
+        <div key={currentTab} className="animate-tab-enter min-h-full w-full">
+          {renderActiveView()}
+        </div>
       </ErrorBoundary>
     </MainLayout>
   );

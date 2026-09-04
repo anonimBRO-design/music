@@ -139,12 +139,15 @@ export const MainLayout = ({
                 if (item.isSettings) setIsSettingsOpen(true);
                 else onSelectTab(item.id);
               }}
-              className={`flex flex-col items-center justify-center gap-0.5 w-12 h-11 rounded-xl transition-all ios-btn-spring cursor-pointer ${
-                active ? 'text-iosEmerald font-bold scale-105' : 'text-zinc-400 hover:text-white'
+              className={`relative flex flex-col items-center justify-center gap-0.5 w-12 h-11 rounded-xl transition-all ios-btn-spring cursor-pointer ${
+                active ? 'text-iosEmerald font-bold scale-105 bg-white/10 shadow-sm' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <Icon className={`w-5 h-5 ${active ? 'text-iosEmerald' : ''}`} />
-              <span className="text-[10px] tracking-tight">{item.label}</span>
+              <Icon className={`w-4 h-4 transition-transform duration-200 ${active ? 'scale-110 text-iosEmerald' : ''}`} />
+              <span className="text-[9px] tracking-tight">{item.label}</span>
+              {active && (
+                <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-iosEmerald shadow-[0_0_8px_rgba(48,209,88,0.8)]" />
+              )}
             </button>
           );
         })}

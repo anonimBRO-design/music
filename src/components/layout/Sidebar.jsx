@@ -74,14 +74,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer ${
+                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer relative overflow-hidden ${
                   active
-                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10'
+                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10 tab-active-glow pl-4'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-iosEmerald' : ''}`} />
+                <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${active ? 'scale-110 text-iosEmerald' : ''}`} />
                 {!isCollapsed && <span>{item.label}</span>}
               </button>
             );
@@ -97,14 +97,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer ${
+                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer relative overflow-hidden ${
                   active
-                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10'
+                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10 tab-active-glow pl-4'
                     : item.color || 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={item.label}
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${active ? 'scale-110' : ''}`} />
                 {!isCollapsed && <span>{item.label}</span>}
               </button>
             );
@@ -132,9 +132,9 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
                 <button
                   key={pl.id}
                   onClick={() => onSelectTab(`playlist:${pl.id}`)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors truncate group ios-btn-spring cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-left transition-all truncate group ios-btn-spring cursor-pointer relative overflow-hidden ${
                     activeTab === `playlist:${pl.id}`
-                      ? 'bg-white/10 text-white border border-white/10'
+                      ? 'bg-white/10 text-white border border-white/10 tab-active-glow pl-4'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.05]'
                   }`}
                 >
