@@ -120,7 +120,7 @@ export const PlaylistTable = ({
                 e.preventDefault();
                 if (onOpenContextMenu) onOpenContextMenu(e, t, playlistId);
               }}
-              className={`grid items-center gap-4 px-4 py-2.5 rounded-2xl transition-all cursor-pointer group ios-btn-spring ${
+              className={`grid items-center gap-4 px-4 py-2.5 rounded-2xl transition-all cursor-pointer group active:bg-white/10 ${
                 isCustomPlaylist
                   ? 'grid-cols-[40px_1fr_160px_120px_60px_60px]'
                   : 'grid-cols-[40px_1fr_180px_60px_60px]'

@@ -117,7 +117,7 @@ export const QueuePanel = () => {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => handleDrop(e, idx)}
                   onClick={() => playTrack(track)}
-                  className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 cursor-pointer ios-btn-spring transition-colors group"
+                  className="flex items-center gap-2.5 p-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/5 cursor-pointer active:bg-white/[0.12] transition-colors group"
                 >
                   <GripVertical className="w-3.5 h-3.5 text-zinc-500 shrink-0 cursor-grab opacity-40 group-hover:opacity-100" />
                   <img
@@ -166,7 +166,7 @@ export const QueuePanel = () => {
                 <div
                   key={`${track.id}-${idx}`}
                   onClick={() => playTrack(track)}
-                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/[0.06] cursor-pointer ios-btn-spring transition-colors group"
+                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/[0.06] cursor-pointer active:bg-white/10 transition-colors group"
                 >
                   <span className="w-4 text-center text-[10px] font-bold text-zinc-500 group-hover:hidden">
                     {idx + 1}
