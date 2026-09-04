@@ -44,7 +44,7 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
       {/* Brand Logo */}
       <div
         onClick={() => onSelectTab('home')}
-        className="flex items-center p-4 px-5 border-b border-white/[0.08] cursor-pointer hover:opacity-90 transition-opacity"
+        className="flex items-center p-4 px-5 border-b border-white/[0.08] cursor-pointer hover:opacity-90 transition-opacity active:scale-95 transition-transform"
       >
         {!isCollapsed ? (
           <img

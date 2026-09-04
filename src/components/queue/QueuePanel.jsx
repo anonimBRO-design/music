@@ -36,7 +36,7 @@ export const QueuePanel = () => {
   };
 
   return (
-    <aside className="fixed top-3 right-3 bottom-28 w-80 md:w-96 ios-glass-dock rounded-[28px] z-50 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 font-syne select-none">
+    <aside className="fixed top-3 right-3 bottom-28 w-80 md:w-96 ios-glass-dock rounded-[28px] z-50 flex flex-col shadow-2xl animate-queue-slide-in font-syne select-none">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
         <div className="flex items-center gap-2">

@@ -64,7 +64,7 @@ export const LyricsPanel = ({ className = '' }) => {
                 key={`${idx}-${line.time}`}
                 ref={isActive ? activeLineRef : null}
                 onClick={() => seekTo(line.time)}
-                className={`block w-full text-left px-3 py-2.5 rounded-xl transition-all duration-300 cursor-pointer hover:bg-white/5 ${
+                className={`block w-full text-left px-3 py-2.5 rounded-xl transition-all duration-300 cursor-pointer hover:bg-white/5 active:scale-[0.98] ${
                   isActive
                     ? 'text-white text-xl md:text-2xl font-extrabold scale-[1.02] bg-white/[0.03]'
                     : isPast

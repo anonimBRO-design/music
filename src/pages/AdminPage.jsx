@@ -62,7 +62,7 @@ export const AdminPage = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-full bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs transition-all shadow-lg shadow-pink-500/20"
+            className="w-full py-3 rounded-full bg-pink-500 hover:bg-pink-400 text-white font-bold text-xs transition-all shadow-lg shadow-pink-500/20 ios-btn-primary cursor-pointer"
           >
             Authenticate
           </button>

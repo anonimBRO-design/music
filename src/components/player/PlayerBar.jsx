@@ -85,7 +85,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           <>
             <div
               onClick={() => setFullscreenOpen(true)}
-              className="relative group shrink-0 cursor-pointer"
+              className="relative group shrink-0 cursor-pointer active:scale-95 transition-transform"
             >
               <img
                 src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
@@ -108,7 +108,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
               <div className="text-xs md:text-sm font-bold text-white truncate hover:text-iosEmerald transition-colors">
                 {currentTrack.title}
               </div>
-              <div className="text-[10px] md:text-xs text-zinc-400 truncate hover:text-zinc-200">
+              <div className="text-[10px] md:text-xs text-zinc-400 truncate hover:text-zinc-200 transition-colors">
                 {currentTrack.artist}
               </div>
             </div>

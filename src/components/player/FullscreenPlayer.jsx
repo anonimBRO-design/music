@@ -61,7 +61,7 @@ export const FullscreenPlayer = () => {
   const hasLyrics = lyrics.length > 0 || !!plainLyrics;
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col justify-between p-6 md:p-12 animate-in fade-in zoom-in-95 duration-300 font-syne select-none overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col justify-between p-6 md:p-12 animate-fullscreen-in font-syne select-none overflow-hidden">
       {/* Blurred Album Art Background */}
       <div
         style={{ backgroundImage: `url(${currentTrack.thumbnailHQ || currentTrack.thumbnail})` }}

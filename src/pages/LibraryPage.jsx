@@ -21,7 +21,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
         </div>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Create Playlist
         </button>
@@ -36,7 +36,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
           <p className="text-xs text-zinc-400">Organize your favorite music into custom themes and vibes.</p>
           <button
             onClick={openCreateModal}
-            className="px-6 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs"
+            className="px-6 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer"
           >
             + Create Playlist
           </button>
@@ -47,7 +47,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
             <div
               key={pl.id}
               onClick={() => onSelectPlaylist(pl.id)}
-              className="group relative p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl flex flex-col justify-between"
+              className="group relative p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl flex flex-col justify-between ios-btn-spring"
             >
               <div>
                 <div
@@ -61,7 +61,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
                         e.stopPropagation();
                         playCollection('playlist', pl.id);
                       }}
-                      className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"
+                      className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary"
                     >
                       <Play className="w-4 h-4 fill-current ml-0.5" />
                     </button>
@@ -81,7 +81,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
                     e.stopPropagation();
                     openEditModal(pl.id);
                   }}
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ios-btn-icon"
                   title="Edit details"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -94,7 +94,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
                       showToast(`Playlist "${pl.name}" deleted`, 'info');
                     }
                   }}
-                  className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                  className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors ios-btn-icon"
                   title="Delete"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

@@ -70,7 +70,7 @@ export const WrappedPage = ({ onExit }) => {
         <button
           onClick={() => setSlide(Math.max(0, slide - 1))}
           disabled={slide === 0}
-          className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-30 text-white font-bold text-xs transition-colors"
+          className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-30 text-white font-bold text-xs transition-colors ios-btn-spring cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
@@ -78,14 +78,14 @@ export const WrappedPage = ({ onExit }) => {
         {slide < slides.length - 1 ? (
           <button
             onClick={() => setSlide(slide + 1)}
-            className="flex items-center gap-1 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-1 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
           >
             Next <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
           <button
             onClick={() => setSlide(0)}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-bold text-xs transition-all"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-bold text-xs transition-all ios-btn-primary cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" /> Replay Wrapped
           </button>

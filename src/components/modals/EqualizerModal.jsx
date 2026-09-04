@@ -16,9 +16,9 @@ export const EqualizerModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-modal-backdrop-in" onClick={onClose}>
       <div
-        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 font-syne"
+        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-modal-card-in font-syne"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -43,7 +43,7 @@ export const EqualizerModal = ({ isOpen, onClose }) => {
                 }`}
               />
             </button>
-            <button onClick={onClose} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
+            <button onClick={onClose} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors ios-btn-icon ios-btn-spring cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -57,7 +57,7 @@ export const EqualizerModal = ({ isOpen, onClose }) => {
               <button
                 key={key}
                 onClick={() => applyPreset(key)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ios-pill-spring cursor-pointer ${
                   activePreset === key
                     ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/20'
                     : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5'
@@ -137,7 +137,7 @@ export const EqualizerModal = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between mt-4">
           <button
             onClick={resetToFlat}
-            className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white font-bold transition-colors"
+            className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white font-bold transition-colors ios-btn-spring cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset to Flat

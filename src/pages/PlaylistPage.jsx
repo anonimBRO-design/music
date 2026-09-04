@@ -159,7 +159,7 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs"
+                className="px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs ios-btn-spring cursor-pointer"
               >
                 Search
               </button>
@@ -196,7 +196,7 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
                       addTrack(playlist.id, t);
                       showToast(`Added to "${playlist.name}"`, 'success');
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors ios-btn-spring cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add
                   </button>

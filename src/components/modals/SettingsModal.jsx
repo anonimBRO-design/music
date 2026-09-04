@@ -14,8 +14,11 @@ export const SettingsModal = ({ isOpen, onClose, onOpenSleepTimer, onOpenEqualiz
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl">
-      <div className="ios-glass-dock rounded-[28px] w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 font-syne select-none">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-modal-backdrop-in"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="ios-glass-dock rounded-[28px] w-full max-w-md p-6 shadow-2xl animate-modal-card-in font-syne select-none">
         <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
           <h2 className="text-lg font-bold text-white">Settings</h2>
           <button onClick={onClose} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring transition-colors cursor-pointer">

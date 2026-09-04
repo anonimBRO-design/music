@@ -6,7 +6,8 @@ import { X, Plus, Music, Check } from 'lucide-react';
 export const PlaylistPickerModal = () => {
   const isOpen = usePlaylistStore((s) => s.isPickerModalOpen);
   const track = usePlaylistStore((s) => s.pickerTrack);
-  const close = usePlaylistStore((s) => s.closePickerModal);
+  const closePickerModal = usePlaylistStore((s) => s.closePickerModal);
+  const close = closePickerModal;
   const playlists = usePlaylistStore((s) => s.playlists);
   const addTrack = usePlaylistStore((s) => s.addTrackToPlaylist);
   const openCreateModal = usePlaylistStore((s) => s.openCreateModal);
@@ -15,11 +16,14 @@ export const PlaylistPickerModal = () => {
   if (!isOpen || !track) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-      <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-modal-backdrop-in"
+      onClick={(e) => { if (e.target === e.currentTarget) closePickerModal(); }}
+    >
+      <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-modal-card-in">
         <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
           <h2 className="text-base font-bold text-white font-syne">Add to Playlist</h2>
-          <button onClick={close} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
+          <button onClick={close} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors ios-btn-icon ios-btn-spring cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -44,7 +48,7 @@ export const PlaylistPickerModal = () => {
                       close();
                     }
                   }}
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 cursor-pointer transition-colors group"
+                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/5 cursor-pointer transition-colors group ios-btn-spring"
                 >
                   <div
                     style={{ background: pl.color || '#7928ca' }}
@@ -74,7 +78,7 @@ export const PlaylistPickerModal = () => {
             close();
             openCreateModal();
           }}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-colors font-syne"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-colors font-syne ios-btn-spring cursor-pointer"
         >
           <Plus className="w-4 h-4 text-emerald-400" />
           Create new playlist

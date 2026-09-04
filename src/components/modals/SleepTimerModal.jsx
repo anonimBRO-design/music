@@ -25,9 +25,9 @@ export const SleepTimerModal = ({ isOpen, onClose }) => {
   const remaining = formatRemaining();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-modal-backdrop-in" onClick={onClose}>
       <div
-        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 font-syne"
+        className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-modal-card-in font-syne"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -38,7 +38,7 @@ export const SleepTimerModal = ({ isOpen, onClose }) => {
             </div>
             <h2 className="text-lg font-bold text-white">Sleep Timer</h2>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors ios-btn-icon ios-btn-spring cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -58,7 +58,7 @@ export const SleepTimerModal = ({ isOpen, onClose }) => {
                 cancelTimer();
                 onClose();
               }}
-              className="mt-2 flex items-center justify-center gap-2 mx-auto px-5 py-2 rounded-full border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-bold transition-colors"
+              className="mt-2 flex items-center justify-center gap-2 mx-auto px-5 py-2 rounded-full border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-bold transition-colors ios-btn-spring cursor-pointer"
             >
               <Pause className="w-3.5 h-3.5" />
               Cancel Timer
@@ -79,7 +79,7 @@ export const SleepTimerModal = ({ isOpen, onClose }) => {
                   startTimer(opt.value);
                   onClose();
                 }}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/5 border border-white/5 text-sm font-bold text-zinc-300 hover:bg-white/10 hover:text-white hover:border-indigo-500/30 transition-all"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/5 border border-white/5 text-sm font-bold text-zinc-300 hover:bg-white/10 hover:text-white hover:border-indigo-500/30 transition-all ios-pill-spring cursor-pointer"
               >
                 <Clock className="w-3.5 h-3.5 text-zinc-500" />
                 {opt.label}

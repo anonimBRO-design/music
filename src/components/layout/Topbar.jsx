@@ -54,7 +54,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
       {/* Mobile Logo */}
       <div
         onClick={() => onNavigateSearch?.('home')}
-        className="flex items-center gap-2 md:hidden shrink-0 mr-2 cursor-pointer"
+        className="flex items-center gap-2 md:hidden shrink-0 mr-2 cursor-pointer ios-btn-spring"
       >
         <img src="/icons/logo.png" alt="NONIMSONG" className="w-7 h-7 object-contain" />
       </div>
@@ -88,7 +88,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
 
           {/* Dropdown Suggestions */}
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 ios-glass-dock rounded-[22px] p-2 shadow-2xl space-y-1 z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 ios-glass-dock rounded-[22px] p-2 shadow-2xl space-y-1 z-50 animate-search-drop-in">
               {loading ? (
                 <div className="p-4 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-iosBlue animate-ping" />

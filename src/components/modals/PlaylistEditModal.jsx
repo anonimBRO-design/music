@@ -6,7 +6,8 @@ import { X, Music } from 'lucide-react';
 export const PlaylistEditModal = () => {
   const isOpen = usePlaylistStore((s) => s.isEditModalOpen);
   const editingId = usePlaylistStore((s) => s.editingPlaylistId);
-  const close = usePlaylistStore((s) => s.closeEditModal);
+  const closeEditModal = usePlaylistStore((s) => s.closeEditModal);
+  const close = closeEditModal;
   const createPlaylist = usePlaylistStore((s) => s.createPlaylist);
   const updateDetails = usePlaylistStore((s) => s.updatePlaylistDetails);
   const getPlaylist = usePlaylistStore((s) => s.getPlaylist);
@@ -54,13 +55,16 @@ export const PlaylistEditModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-      <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-modal-backdrop-in"
+      onClick={(e) => { if (e.target === e.currentTarget) closeEditModal(); }}
+    >
+      <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-modal-card-in">
         <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
           <h2 className="text-lg font-bold text-white font-syne">
             {editingId ? 'Edit Playlist Details' : 'Create New Playlist'}
           </h2>
-          <button onClick={close} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors">
+          <button onClick={close} className="text-zinc-400 hover:text-white p-1 rounded-lg transition-colors ios-btn-icon ios-btn-spring cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -112,7 +116,7 @@ export const PlaylistEditModal = () => {
                   key={color}
                   onClick={() => setSelectedColor(color)}
                   style={{ background: color }}
-                  className={`h-9 rounded-lg transition-transform ${
+                  className={`h-9 rounded-lg transition-all ios-pill-spring ${
                     selectedColor === color ? 'ring-2 ring-white scale-105 shadow-md' : 'opacity-70 hover:opacity-100'
                   }`}
                 />
@@ -124,13 +128,13 @@ export const PlaylistEditModal = () => {
             <button
               type="button"
               onClick={close}
-              className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors font-syne"
+              className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors font-syne ios-btn-spring cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-full text-xs font-bold text-black bg-emerald-400 hover:bg-emerald-300 transition-all font-syne shadow-lg shadow-emerald-500/20"
+              className="px-6 py-2 rounded-full text-xs font-bold text-black bg-emerald-400 hover:bg-emerald-300 transition-all font-syne shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
             >
               {editingId ? 'Save Changes' : 'Create Playlist'}
             </button>

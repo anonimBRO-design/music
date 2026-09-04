@@ -49,14 +49,14 @@ export const ContextMenu = ({ state, onClose }) => {
         top: Math.min(y, window.innerHeight - 260),
         left: Math.min(x, window.innerWidth - 240)
       }}
-      className="fixed z-50 w-52 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl p-1.5 shadow-2xl flex flex-col gap-0.5 text-xs font-semibold text-zinc-200"
+      className="fixed z-50 w-52 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl p-1.5 shadow-2xl flex flex-col gap-0.5 text-xs font-semibold text-zinc-200 animate-ctx-menu-in"
     >
       <button
         onClick={() => {
           playTrack(track);
           onClose();
         }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left ctx-menu-item"
       >
         <Play className="w-4 h-4 text-emerald-400 fill-emerald-400" />
         Play now
@@ -67,7 +67,7 @@ export const ContextMenu = ({ state, onClose }) => {
           showToast(`Will play next`, 'info');
           onClose();
         }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left ctx-menu-item"
       >
         <FastForward className="w-4 h-4 text-zinc-400" />
         Play next
@@ -78,7 +78,7 @@ export const ContextMenu = ({ state, onClose }) => {
           showToast(`Added to queue`, 'info');
           onClose();
         }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left ctx-menu-item"
       >
         <ListPlus className="w-4 h-4 text-zinc-400" />
         Add to queue
@@ -89,7 +89,7 @@ export const ContextMenu = ({ state, onClose }) => {
           showToast(nowLiked ? 'Added to Liked Songs ♥' : 'Removed from Liked Songs', nowLiked ? 'success' : 'info');
           onClose();
         }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left ctx-menu-item"
       >
         <Heart className={`w-4 h-4 ${liked ? 'text-pink-500 fill-pink-500' : 'text-zinc-400'}`} />
         {liked ? 'Remove from liked' : 'Save to liked'}
@@ -99,7 +99,7 @@ export const ContextMenu = ({ state, onClose }) => {
           openPickerModal(track);
           onClose();
         }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-left ctx-menu-item"
       >
         <FolderPlus className="w-4 h-4 text-zinc-400" />
         Add to playlist
@@ -114,7 +114,7 @@ export const ContextMenu = ({ state, onClose }) => {
               showToast('Removed from playlist', 'info');
               onClose();
             }}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 transition-colors text-left"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 transition-colors text-left ctx-menu-item"
           >
             <Trash2 className="w-4 h-4 text-rose-400" />
             Remove from playlist

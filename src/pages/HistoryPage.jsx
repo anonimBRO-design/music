@@ -32,7 +32,7 @@ export const HistoryPage = ({ onOpenContextMenu }) => {
             <button
               onClick={() => playCollection('history', 'history')}
               disabled={history.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" /> Play History
             </button>

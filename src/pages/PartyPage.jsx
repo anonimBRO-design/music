@@ -44,7 +44,7 @@ export const PartyPage = () => {
                 setInRoom(true);
                 showToast('Party room created!', 'success');
               }}
-              className="w-full py-3 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20"
+              className="w-full py-3 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
             >
               Start Hosting
             </button>
@@ -74,7 +74,7 @@ export const PartyPage = () => {
                   setInRoom(true);
                   showToast(`Joined party room ${joinInput.trim()}`, 'success');
                 }}
-                className="px-6 py-2.5 rounded-full bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs transition-all"
+                className="px-6 py-2.5 rounded-full bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs transition-all ios-btn-spring cursor-pointer"
               >
                 Join
               </button>
@@ -94,13 +94,13 @@ export const PartyPage = () => {
             <div className="flex gap-2">
               <button
                 onClick={copyCode}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-colors ios-btn-spring cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" /> Copy Code
               </button>
               <button
                 onClick={() => setInRoom(false)}
-                className="px-4 py-2 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-colors"
+                className="px-4 py-2 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-colors ios-btn-spring cursor-pointer"
               >
                 Leave Room
               </button>

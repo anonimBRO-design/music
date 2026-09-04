@@ -16,7 +16,7 @@ export const ToastContainer = () => {
         return (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-xl border transition-all duration-300 transform translate-y-0 ${
+            className={`pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-xl border transition-all duration-300 transform translate-y-0 animate-toast-in ${
               isSuccess
                 ? 'bg-emerald-950/80 border-emerald-500/30 text-emerald-200'
                 : isError
@@ -32,7 +32,7 @@ export const ToastContainer = () => {
             </div>
             <button
               onClick={() => removeToast(t.id)}
-              className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors shrink-0"
+              className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors shrink-0 ios-btn-icon cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

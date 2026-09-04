@@ -117,7 +117,7 @@ export const DailyMix = ({ mix, index = 0 }) => {
         <button
           type="button"
           onClick={handlePlayAll}
-          className="text-xs font-bold text-white hover:text-iosEmerald transition-colors cursor-pointer"
+          className="text-xs font-bold text-white hover:text-iosEmerald transition-colors cursor-pointer ios-btn-spring"
         >
           {isMixPlaying ? 'Pause mix' : 'Play full mix →'}
         </button>

@@ -47,7 +47,7 @@ export const ProfilePage = () => {
               />
               <button
                 type="submit"
-                className="flex items-center gap-1 px-4 py-1.5 rounded-xl bg-emerald-400 text-black text-xs font-bold"
+                className="flex items-center gap-1 px-4 py-1.5 rounded-xl bg-emerald-400 text-black text-xs font-bold ios-btn-spring cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" /> Save
               </button>
@@ -57,7 +57,7 @@ export const ProfilePage = () => {
               <h1 className="text-2xl font-black text-white">{profile.username || 'Listener'}</h1>
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-zinc-400 hover:text-white p-1"
+                className="text-zinc-400 hover:text-white p-1 ios-btn-icon cursor-pointer"
                 title="Edit username"
               >
                 <Edit2 className="w-4 h-4" />
