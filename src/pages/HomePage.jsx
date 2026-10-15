@@ -83,7 +83,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
       {/* Hero Welcome */}
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-          {greeting()}, <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">{profile.username || 'Listener'}</span>
+          {greeting()}, <span className="text-white">{profile.username || 'Listener'}</span>
         </h1>
         <p className="text-[11px] md:text-sm text-zinc-400">
           Spatial acoustics curated dynamically to your vector taste.
@@ -100,7 +100,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
               onClick={() => setActivePill(pill.id)}
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ios-pill-spring cursor-pointer ${
                 isActive
-                  ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.4)] scale-105'
+                  ? 'neu-selected-pill text-white scale-105'
                   : 'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white'
               }`}
             >

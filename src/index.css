@@ -184,7 +184,7 @@ button:not(:disabled):active {
 
 /* iOS Tactile Spring Touch/Click (Enhanced Fluid Physics) */
 .ios-btn-spring {
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.15s ease, 
               box-shadow 0.2s ease, 
               opacity 0.15s ease;
@@ -201,7 +201,7 @@ button:not(:disabled):active {
 
 /* iOS Primary Action Button (Play/Pause, Hero CTA) */
 .ios-btn-primary {
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), 
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.25s ease, 
               filter 0.15s ease;
   will-change: transform, box-shadow;
@@ -219,7 +219,7 @@ button:not(:disabled):active {
 
 /* iOS Icon / Circle Button Spring */
 .ios-btn-icon {
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               background-color 0.18s ease, 
               color 0.18s ease;
   will-change: transform;
@@ -234,7 +234,7 @@ button:not(:disabled):active {
 
 /* iOS Category / Pill Spring */
 .ios-pill-spring {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               background-color 0.15s ease, 
               border-color 0.15s ease, 
               box-shadow 0.2s ease;
@@ -257,7 +257,7 @@ button:not(:disabled):active {
   100% { transform: scale(1) rotate(0deg); }
 }
 .animate-heart-pop {
-  animation: heartPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: heartPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Play/Pause Pulse Burst Animation */
@@ -267,7 +267,7 @@ button:not(:disabled):active {
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 .animate-play-pulse {
-  animation: playPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: playPulse 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Ripple effect on click */
@@ -390,7 +390,7 @@ button:not(:disabled):active {
   border-radius: 999px;
   background: #30d158;
   box-shadow: 0 0 10px rgba(48, 209, 88, 0.8);
-  animation: tabGlowIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: tabGlowIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes tabGlowIn {
@@ -432,7 +432,7 @@ button:not(:disabled):active {
   }
 }
 .animate-modal-card-in {
-  animation: modalCardIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: modalCardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity, filter;
 }
 
@@ -450,7 +450,7 @@ button:not(:disabled):active {
   }
 }
 .animate-ctx-menu-in {
-  animation: ctxMenuIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: ctxMenuIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: top left;
   will-change: transform, opacity;
 }
@@ -479,7 +479,7 @@ button:not(:disabled):active {
   }
 }
 .animate-toast-in {
-  animation: toastSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
 
@@ -534,14 +534,14 @@ button:not(:disabled):active {
   }
 }
 .animate-search-drop-in {
-  animation: searchDropIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: searchDropIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: top center;
   will-change: transform, opacity;
 }
 
 /* ===== UNIVERSAL CLICKABLE DIV FEEDBACK ===== */
 .ios-clickable {
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
               background-color 0.15s ease,
               border-color 0.15s ease;
   will-change: transform;
@@ -581,7 +581,7 @@ button:not(:disabled):active {
   border-radius: 50%;
   background: white;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ios-toggle.active {
   background-color: var(--neon-green);
@@ -598,4 +598,410 @@ button:not(:disabled):active {
 .ios-toggle.active:active::after {
   transform: translateX(16px);
   width: 24px;
+}
+
+/* ===== NEUMORPHIC LISTENING DESK ===== */
+:root,
+[data-theme='dark'] {
+  --bg-base: #27313c;
+  --bg-surface: #2f3a47;
+  --bg-elevated: #344250;
+  --bg-inset: #232d37;
+  --bg-card: #2f3a47;
+  --bg-card-hover: #344250;
+  --text-primary: #f3f6f8;
+  --text-secondary: #b8c4cf;
+  --text-muted: #8b9aa7;
+  --text-dim: #667582;
+  --border: transparent;
+  --border-bright: rgba(255, 255, 255, 0.1);
+  --accent: #72d29d;
+  --accent-strong: #91e6b7;
+  --accent-soft: rgba(114, 210, 157, 0.16);
+  --accent-contrast: #17241e;
+  --danger: #e88b8b;
+  --warning: #e7c16d;
+  --neu-highlight: rgba(89, 108, 124, 0.62);
+  --neu-shadow-dark: rgba(15, 21, 27, 0.76);
+  --neu-raised: 10px 10px 22px var(--neu-shadow-dark), -10px -10px 22px var(--neu-highlight);
+  --neu-raised-sm: 5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-highlight);
+  --neu-inset: inset 6px 6px 12px rgba(15, 21, 27, 0.62), inset -6px -6px 12px rgba(89, 108, 124, 0.34);
+  --neu-inset-sm: inset 3px 3px 8px rgba(15, 21, 27, 0.58), inset -3px -3px 8px rgba(89, 108, 124, 0.28);
+}
+
+[data-theme='light'] {
+  --bg-base: #dce5ed;
+  --bg-surface: #e5edf4;
+  --bg-elevated: #ebf2f8;
+  --bg-inset: #d4dee7;
+  --bg-card: #e5edf4;
+  --bg-card-hover: #ebf2f8;
+  --text-primary: #263442;
+  --text-secondary: #526474;
+  --text-muted: #6d7e8d;
+  --text-dim: #91a0ad;
+  --border: transparent;
+  --border-bright: rgba(55, 75, 91, 0.14);
+  --accent: #2f9e70;
+  --accent-strong: #25865e;
+  --accent-soft: rgba(47, 158, 112, 0.14);
+  --accent-contrast: #f7fffb;
+  --danger: #bf5f67;
+  --warning: #a97618;
+  --neu-highlight: rgba(255, 255, 255, 0.9);
+  --neu-shadow-dark: rgba(160, 177, 191, 0.62);
+  --neu-raised: 10px 10px 22px var(--neu-shadow-dark), -10px -10px 22px var(--neu-highlight);
+  --neu-raised-sm: 5px 5px 12px var(--neu-shadow-dark), -5px -5px 12px var(--neu-highlight);
+  --neu-inset: inset 6px 6px 12px rgba(160, 177, 191, 0.48), inset -6px -6px 12px rgba(255, 255, 255, 0.74);
+  --neu-inset-sm: inset 3px 3px 8px rgba(160, 177, 191, 0.44), inset -3px -3px 8px rgba(255, 255, 255, 0.7);
+}
+
+html,
+body {
+  background: var(--bg-base) !important;
+  color: var(--text-primary);
+}
+
+body {
+  font-family: 'Syne', 'Avenir Next', -apple-system, BlinkMacSystemFont, sans-serif;
+  caret-color: var(--accent);
+}
+
+::selection {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+}
+
+.neu-app-shell {
+  background: var(--bg-base) !important;
+  color: var(--text-primary);
+  isolation: isolate;
+}
+
+.neu-app-shell .ios-glass-panel,
+.neu-app-shell .glass-panel {
+  background: var(--bg-surface) !important;
+  border: 0 !important;
+  box-shadow: var(--neu-raised) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.neu-app-shell .ios-glass-dock {
+  background: var(--bg-surface) !important;
+  border: 0 !important;
+  box-shadow: var(--neu-raised) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.neu-app-shell .ios-card,
+.neu-app-shell .glass-card {
+  background: var(--bg-surface) !important;
+  border: 0 !important;
+  box-shadow: var(--neu-raised-sm) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
+}
+
+.neu-app-shell .ios-card:hover,
+.neu-app-shell .glass-card:hover {
+  background: var(--bg-elevated) !important;
+  border: 0 !important;
+  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-highlight) !important;
+  transform: translateY(-2px);
+}
+
+.neu-app-shell .ios-card:active,
+.neu-app-shell .glass-card:active {
+  box-shadow: var(--neu-inset-sm) !important;
+  transform: translateY(1px);
+}
+
+.neu-app-shell [class*='bg-white/'],
+.neu-app-shell [class*='bg-zinc-900'],
+.neu-app-shell [class*='bg-zinc-950'] {
+  background-color: var(--bg-surface) !important;
+  border-color: transparent !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .h-px[class*='bg-white/'],
+.neu-app-shell [class*='h-[2px]'][class*='bg-white/'],
+.neu-app-shell [class*='h-[2.5px]'][class*='bg-white/'] {
+  background-color: var(--border-bright) !important;
+  box-shadow: none !important;
+}
+
+.neu-app-shell input[class*='bg-white/'],
+.neu-app-shell textarea[class*='bg-white/'],
+.neu-app-shell select[class*='bg-white/'],
+.neu-app-shell input[class*='bg-zinc-'],
+.neu-app-shell textarea[class*='bg-zinc-'] {
+  background: var(--bg-inset) !important;
+  border: 0 !important;
+  box-shadow: var(--neu-inset) !important;
+  color: var(--text-primary) !important;
+}
+
+.neu-app-shell input:focus,
+.neu-app-shell textarea:focus,
+.neu-app-shell select:focus {
+  outline: 0 !important;
+  border-color: transparent !important;
+  box-shadow: var(--neu-inset), 0 0 0 2px var(--accent-soft) !important;
+}
+
+.neu-app-shell [class*='border-white/'],
+.neu-app-shell [class*='border-white['] {
+  border-color: transparent !important;
+}
+
+.neu-app-shell .text-white,
+.neu-app-shell [class*='text-white/'],
+.neu-app-shell [class*='hover:text-white']:hover {
+  color: var(--text-primary) !important;
+}
+
+.neu-app-shell .text-zinc-200,
+.neu-app-shell .text-zinc-300 {
+  color: var(--text-secondary) !important;
+}
+
+.neu-app-shell .text-zinc-400,
+.neu-app-shell .text-zinc-500 {
+  color: var(--text-muted) !important;
+}
+
+.neu-app-shell .text-zinc-600,
+.neu-app-shell .text-zinc-700 {
+  color: var(--text-dim) !important;
+}
+
+.neu-app-shell .text-zinc-900,
+.neu-app-shell .text-black {
+  color: var(--text-primary) !important;
+}
+
+.neu-app-shell [class*='hover:bg-white/']:hover,
+.neu-app-shell [class*='active:bg-white/']:active {
+  background-color: var(--bg-elevated) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+}
+
+.neu-app-shell [class*='bg-iosEmerald/'],
+.neu-app-shell [class*='bg-emerald-'][class*='/'] {
+  background-color: var(--accent-soft) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+}
+
+.neu-app-shell [class*='bg-pink-'][class*='/'],
+.neu-app-shell [class*='bg-purple-'][class*='/'],
+.neu-app-shell [class*='bg-cyan-'][class*='/'],
+.neu-app-shell [class*='bg-rose-'][class*='/'] {
+  background-color: var(--bg-inset) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+}
+
+.neu-app-shell .ios-btn-spring,
+.neu-app-shell .ios-btn-icon,
+.neu-app-shell .ios-pill-spring,
+.neu-app-shell .ios-clickable {
+  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.neu-app-shell .ios-btn-spring:hover,
+.neu-app-shell .ios-clickable:hover {
+  transform: translateY(-1px);
+}
+
+.neu-app-shell .ios-btn-spring:active,
+.neu-app-shell .ios-btn-icon:active,
+.neu-app-shell .ios-pill-spring:active,
+.neu-app-shell .ios-clickable:active,
+.neu-app-shell button:not(:disabled):active {
+  transform: translateY(1px) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+  filter: none !important;
+}
+
+.neu-app-shell .ios-btn-icon:hover {
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .ios-btn-primary {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  border: 0 !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .ios-btn-primary:hover {
+  background: var(--accent-strong) !important;
+  box-shadow: 7px 7px 14px var(--neu-shadow-dark), -7px -7px 14px var(--neu-highlight) !important;
+  transform: translateY(-2px);
+}
+
+.neu-app-shell .ios-btn-primary:active {
+  background: var(--accent) !important;
+  box-shadow: var(--neu-inset) !important;
+  transform: translateY(1px) scale(1) !important;
+}
+
+.neu-app-shell .tab-active-glow::before {
+  background: var(--accent) !important;
+  box-shadow: none !important;
+}
+
+.neu-app-shell .ios-toggle {
+  background: var(--bg-inset) !important;
+  box-shadow: var(--neu-inset-sm);
+}
+
+.neu-app-shell .ios-toggle.active {
+  background: var(--accent) !important;
+  box-shadow: var(--neu-raised-sm);
+}
+
+.neu-app-shell .ios-toggle::after {
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .spotify-eq-bar {
+  background-color: var(--accent) !important;
+}
+
+.neu-app-shell .ios-card > [class*='blur-'] {
+  opacity: 0 !important;
+}
+
+.neu-app-shell .backdrop-blur-md,
+.neu-app-shell .backdrop-blur-xl,
+.neu-app-shell .backdrop-blur-2xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.neu-app-shell .animate-modal-backdrop-in,
+.neu-app-shell .animate-modal-card-in,
+.neu-app-shell .animate-ctx-menu-in,
+.neu-app-shell .animate-queue-slide-in,
+.neu-app-shell .animate-toast-in {
+  --modal-surface: var(--bg-surface);
+}
+
+.neu-app-shell ::-webkit-scrollbar-thumb {
+  background: var(--bg-inset) !important;
+  box-shadow: var(--neu-inset-sm);
+}
+
+.neu-app-shell ::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-elevated) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neu-app-shell *,
+  .neu-app-shell *::before,
+  .neu-app-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.neu-app-shell .bg-white {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .text-black {
+  color: var(--text-primary) !important;
+}
+
+.neu-app-shell .neu-selected-pill {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+}
+
+.neu-app-shell .text-iosEmerald,
+.neu-app-shell .text-emerald-400,
+.neu-app-shell .text-emerald-500 {
+  color: var(--accent) !important;
+}
+
+.neu-app-shell .text-iosBlue,
+.neu-app-shell .text-cyan-400,
+.neu-app-shell .text-cyan-500 {
+  color: #63b6c8 !important;
+}
+
+.neu-app-shell .text-iosPurple,
+.neu-app-shell .text-purple-400,
+.neu-app-shell .text-purple-500,
+.neu-app-shell .text-iosIndigo {
+  color: #a99bd8 !important;
+}
+
+.neu-app-shell .text-iosPink,
+.neu-app-shell .text-pink-400,
+.neu-app-shell .text-pink-500,
+.neu-app-shell .text-rose-400 {
+  color: var(--danger) !important;
+}
+
+.neu-app-shell [class~='bg-emerald-400'],
+.neu-app-shell [class~='bg-emerald-500'],
+.neu-app-shell [class~='bg-purple-500'],
+.neu-app-shell [class~='bg-pink-500'] {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-app-shell .ios-btn-primary,
+.neu-app-shell .ios-btn-primary.bg-white {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+}
+
+.neu-category-tile {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--neu-raised-sm);
+}
+
+.neu-category-tile:hover {
+  background: var(--bg-elevated);
+  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-highlight);
+  transform: translateY(-2px);
+}
+
+.neu-category-tile:active {
+  box-shadow: var(--neu-inset) !important;
+  transform: translateY(1px) !important;
+}
+
+.neu-category-tile:nth-child(3n + 1) {
+  --tile-accent: var(--accent);
+}
+
+.neu-category-tile:nth-child(3n + 2) {
+  --tile-accent: #63b6c8;
+}
+
+.neu-category-tile:nth-child(3n + 3) {
+  --tile-accent: #a99bd8;
+}
+
+.neu-category-icon {
+  color: var(--tile-accent, var(--accent));
+  background: var(--bg-inset);
+  box-shadow: var(--neu-inset-sm);
 }
