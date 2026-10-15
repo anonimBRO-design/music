@@ -25,6 +25,7 @@ The app is a responsive web experience with a desktop sidebar, mobile bottom nav
 ## Capabilities and Constraints
 
 - Preserve existing playback, search, queue, playlist, liked-song, history, library, profile, party, wrapped, settings, and theme-toggle behavior.
+- Spotify playlist import uses official OAuth PKCE, stores imported playlists locally, and resolves Spotify metadata to YouTube playback IDs.
 - The current implementation is a React/Vite app with Zustand stores and Tailwind utility classes.
 - The requested visual change is to remove the photo wallpaper background and use a neumorphic UI treatment.
 - No new product feature or data source is required for this task.

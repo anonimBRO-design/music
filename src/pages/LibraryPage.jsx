@@ -2,29 +2,39 @@ import React from 'react';
 import { usePlaylistStore } from '../stores/usePlaylistStore';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { useToastStore } from '../stores/useToastStore';
-import { Plus, Music, Play, Edit3, Trash2 } from 'lucide-react';
+import { useSpotifyImportStore } from '../stores/useSpotifyImportStore';
+import { Download, Plus, Music, Play, Edit3, Trash2 } from 'lucide-react';
 
 export const LibraryPage = ({ onSelectPlaylist }) => {
   const playlists = usePlaylistStore((s) => s.playlists);
   const openCreateModal = usePlaylistStore((s) => s.openCreateModal);
   const openEditModal = usePlaylistStore((s) => s.openEditModal);
   const deletePlaylist = usePlaylistStore((s) => s.deletePlaylist);
+  const openSpotifyImport = useSpotifyImportStore((s) => s.open);
   const playCollection = usePlayerStore((s) => s.playCollection);
   const showToast = useToastStore((s) => s.showToast);
 
   return (
     <div className="space-y-8 p-6 md:p-8 font-syne select-none">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-4xl font-extrabold text-white">Your Library</h1>
           <p className="text-xs md:text-sm text-zinc-400 mt-1">Manage your custom playlists and albums.</p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /> Create Playlist
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={openSpotifyImport}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all ios-btn-spring cursor-pointer"
+          >
+            <Download className="w-4 h-4" /> Import Spotify
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> Create Playlist
+          </button>
+        </div>
       </div>
 
       {playlists.length === 0 ? (

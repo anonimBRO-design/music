@@ -10,6 +10,7 @@ import { PlaylistPickerModal } from '../modals/PlaylistPickerModal';
 import { SettingsModal } from '../modals/SettingsModal';
 import { SleepTimerModal } from '../modals/SleepTimerModal';
 import { EqualizerModal } from '../modals/EqualizerModal';
+import { SpotifyImportModal } from '../modals/SpotifyImportModal';
 import { ContextMenu } from '../ui/ContextMenu';
 import { ToastContainer } from '../ui/ToastContainer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -158,6 +159,7 @@ export const MainLayout = ({
       />
       <SleepTimerModal isOpen={isSleepTimerOpen} onClose={() => setIsSleepTimerOpen(false)} />
       <EqualizerModal isOpen={isEqOpen} onClose={() => setEqOpen(false)} />
+      <SpotifyImportModal />
 
       {/* Context Menu & Notifications */}
       <ContextMenu state={contextMenuState} onClose={onCloseContextMenu} />

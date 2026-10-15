@@ -62,6 +62,32 @@ export const usePlaylistStore = create((set, get) => ({
     return newPlaylist;
   },
 
+  createImportedPlaylist: ({
+    name,
+    description = '',
+    color = GRADIENT_PRESETS[0],
+    image = null,
+    tracks = [],
+    source = null
+  }) => {
+    const timestamp = new Date().toISOString();
+    const newPlaylist = {
+      id: `pl_${Date.now()}`,
+      name: name || `Imported Playlist #${get().playlists.length + 1}`,
+      description,
+      color,
+      image,
+      tracks,
+      source,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+    const updated = [...get().playlists, newPlaylist];
+    Storage.set(KEYS.PLAYLISTS, updated);
+    set({ playlists: updated });
+    return newPlaylist;
+  },
+
   updatePlaylistDetails: (id, name, description, color, image) => {
     const playlists = get().playlists.map((pl) => {
       if (pl.id === id) {
