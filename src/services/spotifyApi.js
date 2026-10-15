@@ -200,7 +200,9 @@ export const spotifyRequest = async (path, options = {}, retry = true) => {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = data?.error?.message || data?.error_description || `Spotify request failed (${response.status})`;
+    const message = response.status === 403
+      ? 'Spotify Web API access is blocked for this account or app. Use a Premium developer account, or import a playlist file instead.'
+      : data?.error?.message || data?.error_description || `Spotify request failed (${response.status})`;
     throw new Error(message);
   }
   return data;

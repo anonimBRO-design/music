@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
   Download,
   ExternalLink,
+  FileUp,
   Link2,
   Loader2,
   Music2,
@@ -20,8 +21,16 @@ const STATUS_LABELS = {
   skipped: 'Skipped'
 };
 
+const SOURCE_TABS = [
+  { id: 'file', label: 'File' },
+  { id: 'url', label: 'Raw URL' },
+  { id: 'spotify', label: 'Spotify' }
+];
+
 export const SpotifyImportModal = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
   const isOpen = useSpotifyImportStore((state) => state.isOpen);
+  const sourceMode = useSpotifyImportStore((state) => state.sourceMode);
   const step = useSpotifyImportStore((state) => state.step);
   const playlistUrl = useSpotifyImportStore((state) => state.playlistUrl);
   const playlist = useSpotifyImportStore((state) => state.playlist);
@@ -31,10 +40,13 @@ export const SpotifyImportModal = () => {
   const error = useSpotifyImportStore((state) => state.error);
   const handleCallback = useSpotifyImportStore((state) => state.handleCallback);
   const close = useSpotifyImportStore((state) => state.close);
+  const setSourceMode = useSpotifyImportStore((state) => state.setSourceMode);
   const connect = useSpotifyImportStore((state) => state.connect);
   const disconnect = useSpotifyImportStore((state) => state.disconnect);
   const setPlaylistUrl = useSpotifyImportStore((state) => state.setPlaylistUrl);
-  const importPlaylist = useSpotifyImportStore((state) => state.importPlaylist);
+  const importSpotifyPlaylist = useSpotifyImportStore((state) => state.importSpotifyPlaylist);
+  const importFile = useSpotifyImportStore((state) => state.importFile);
+  const importUrl = useSpotifyImportStore((state) => state.importUrl);
   const selectCandidate = useSpotifyImportStore((state) => state.selectCandidate);
   const confirmImport = useSpotifyImportStore((state) => state.confirmImport);
 
@@ -49,6 +61,9 @@ export const SpotifyImportModal = () => {
 
   if (!isOpen) return null;
 
+  const sourceKey = (result) => result.source.sourceId || result.source.spotifyId;
+  const sourceStep = step === 'connect' || step === 'input' || step === 'file' || step === 'url';
+
   const renderStatus = (result) => {
     const status = result.selected ? 'matched' : result.status;
     const tone = status === 'matched'
@@ -57,6 +72,138 @@ export const SpotifyImportModal = () => {
       ? 'text-amber-300'
       : 'text-zinc-400';
     return <span className={`text-[10px] font-bold uppercase tracking-wider ${tone}`}>{STATUS_LABELS[status]}</span>;
+  };
+
+  const renderSourceTabs = () => (
+    <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/5">
+      {SOURCE_TABS.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => {
+            setSelectedFile(null);
+            setSourceMode(tab.id);
+          }}
+          className={`py-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${sourceMode === tab.id ? 'bg-emerald-400 text-black shadow-sm' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderSourceForm = () => {
+    if (sourceMode === 'spotify' && step === 'connect') {
+      return (
+        <div className="space-y-5">
+          <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/5 space-y-2">
+            <h3 className="text-sm font-bold text-white">Connect your Spotify account</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Spotify playlist access depends on the account and app permissions. If Spotify returns 403, use the File or Raw URL tab instead.
+            </p>
+          </div>
+          {!isSpotifyConfigured() && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-100 text-xs leading-relaxed">
+              Add <code className="font-mono text-amber-200">VITE_SPOTIFY_CLIENT_ID</code> and the matching redirect URI before connecting Spotify.
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={connect}
+            disabled={!isSpotifyConfigured()}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Link2 className="w-4 h-4" /> Connect Spotify
+          </button>
+        </div>
+      );
+    }
+
+    if (sourceMode === 'spotify' && step === 'input') {
+      return (
+        <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); importSpotifyPlaylist(); }}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-bold text-white">Paste a Spotify playlist link</div>
+              <div className="text-[11px] text-zinc-400">Private and collaborative playlists need Spotify access.</div>
+            </div>
+            <button type="button" onClick={disconnect} className="text-[10px] font-bold text-zinc-400 hover:text-rose-300 uppercase tracking-wider ios-btn-spring cursor-pointer">
+              Disconnect
+            </button>
+          </div>
+          <div className="relative">
+            <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <input
+              type="text"
+              value={playlistUrl}
+              onChange={(event) => setPlaylistUrl(event.target.value)}
+              placeholder="https://open.spotify.com/playlist/..."
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none"
+              autoFocus
+            />
+          </div>
+          <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer">
+            <Download className="w-4 h-4" /> Load Spotify playlist
+          </button>
+        </form>
+      );
+    }
+
+    if (sourceMode === 'file' && step === 'file') {
+      return (
+        <div className="space-y-4">
+          <div>
+            <div className="text-sm font-bold text-white">Choose a playlist file</div>
+            <div className="text-[11px] text-zinc-400 mt-1">Supports `.m3u`, `.m3u8`, `.csv`, and `.json`. The file stays on this device.</div>
+          </div>
+          <label className="flex items-center justify-center gap-2 p-5 rounded-2xl bg-white/[0.04] border border-dashed border-white/10 hover:bg-white/[0.08] cursor-pointer transition-colors">
+            <FileUp className="w-5 h-5 text-emerald-400" />
+            <span className="text-xs font-bold text-zinc-200">{selectedFile?.name || 'Choose playlist file'}</span>
+            <input
+              type="file"
+              accept=".m3u,.m3u8,.csv,.json,text/csv,application/json,audio/x-mpegurl"
+              className="hidden"
+              onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => importFile(selectedFile)}
+            disabled={!selectedFile}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" /> Parse and match file
+          </button>
+        </div>
+      );
+    }
+
+    if (sourceMode === 'url' && step === 'url') {
+      return (
+        <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); importUrl(); }}>
+          <div>
+            <div className="text-sm font-bold text-white">Import a raw playlist file URL</div>
+            <div className="text-[11px] text-zinc-400 mt-1">Use a direct `.m3u`, `.csv`, or `.json` URL. Web pages and arbitrary scraping are not supported.</div>
+          </div>
+          <div className="relative">
+            <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <input
+              type="url"
+              value={playlistUrl}
+              onChange={(event) => setPlaylistUrl(event.target.value)}
+              placeholder="https://example.com/playlist.m3u"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none"
+              autoFocus
+            />
+          </div>
+          <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer">
+            <Download className="w-4 h-4" /> Load raw playlist file
+          </button>
+        </form>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -73,8 +220,8 @@ export const SpotifyImportModal = () => {
               <Music2 className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-bold text-white truncate">Import from Spotify</h2>
-              <p className="text-[11px] text-zinc-400">Match Spotify metadata to playable YouTube tracks.</p>
+              <h2 className="text-lg font-bold text-white truncate">Import playlist</h2>
+              <p className="text-[11px] text-zinc-400">Match playlist metadata to playable YouTube tracks.</p>
             </div>
           </div>
           <button onClick={close} className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 ios-btn-icon ios-btn-spring cursor-pointer" title="Close">
@@ -90,68 +237,9 @@ export const SpotifyImportModal = () => {
         )}
 
         <div className="mt-5 min-h-0 overflow-y-auto pr-1">
-          {step === 'connect' && (
-            <div className="space-y-5">
-              <div className="p-5 rounded-2xl bg-white/[0.04] border border-white/5 space-y-2">
-                <h3 className="text-sm font-bold text-white">Connect your Spotify account</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  NONIMSONG requests playlist read access only. Your Spotify password never reaches this app, and the session token is kept only in this browser session.
-                </p>
-              </div>
+          {sourceStep && renderSourceTabs()}
 
-              {!isSpotifyConfigured() && (
-                <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-100 text-xs leading-relaxed">
-                  Add <code className="font-mono text-amber-200">VITE_SPOTIFY_CLIENT_ID</code> and the matching redirect URI before connecting Spotify.
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={connect}
-                disabled={!isSpotifyConfigured()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Link2 className="w-4 h-4" /> Connect Spotify
-              </button>
-              <p className="text-[10px] text-zinc-500 text-center">
-                Official API import only. Spotify audio is not downloaded.
-              </p>
-            </div>
-          )}
-
-          {step === 'input' && (
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                importPlaylist();
-              }}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-bold text-white">Paste a playlist link</div>
-                  <div className="text-[11px] text-zinc-400">Public, private, and collaborative playlists are supported after authorization.</div>
-                </div>
-                <button type="button" onClick={disconnect} className="text-[10px] font-bold text-zinc-400 hover:text-rose-300 uppercase tracking-wider ios-btn-spring cursor-pointer">
-                  Disconnect
-                </button>
-              </div>
-              <div className="relative">
-                <ExternalLink className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
-                <input
-                  type="text"
-                  value={playlistUrl}
-                  onChange={(event) => setPlaylistUrl(event.target.value)}
-                  placeholder="https://open.spotify.com/playlist/..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none"
-                  autoFocus
-                />
-              </div>
-              <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer">
-                <Download className="w-4 h-4" /> Load playlist
-              </button>
-            </form>
-          )}
+          {sourceStep && <div className="mt-4">{renderSourceForm()}</div>}
 
           {step === 'loading' && (
             <div className="py-10 space-y-5 text-center">
@@ -162,10 +250,7 @@ export const SpotifyImportModal = () => {
               </div>
               <div className="max-w-sm mx-auto space-y-2">
                 <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-emerald-400 transition-all"
-                    style={{ width: `${progress.total ? (progress.completed / progress.total) * 100 : 8}%` }}
-                  />
+                  <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${progress.total ? (progress.completed / progress.total) * 100 : 8}%` }} />
                 </div>
                 <div className="text-[10px] text-zinc-500">{progress.completed} / {progress.total || '?'} tracks checked</div>
               </div>
@@ -175,13 +260,7 @@ export const SpotifyImportModal = () => {
           {step === 'preview' && playlist && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/5">
-                {playlist.image ? (
-                  <img src={playlist.image} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
-                    <Music2 className="w-5 h-5" />
-                  </div>
-                )}
+                {playlist.image ? <img src={playlist.image} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" /> : <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0"><Music2 className="w-5 h-5" /></div>}
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-bold text-white truncate">{playlist.name}</div>
                   <div className="text-[11px] text-zinc-400 truncate">{selectedCount} of {results.length} tracks ready to import</div>
@@ -191,8 +270,9 @@ export const SpotifyImportModal = () => {
               <div className="space-y-2 max-h-[42vh] overflow-y-auto pr-1">
                 {results.map((result) => {
                   const selected = result.selected;
+                  const id = sourceKey(result);
                   return (
-                    <div key={result.source.spotifyId} className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                    <div key={id} className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
                       <div className="flex items-center gap-3 min-w-0">
                         <img src={selected?.thumbnail || result.source.image || ''} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 bg-zinc-900" />
                         <div className="min-w-0 flex-1">
@@ -205,30 +285,23 @@ export const SpotifyImportModal = () => {
                       {result.status === 'ambiguous' && !selected && (
                         <div className="space-y-1.5 pl-12">
                           {result.candidates.slice(0, 3).map((candidate) => (
-                            <button
-                              key={candidate.id}
-                              type="button"
-                              onClick={() => selectCandidate(result.source.spotifyId, candidate)}
-                              className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-colors ios-btn-spring cursor-pointer"
-                            >
+                            <button key={candidate.id} type="button" onClick={() => selectCandidate(id, candidate)} className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-left transition-colors ios-btn-spring cursor-pointer">
                               <span className="text-[10px] text-zinc-300 truncate">{candidate.title} · {candidate.artist}</span>
                               <span className="text-[10px] font-mono text-amber-300 shrink-0">{Math.round(candidate.matchScore * 100)}%</span>
                             </button>
                           ))}
-                          <button type="button" onClick={() => selectCandidate(result.source.spotifyId, null)} className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-rose-300 ios-btn-spring cursor-pointer">
+                          <button type="button" onClick={() => selectCandidate(id, null)} className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-rose-300 ios-btn-spring cursor-pointer">
                             <SkipForward className="w-3 h-3" /> Skip this track
                           </button>
                         </div>
                       )}
 
-                      {result.status === 'unmatched' && (
-                        <div className="pl-12 text-[10px] text-zinc-500">No reliable YouTube match found; this track will be skipped.</div>
-                      )}
+                      {result.status === 'unmatched' && <div className="pl-12 text-[10px] text-zinc-500">No reliable YouTube match found; this track will be skipped.</div>}
 
                       {selected && (
                         <div className="pl-12 flex items-center justify-between gap-3 text-[10px] text-emerald-300">
                           <span className="truncate">YouTube: {selected.title}</span>
-                          <button type="button" onClick={() => selectCandidate(result.source.spotifyId, null)} className="text-zinc-500 hover:text-rose-300 shrink-0 ios-btn-spring cursor-pointer">Remove</button>
+                          <button type="button" onClick={() => selectCandidate(id, null)} className="text-zinc-500 hover:text-rose-300 shrink-0 ios-btn-spring cursor-pointer">Remove</button>
                         </div>
                       )}
                     </div>
@@ -237,9 +310,7 @@ export const SpotifyImportModal = () => {
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-2">
-                <button type="button" onClick={() => useSpotifyImportStore.setState({ step: 'input', error: '' })} className="px-4 py-2.5 rounded-full text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 ios-btn-spring cursor-pointer">
-                  Back
-                </button>
+                <button type="button" onClick={() => useSpotifyImportStore.setState({ step: sourceMode === 'spotify' ? 'input' : sourceMode, error: '' })} className="px-4 py-2.5 rounded-full text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 ios-btn-spring cursor-pointer">Back</button>
                 <button type="button" onClick={confirmImport} disabled={!selectedCount} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                   <Download className="w-4 h-4" /> Import {selectedCount} tracks
                 </button>
@@ -254,9 +325,7 @@ export const SpotifyImportModal = () => {
                 <h3 className="text-lg font-bold text-white">Playlist imported</h3>
                 <p className="text-xs text-zinc-400 mt-1">{importedCount} matched tracks were added to Your Library.</p>
               </div>
-              <button type="button" onClick={close} className="px-6 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer">
-                Done
-              </button>
+              <button type="button" onClick={close} className="px-6 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer">Done</button>
             </div>
           )}
         </div>
