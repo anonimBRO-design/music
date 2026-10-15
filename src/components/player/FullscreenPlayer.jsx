@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useLyricsStore } from '../../stores/useLyricsStore';
@@ -59,6 +59,54 @@ export const FullscreenPlayer = () => {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const liked = isLiked(currentTrack.id);
   const hasLyrics = lyrics.length > 0 || !!plainLyrics;
+
+  const [isDraggingScrubber, setIsDraggingScrubber] = useState(false);
+  const [scrubberDragPercent, setScrubberDragPercent] = useState(null);
+  const scrubberTrackRef = useRef(null);
+
+  const displayScrubberPercent =
+    isDraggingScrubber && scrubberDragPercent !== null ? scrubberDragPercent : progressPercent;
+
+  const updateScrubberFromPointer = useCallback(
+    (e) => {
+      if (!duration) return 0;
+      const el = scrubberTrackRef.current;
+      if (!el) return 0;
+      const rect = el.getBoundingClientRect();
+      const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    },
+    [duration]
+  );
+
+  const handleScrubberPointerDown = (e) => {
+    if (!duration) return;
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingScrubber(true);
+    const pos = updateScrubberFromPointer(e);
+    setScrubberDragPercent(pos * 100);
+  };
+
+  const handleScrubberPointerMove = (e) => {
+    if (isDraggingScrubber) {
+      const pos = updateScrubberFromPointer(e);
+      setScrubberDragPercent(pos * 100);
+    }
+  };
+
+  const handleScrubberPointerUp = (e) => {
+    if (!isDraggingScrubber) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    const pos = updateScrubberFromPointer(e);
+    seekTo(pos * duration);
+    setIsDraggingScrubber(false);
+    setScrubberDragPercent(null);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col justify-between p-6 md:p-12 animate-fullscreen-in font-syne select-none overflow-hidden">
@@ -175,20 +223,42 @@ export const FullscreenPlayer = () => {
         {/* Scrubber */}
         <div className="space-y-1.5 font-mono">
           <div
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const pos = (e.clientX - rect.left) / rect.width;
-              seekTo(pos * duration);
-            }}
-            className="h-2 bg-white/10 hover:h-2.5 rounded-full cursor-pointer transition-all relative group"
+            ref={scrubberTrackRef}
+            role="slider"
+            tabIndex={0}
+            aria-label="Track progress"
+            aria-valuenow={Math.round(displayScrubberPercent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            onPointerDown={handleScrubberPointerDown}
+            onPointerMove={handleScrubberPointerMove}
+            onPointerUp={handleScrubberPointerUp}
+            onPointerCancel={handleScrubberPointerUp}
+            className="py-2 cursor-pointer select-none group touch-none relative flex items-center"
           >
-            <div
-              style={{ width: `${progressPercent}%` }}
-              className="absolute left-0 top-0 bottom-0 bg-emerald-400 rounded-full"
-            />
+            <div className="w-full h-2 hover:h-2.5 neu-slider-track rounded-full relative transition-all overflow-visible">
+              <div
+                style={{ width: `${displayScrubberPercent}%` }}
+                className={`neu-slider-fill absolute left-0 top-0 bottom-0 rounded-full pointer-events-none ${
+                  isDraggingScrubber ? 'transition-none' : 'transition-[width] duration-150'
+                }`}
+              />
+              <div
+                style={{ left: `${displayScrubberPercent}%` }}
+                className={`neu-slider-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full shadow-md pointer-events-none transition-transform ${
+                  isDraggingScrubber ? 'scale-125' : 'group-hover:scale-110'
+                }`}
+              />
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-zinc-400">
-            <span>{formatTime(currentTime)}</span>
+          <div className="flex justify-between text-xs text-zinc-400 font-medium">
+            <span>
+              {formatTime(
+                isDraggingScrubber && scrubberDragPercent !== null
+                  ? (scrubberDragPercent / 100) * duration
+                  : currentTime
+              )}
+            </span>
             <span>{formatTime(duration)}</span>
           </div>
         </div>

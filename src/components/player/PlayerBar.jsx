@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
 import { useUserStore } from '../../stores/useUserStore';
@@ -64,6 +64,112 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const liked = currentTrack ? isLiked(currentTrack.id) : false;
+
+  // Volume state & smooth slide handlers
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+  const volumeTrackRef = useRef(null);
+
+  const effectiveVolume = isMuted ? 0 : volume;
+
+  const updateVolumeFromPointer = useCallback(
+    (e) => {
+      const el = volumeTrackRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const newVol = Math.round(pos * 100);
+      setVolume(newVol);
+    },
+    [setVolume]
+  );
+
+  const handleVolumePointerDown = (e) => {
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingVolume(true);
+    updateVolumeFromPointer(e);
+  };
+
+  const handleVolumePointerMove = (e) => {
+    if (isDraggingVolume || e.buttons === 1) {
+      updateVolumeFromPointer(e);
+    }
+  };
+
+  const handleVolumePointerUp = (e) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingVolume(false);
+  };
+
+  const handleVolumeWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 5 : -5;
+    setVolume(Math.min(100, Math.max(0, effectiveVolume + delta)));
+  };
+
+  const handleVolumeKeyDown = (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setVolume(Math.min(100, effectiveVolume + 5));
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      setVolume(Math.max(0, effectiveVolume - 5));
+    }
+  };
+
+  // Scrubber state & smooth slide handlers
+  const [isDraggingScrubber, setIsDraggingScrubber] = useState(false);
+  const [scrubberDragPercent, setScrubberDragPercent] = useState(null);
+  const scrubberTrackRef = useRef(null);
+
+  const displayScrubberPercent =
+    isDraggingScrubber && scrubberDragPercent !== null ? scrubberDragPercent : progressPercent;
+
+  const updateScrubberFromPointer = useCallback(
+    (e) => {
+      if (!duration) return 0;
+      const el = scrubberTrackRef.current;
+      if (!el) return 0;
+      const rect = el.getBoundingClientRect();
+      const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    },
+    [duration]
+  );
+
+  const handleScrubberPointerDown = (e) => {
+    if (!duration) return;
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+    setIsDraggingScrubber(true);
+    const pos = updateScrubberFromPointer(e);
+    setScrubberDragPercent(pos * 100);
+  };
+
+  const handleScrubberPointerMove = (e) => {
+    if (isDraggingScrubber) {
+      const pos = updateScrubberFromPointer(e);
+      setScrubberDragPercent(pos * 100);
+    }
+  };
+
+  const handleScrubberPointerUp = (e) => {
+    if (!isDraggingScrubber) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    const pos = updateScrubberFromPointer(e);
+    seekTo(pos * duration);
+    setIsDraggingScrubber(false);
+    setScrubberDragPercent(null);
+  };
 
   return (
     <footer
@@ -221,27 +327,45 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           </button>
         </div>
 
-        {/* iOS Fluid Scrubber Progress Bar */}
+        {/* Neumorphic Scrubber Progress Bar */}
         <div className="w-full flex items-center gap-2 text-[10px] md:text-[11px] text-zinc-400 font-mono">
-          <span className="w-7 md:w-8 text-right">{formatTime(currentTime)}</span>
+          <span className="w-7 md:w-8 text-right font-medium">
+            {formatTime(
+              isDraggingScrubber && scrubberDragPercent !== null
+                ? (scrubberDragPercent / 100) * duration
+                : currentTime
+            )}
+          </span>
           <div
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const pos = (e.clientX - rect.left) / rect.width;
-              seekTo(pos * duration);
-            }}
-            className="relative flex-1 h-1.5 bg-white/10 hover:h-2 rounded-full cursor-pointer transition-all group"
+            ref={scrubberTrackRef}
+            role="slider"
+            tabIndex={0}
+            aria-label="Track progress"
+            aria-valuenow={Math.round(displayScrubberPercent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            onPointerDown={handleScrubberPointerDown}
+            onPointerMove={handleScrubberPointerMove}
+            onPointerUp={handleScrubberPointerUp}
+            onPointerCancel={handleScrubberPointerUp}
+            className="relative py-2 flex-1 cursor-pointer select-none group touch-none flex items-center"
           >
-            <div
-              style={{ width: `${progressPercent}%` }}
-              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-iosBlue to-iosEmerald rounded-full transition-all"
-            />
-            <div
-              style={{ left: `${progressPercent}%` }}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            <div className="w-full h-2 hover:h-2.5 neu-slider-track rounded-full relative transition-all overflow-visible">
+              <div
+                style={{ width: `${displayScrubberPercent}%` }}
+                className={`neu-slider-fill absolute left-0 top-0 bottom-0 rounded-full pointer-events-none ${
+                  isDraggingScrubber ? 'transition-none' : 'transition-[width] duration-150'
+                }`}
+              />
+              <div
+                style={{ left: `${displayScrubberPercent}%` }}
+                className={`neu-slider-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full shadow-md pointer-events-none transition-transform ${
+                  isDraggingScrubber ? 'scale-125' : 'group-hover:scale-110'
+                }`}
+              />
+            </div>
           </div>
-          <span className="w-7 md:w-8">{formatTime(duration)}</span>
+          <span className="w-7 md:w-8 font-medium">{formatTime(duration)}</span>
         </div>
       </div>
 
@@ -297,9 +421,13 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           <Maximize2 className="w-4 h-4" />
         </button>
 
-        {/* iOS Pill Volume Slider */}
-        <div className="flex items-center gap-1.5 ml-1">
-          <button onClick={toggleMute} className="text-zinc-400 hover:text-white p-1 ios-btn-spring">
+        {/* Neumorphic Volume Slider with Smooth Drag */}
+        <div className="flex items-center gap-1.5 ml-1" onWheel={handleVolumeWheel}>
+          <button
+            onClick={toggleMute}
+            className="text-zinc-400 hover:text-white p-1 ios-btn-spring cursor-pointer"
+            title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+          >
             {isMuted || volume === 0 ? (
               <VolumeX className="w-4 h-4 text-iosPink" />
             ) : (
@@ -307,17 +435,35 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             )}
           </button>
           <div
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-              setVolume(Math.round(pos * 100));
-            }}
-            className="w-16 md:w-20 lg:w-24 h-1.5 bg-white/10 hover:h-2 rounded-full cursor-pointer transition-all relative group"
+            ref={volumeTrackRef}
+            role="slider"
+            tabIndex={0}
+            aria-label="Volume slider"
+            aria-valuenow={effectiveVolume}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            onPointerDown={handleVolumePointerDown}
+            onPointerMove={handleVolumePointerMove}
+            onPointerUp={handleVolumePointerUp}
+            onPointerCancel={handleVolumePointerUp}
+            onKeyDown={handleVolumeKeyDown}
+            className="relative py-2 w-16 md:w-20 lg:w-24 cursor-pointer select-none group touch-none flex items-center"
+            title={`Volume: ${effectiveVolume}% (Slide left/right or scroll)`}
           >
-            <div
-              style={{ width: `${isMuted ? 0 : volume}%` }}
-              className="absolute left-0 top-0 bottom-0 bg-white/80 group-hover:bg-iosEmerald rounded-full transition-colors"
-            />
+            <div className="w-full h-2 hover:h-2.5 neu-slider-track rounded-full relative transition-all overflow-visible">
+              <div
+                style={{ width: `${effectiveVolume}%` }}
+                className={`neu-slider-fill absolute left-0 top-0 bottom-0 rounded-full pointer-events-none ${
+                  isDraggingVolume ? 'transition-none' : 'transition-[width] duration-150'
+                }`}
+              />
+              <div
+                style={{ left: `${effectiveVolume}%` }}
+                className={`neu-slider-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full shadow-md pointer-events-none transition-transform ${
+                  isDraggingVolume ? 'scale-125' : 'group-hover:scale-110'
+                }`}
+              />
+            </div>
           </div>
         </div>
       </div>

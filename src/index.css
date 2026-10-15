@@ -734,6 +734,84 @@ body {
   box-shadow: none !important;
 }
 
+/* Neumorphic Scrubbers, Sliders & Volume Controls (Inset Wells & Accent Fill) */
+.neu-app-shell .neu-slider-track,
+.neu-slider-track {
+  background-color: var(--bg-inset) !important;
+  box-shadow: var(--neu-inset-sm) !important;
+  border: 0 !important;
+}
+
+.neu-app-shell .neu-slider-fill,
+.neu-slider-fill {
+  background-color: var(--accent) !important;
+  box-shadow: 0 0 10px var(--accent-soft) !important;
+  border: 0 !important;
+}
+
+.neu-app-shell .group:hover .neu-slider-fill,
+.neu-app-shell .neu-slider-fill:hover,
+.group:hover .neu-slider-fill,
+.neu-slider-fill:hover {
+  background-color: var(--accent-strong) !important;
+}
+
+.neu-app-shell .neu-slider-thumb,
+.neu-slider-thumb {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+  border: 0 !important;
+}
+
+/* Invisible range input overlay for 100% fluid slide/drag interaction */
+.neu-app-shell input[type='range'].neu-range-overlay,
+input[type='range'].neu-range-overlay {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.neu-app-shell input[type='range'].neu-range-overlay:focus,
+input[type='range'].neu-range-overlay:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input[type='range'].neu-range-overlay::-webkit-slider-thumb {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+input[type='range'].neu-range-overlay::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+input[type='range'].neu-range-overlay::-webkit-slider-runnable-track {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+input[type='range'].neu-range-overlay::-moz-range-track {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
 .neu-app-shell input[class*='bg-white/'],
 .neu-app-shell textarea[class*='bg-white/'],
 .neu-app-shell select[class*='bg-white/'],
