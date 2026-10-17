@@ -6,8 +6,6 @@ import {
   Heart,
   Clock,
   Library,
-  Radio,
-  Sparkles,
   Shield,
   Plus,
   Settings,
@@ -28,11 +26,6 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
     { id: 'liked', label: 'Liked Songs', icon: Heart, badgeColor: 'text-pink-400' },
     { id: 'history', label: 'History', icon: Clock },
     { id: 'library', label: 'Your Library', icon: Library },
-  ];
-
-  const socialNav = [
-    { id: 'party', label: 'Listening Party', icon: Radio, highlight: true },
-    { id: 'wrapped', label: 'Wrapped 2026', icon: Sparkles, color: 'text-emerald-400' },
   ];
 
   return (
@@ -88,35 +81,6 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
                   <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-dawGreen rounded-r" />
                 )}
                 <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-dawGreen' : ''}`} />
-                {!isCollapsed && <span className="truncate">{item.label}</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Modules / Social */}
-        <div className="space-y-0.5">
-          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-dawMuted ${isCollapsed ? 'hidden' : 'block'}`}>
-            Features
-          </div>
-          {socialNav.map((item) => {
-            const Icon = item.icon;
-            const active = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer relative ${
-                  active
-                    ? 'bg-dawPanel text-dawAmber border border-dawBorderBright font-bold'
-                    : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
-                } ${isCollapsed ? 'justify-center px-0' : ''}`}
-                title={item.label}
-              >
-                {active && !isCollapsed && (
-                  <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-dawAmber rounded-r" />
-                )}
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-dawAmber' : ''}`} />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </button>
             );

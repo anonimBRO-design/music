@@ -76,8 +76,6 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
     if (activeTab === 'history') return 'AUDIT // HISTORY';
     if (activeTab === 'library') return 'COLLECTION // LIBRARY';
     if (activeTab.startsWith('playlist:')) return 'PLAYLIST // SESSION';
-    if (activeTab === 'party') return 'LINK // LISTENING PARTY';
-    if (activeTab === 'wrapped') return 'TELEMETRY // WRAPPED';
     if (activeTab === 'admin') return 'SYSTEM // ADMIN';
     return 'STAGE // WORKSPACE';
   };

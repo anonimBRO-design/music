@@ -7,8 +7,6 @@ import { LikedPage } from './pages/LikedPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { PartyPage } from './pages/PartyPage';
-import { WrappedPage } from './pages/WrappedPage';
 import { AdminPage } from './pages/AdminPage';
 
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -83,12 +81,6 @@ export function App() {
     }
     if (currentTab === 'profile') {
       return <ProfilePage />;
-    }
-    if (currentTab === 'party') {
-      return <PartyPage />;
-    }
-    if (currentTab === 'wrapped') {
-      return <WrappedPage onExit={() => setCurrentTab('home')} />;
     }
     if (currentTab === 'admin') {
       return <AdminPage />;
