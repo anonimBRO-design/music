@@ -6,61 +6,64 @@ import {
   Heart,
   Clock,
   Library,
-  Shield,
   Plus,
   Settings,
   Music,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Headphones
 } from 'lucide-react';
-import logoBanner from '../../assets/logo.png';
-import logoIcon from '../../assets/icon-192.png';
 
 export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, onOpenSettings }) => {
   const playlists = usePlaylistStore((s) => s.playlists);
   const openCreateModal = usePlaylistStore((s) => s.openCreateModal);
 
   const mainNav = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'search', label: 'Search', icon: Search },
-    { id: 'liked', label: 'Liked Songs', icon: Heart, badgeColor: 'text-pink-400' },
-    { id: 'history', label: 'History', icon: Clock },
-    { id: 'library', label: 'Your Library', icon: Library },
+    { id: 'home', label: 'Home Stage', icon: Home },
+    { id: 'search', label: 'Search & Explore', icon: Search },
+    { id: 'liked', label: 'Liked Tracks', icon: Heart },
+    { id: 'history', label: 'Session History', icon: Clock },
+    { id: 'library', label: 'Audio Library', icon: Library },
   ];
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 bg-dawSurface border-r border-dawBorder z-30 hidden md:flex flex-col transition-all duration-200 select-none font-mono ${
+      className={`fixed top-0 left-0 bottom-0 bg-sidebar backdrop-blur-2xl border-r border-border z-30 hidden md:flex flex-col transition-all duration-200 select-none ${
         isCollapsed ? 'w-16' : 'w-60'
       }`}
     >
-      {/* Brand Header */}
+      {/* 9Router macOS Traffic Lights */}
+      <div className={`flex items-center gap-2 px-5 pt-4 pb-1 ${isCollapsed ? 'justify-center px-0' : ''}`}>
+        <div className="traffic-light red" />
+        <div className="traffic-light yellow" />
+        <div className="traffic-light green" />
+      </div>
+
+      {/* 9Router Logo & Brand Box */}
       <div
         onClick={() => onSelectTab('home')}
-        className="h-13 flex items-center px-4 border-b border-dawBorder cursor-pointer hover:bg-dawHover/60 transition-colors"
+        className={`px-4 py-3 flex items-center gap-3 cursor-pointer group ${
+          isCollapsed ? 'justify-center px-0' : ''
+        }`}
       >
-        {!isCollapsed ? (
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded bg-dawAmber text-black flex items-center justify-center font-bold text-xs shadow">
-              N
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-black tracking-wider text-white">NONIMSONG</span>
-              <span className="text-[9px] text-dawAmber tracking-widest uppercase">STUDIO PRO</span>
-            </div>
-          </div>
-        ) : (
-          <div className="mx-auto w-7 h-7 rounded bg-dawAmber text-black flex items-center justify-center font-bold text-xs shadow">
-            N
+        <div className="flex items-center justify-center size-9 rounded-[10px] bg-gradient-to-br from-brand-500 to-brand-700 shadow-[var(--shadow-warm)] shrink-0 transition-transform group-hover:scale-105">
+          <Headphones className="w-5 h-5 text-white" />
+        </div>
+        {!isCollapsed && (
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-sm font-bold tracking-tight text-text-main leading-tight truncate">
+              NONIMSONG
+            </h1>
+            <span className="text-[10px] font-mono text-text-muted">v2.4 • PRO STUDIO</span>
           </div>
         )}
       </div>
 
       {/* Navigation Modules */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-dawBorder scrollbar-track-transparent">
-        {/* Main Explorer */}
-        <div className="space-y-0.5">
-          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-dawMuted ${isCollapsed ? 'hidden' : 'block'}`}>
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 custom-scrollbar">
+        {/* Main Explorer Navigation */}
+        <div className="space-y-1">
+          <div className={`px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted/60 ${isCollapsed ? 'hidden' : 'block'}`}>
             Explorer
           </div>
           {mainNav.map((item) => {
@@ -70,17 +73,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer relative ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer group ${
                   active
-                    ? 'bg-dawPanel text-dawGreen border border-dawBorderBright font-bold'
-                    : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
+                    ? 'bg-primary/15 text-primary border border-primary/25 shadow-[var(--shadow-warm)] font-semibold'
+                    : 'text-text-muted hover:bg-surface-2 hover:text-text-main border border-transparent'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={item.label}
               >
-                {active && !isCollapsed && (
-                  <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-dawGreen rounded-r" />
-                )}
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-dawGreen' : ''}`} />
+                <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? 'text-primary' : 'group-hover:text-primary'}`} />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </button>
             );
@@ -89,14 +89,14 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
 
         {/* User Playlists */}
         {!isCollapsed && (
-          <div className="pt-2 border-t border-dawBorder space-y-1">
-            <div className="flex items-center justify-between px-2 py-1">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-dawMuted">
+          <div className="pt-3 border-t border-border-subtle space-y-1">
+            <div className="flex items-center justify-between px-3 py-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted/60">
                 Playlists ({playlists.length})
               </span>
               <button
                 onClick={openCreateModal}
-                className="text-dawMuted hover:text-white p-0.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+                className="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-surface-2 transition-colors cursor-pointer"
                 title="Create Playlist"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -110,17 +110,17 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
                   <button
                     key={pl.id}
                     onClick={() => onSelectTab(`playlist:${pl.id}`)}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors group cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-all group cursor-pointer ${
                       active
-                        ? 'bg-dawPanel text-dawCyan border border-dawBorderBright font-bold'
-                        : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
+                        ? 'bg-primary/15 text-primary border border-primary/25 shadow-[var(--shadow-warm)] font-semibold'
+                        : 'text-text-muted hover:bg-surface-2 hover:text-text-main border border-transparent'
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Music className={`w-3 h-3 shrink-0 ${active ? 'text-dawCyan' : 'text-dawMuted'}`} />
-                      <span className="truncate text-[11px]">{pl.name}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Music className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-primary' : 'text-text-subtle'}`} />
+                      <span className="truncate text-xs">{pl.name}</span>
                     </div>
-                    <span className="text-[10px] text-dawMuted/60 font-mono group-hover:text-dawMuted">
+                    <span className="text-[10px] text-text-subtle font-mono group-hover:text-text-muted">
                       {pl.tracks?.length || 0}
                     </span>
                   </button>
@@ -131,25 +131,25 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
         )}
       </div>
 
-      {/* Footer / System */}
-      <div className="p-2 border-t border-dawBorder flex items-center justify-between gap-1 bg-dawSurface shrink-0">
+      {/* Footer / System Controls */}
+      <div className="p-3 border-t border-border flex items-center justify-between gap-1 bg-surface-2 shrink-0">
         <button
           onClick={onOpenSettings}
-          className={`flex items-center gap-2 p-1.5 rounded text-xs text-dawMuted hover:text-white hover:bg-dawHover transition-colors cursor-pointer ${
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-main hover:bg-surface-3 transition-colors cursor-pointer ${
             isCollapsed ? 'mx-auto' : ''
           }`}
           title="Settings"
         >
-          <Settings className="w-3.5 h-3.5 shrink-0" />
-          {!isCollapsed && <span className="text-[11px]">Settings</span>}
+          <Settings className="w-4 h-4 shrink-0" />
+          {!isCollapsed && <span className="text-xs font-medium">Settings</span>}
         </button>
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors hidden md:block cursor-pointer"
+          className="text-text-muted hover:text-text-main p-1.5 rounded-lg hover:bg-surface-3 transition-colors hidden md:block cursor-pointer"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>
     </aside>

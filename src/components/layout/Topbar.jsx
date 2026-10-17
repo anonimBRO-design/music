@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUserStore } from '../../stores/useUserStore';
+import { useUserStore, ACCENT_THEMES } from '../../stores/useUserStore';
 import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useStudioStore } from '../../stores/useStudioStore';
 import { YouTubeAPI } from '../../services/youtubeApi';
 import {
   Search,
   X,
-  User,
   Play,
   Sun,
   Moon,
@@ -14,28 +13,33 @@ import {
   ListFilter,
   PanelRightOpen,
   PanelRightClose,
-  Sliders,
-  Command
+  Palette
 } from 'lucide-react';
 
 export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
   const profile = useUserStore((s) => s.profile);
   const theme = useUserStore((s) => s.theme);
   const toggleTheme = useUserStore((s) => s.toggleTheme);
+  const accent = useUserStore((s) => s.accent);
+  const setAccent = useUserStore((s) => s.setAccent);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const containerRef = useRef(null);
+  const [showAccentPicker, setShowAccentPicker] = useState(false);
 
-  const isSearchTab = activeTab === 'search';
+  const containerRef = useRef(null);
+  const accentRef = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
+      }
+      if (accentRef.current && !accentRef.current.contains(e.target)) {
+        setShowAccentPicker(false);
       }
     };
     window.addEventListener('click', handler);
@@ -81,7 +85,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-13 px-4 bg-dawSurface border-b border-dawBorder flex items-center justify-between font-mono select-none">
+    <header className="sticky top-0 z-20 h-13 px-4 bg-sidebar/85 backdrop-blur-xl border-b border-border flex items-center justify-between select-none">
       {/* Left: Mobile Logo & Studio Breadcrumb */}
       <div className="flex items-center gap-3">
         <div
@@ -90,23 +94,23 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         >
           <img src="/icons/logo.png" alt="NONIMSONG" className="w-6 h-6 object-contain" />
         </div>
-        <div className="hidden sm:flex items-center gap-2 text-[11px] font-bold tracking-wider text-dawMuted">
-          <span className="w-2 h-2 rounded-sm bg-dawAmber" />
-          <span className="text-white font-mono">{getBreadcrumb()}</span>
+        <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium tracking-wider text-text-muted">
+          <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
+          <span className="text-text-main font-mono text-xs">{getBreadcrumb()}</span>
         </div>
       </div>
 
-      {/* Center: Search & Command Palette Launcher */}
+      {/* Center: 9Router Search & Command Palette Launcher */}
       <div ref={containerRef} className="relative w-full max-w-sm mx-3">
         <div className="relative flex items-center">
-          <Search className="absolute left-3 w-3.5 h-3.5 text-dawMuted pointer-events-none" />
+          <Search className="absolute left-3 w-3.5 h-3.5 text-text-muted pointer-events-none" />
           <input
             type="text"
             value={query}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search tracks, artists, ID..."
-            className="w-full bg-dawBg border border-dawBorder hover:border-dawBorderBright focus:border-dawCyan rounded pl-8 pr-16 py-1.5 text-xs text-white placeholder-dawMuted focus:outline-none transition-all font-mono"
+            className="w-full bg-surface border border-border hover:border-border-subtle focus:border-primary focus:ring-1 focus:ring-primary rounded-lg pl-8 pr-16 py-1.5 text-xs text-text-main placeholder-text-subtle focus:outline-none transition-all font-mono"
           />
           {query ? (
             <button
@@ -115,14 +119,14 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
                 setSuggestions([]);
                 setIsOpen(false);
               }}
-              className="absolute right-2 text-dawMuted hover:text-white p-1 rounded hover:bg-dawHover cursor-pointer"
+              className="absolute right-2 text-text-muted hover:text-text-main p-1 rounded hover:bg-surface-2 cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
           ) : (
             <button
               onClick={toggleCommandPalette}
-              className="absolute right-1.5 hidden md:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-dawPanel border border-dawBorder text-[10px] text-dawMuted hover:text-dawCyan hover:border-dawCyan transition-all cursor-pointer font-mono"
+              className="absolute right-1.5 hidden md:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-2 border border-border text-[10px] text-text-muted hover:text-primary hover:border-primary transition-all cursor-pointer font-mono"
               title="Open Command Palette (Ctrl+K)"
             >
               <span>Ctrl</span>
@@ -133,14 +137,14 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
 
         {/* Dropdown Suggestions */}
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-dawSurface border border-dawBorder rounded shadow-2xl p-1.5 space-y-1 z-50 animate-search-drop-in font-syne">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-elevated p-1.5 space-y-1 z-50 animate-search-drop-in">
             {loading ? (
-              <div className="p-3 text-center text-xs text-dawMuted flex items-center justify-center gap-2 font-mono">
-                <span className="w-2 h-2 rounded-full bg-dawCyan animate-ping" />
+              <div className="p-3 text-center text-xs text-text-muted flex items-center justify-center gap-2 font-mono">
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
                 POLLING YOUTUBE...
               </div>
             ) : suggestions.length === 0 ? (
-              <div className="p-3 text-center text-xs text-dawMuted font-mono">NO SIGNAL FOUND</div>
+              <div className="p-3 text-center text-xs text-text-muted font-mono">NO SIGNAL FOUND</div>
             ) : (
               suggestions.map((track) => (
                 <div
@@ -149,7 +153,7 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
                     playTrack(track);
                     setIsOpen(false);
                   }}
-                  className="flex items-center gap-2.5 p-1.5 rounded hover:bg-dawHover cursor-pointer transition-colors group"
+                  className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-surface-2 cursor-pointer transition-colors group"
                 >
                   <img
                     src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
@@ -158,15 +162,15 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
                     onError={(e) => {
                       e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`;
                     }}
-                    className="w-8 h-8 rounded object-cover shrink-0 bg-dawBg"
+                    className="w-8 h-8 rounded object-cover shrink-0 bg-surface-3"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-white truncate group-hover:text-dawCyan transition-colors">
+                    <div className="text-xs font-semibold text-text-main truncate group-hover:text-primary transition-colors">
                       {track.title}
                     </div>
-                    <div className="text-[10px] text-dawMuted truncate">{track.artist}</div>
+                    <div className="text-[10px] text-text-muted truncate">{track.artist}</div>
                   </div>
-                  <Play className="w-3.5 h-3.5 text-dawGreen opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  <Play className="w-3.5 h-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
               ))
             )}
@@ -174,22 +178,73 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         )}
       </div>
 
-      {/* Right Controls: View Switcher, Inspector Toggle, Theme, User */}
+      {/* Right Controls: Accent Switcher, View Switcher, Inspector Toggle, Theme, User */}
       <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* 9Router Multi-Accent Switcher */}
+        <div ref={accentRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setShowAccentPicker(!showAccentPicker)}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-border text-xs text-text-muted hover:text-text-main transition-all cursor-pointer shadow-soft"
+            title="Switch 9Router Accent Color"
+          >
+            <div
+              className="w-3 h-3 rounded-full shadow-[0_0_8px_var(--color-primary)] transition-transform hover:scale-110"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+            />
+            <span className="hidden xl:inline text-[11px] font-medium capitalize">
+              {accent}
+            </span>
+          </button>
+
+          {showAccentPicker && (
+            <div className="absolute right-0 top-full mt-1.5 w-48 p-2 rounded-xl bg-surface border border-border shadow-elevated z-50 animate-search-drop-in backdrop-blur-2xl space-y-1">
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted/70">
+                Accent Palette
+              </div>
+              {ACCENT_THEMES.map((themeItem) => (
+                <button
+                  key={themeItem.id}
+                  onClick={() => {
+                    setAccent(themeItem.id);
+                    setShowAccentPicker(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    accent === themeItem.id
+                      ? 'bg-primary/15 text-primary font-semibold border border-primary/25'
+                      : 'text-text-muted hover:bg-surface-2 hover:text-text-main border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: themeItem.color }}
+                    />
+                    <span>{themeItem.label}</span>
+                  </div>
+                  {accent === themeItem.id && (
+                    <span className="text-[10px] text-primary font-bold">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* View Switcher (Table / Cards) */}
         <button
           onClick={toggleViewMode}
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-dawPanel hover:bg-dawHover border border-dawBorder text-xs text-dawMuted hover:text-white transition-colors"
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-border text-xs text-text-muted hover:text-text-main transition-colors cursor-pointer"
           title={`Switch view (Current: ${viewMode === 'table' ? 'Pro Table' : 'Media Cards'})`}
         >
           {viewMode === 'table' ? (
             <>
-              <ListFilter className="w-3.5 h-3.5 text-dawCyan" />
+              <ListFilter className="w-3.5 h-3.5 text-primary" />
               <span className="text-[10px] uppercase font-mono hidden xl:inline">Table</span>
             </>
           ) : (
             <>
-              <LayoutGrid className="w-3.5 h-3.5 text-dawAmber" />
+              <LayoutGrid className="w-3.5 h-3.5 text-primary" />
               <span className="text-[10px] uppercase font-mono hidden xl:inline">Cards</span>
             </>
           )}
@@ -198,10 +253,10 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         {/* Inspector Toggle Button */}
         <button
           onClick={toggleInspector}
-          className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded border text-xs transition-colors ${
+          className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
             isInspectorOpen
-              ? 'bg-dawPanel text-dawAmber border-dawAmber/40'
-              : 'bg-dawPanel hover:bg-dawHover text-dawMuted hover:text-white border-dawBorder'
+              ? 'bg-primary/15 text-primary border-primary/25 shadow-[var(--shadow-warm)] font-medium'
+              : 'bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-text-main border-border'
           }`}
           title="Toggle Studio Inspector (Ctrl+I)"
         >
@@ -217,31 +272,25 @@ export const Topbar = ({ activeTab, onNavigateSearch, onNavigateProfile }) => {
         <button
           type="button"
           onClick={toggleTheme}
-          className="w-7 h-7 rounded flex items-center justify-center bg-dawPanel hover:bg-dawHover border border-dawBorder text-white transition-all cursor-pointer"
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface-2 hover:bg-surface-3 border border-border text-text-main transition-all cursor-pointer"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {theme === 'dark' ? (
-            <Sun className="w-3.5 h-3.5 text-dawAmber" />
+            <Sun className="w-3.5 h-3.5 text-primary" />
           ) : (
-            <Moon className="w-3.5 h-3.5 text-dawCyan" />
+            <Moon className="w-3.5 h-3.5 text-primary" />
           )}
         </button>
-
-        {/* Engine Ready Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded bg-dawGreen/10 border border-dawGreen/30 text-[10px] font-mono text-dawGreen">
-          <span className="w-1.5 h-1.5 rounded-full bg-dawGreen animate-pulse" />
-          <span>DSP ON</span>
-        </div>
 
         {/* Profile Pill */}
         <button
           onClick={onNavigateProfile}
-          className="flex items-center gap-2 p-1 pr-2 rounded bg-dawPanel hover:bg-dawHover border border-dawBorder transition-all cursor-pointer"
+          className="flex items-center gap-2 p-1 pr-2.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-border transition-all cursor-pointer"
         >
-          <div className="w-5 h-5 rounded bg-dawAmber text-black font-mono flex items-center justify-center text-[10px] font-bold">
+          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-brand-500 to-brand-700 text-white font-mono flex items-center justify-center text-[10px] font-bold shadow-[var(--shadow-warm)]">
             {profile.username ? profile.username[0].toUpperCase() : 'L'}
           </div>
-          <span className="text-[11px] font-mono text-white hidden sm:block max-w-[80px] truncate">
+          <span className="text-xs text-text-main hidden sm:block max-w-[80px] truncate">
             {profile.username || 'Listener'}
           </span>
         </button>

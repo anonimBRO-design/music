@@ -176,13 +176,13 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
   return (
     <footer
-      className="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-16 md:h-18 bg-dawSurface border-t border-dawBorder z-40 px-3 md:px-5 flex items-center justify-between font-mono select-none shadow-2xl overflow-hidden"
+      className="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-16 md:h-18 bg-sidebar/95 backdrop-blur-2xl border-t border-border z-40 px-3 md:px-5 flex items-center justify-between select-none shadow-elevated overflow-hidden"
     >
       {/* Mobile Top Progress Line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-dawBg md:hidden overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-bg md:hidden overflow-hidden">
         <div
           style={{ width: `${progressPercent}%` }}
-          className="h-full bg-dawGreen transition-all"
+          className="h-full bg-primary shadow-[0_0_8px_var(--color-primary)] transition-all"
         />
       </div>
 
@@ -253,15 +253,15 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         <button
           onClick={togglePlay}
           disabled={!currentTrack}
-          className="w-8 h-8 rounded bg-dawGreen text-black flex items-center justify-center font-bold disabled:opacity-40 cursor-pointer"
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center font-bold disabled:opacity-40 cursor-pointer shadow-[var(--shadow-warm)]"
           title={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black ml-0.5" />}
+          {isPlaying ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
         </button>
 
         <button
           onClick={next}
-          className="text-dawMuted hover:text-white p-1 cursor-pointer"
+          className="text-text-muted hover:text-text-main p-1 cursor-pointer"
           title="Next"
         >
           <SkipForward className="w-4 h-4 fill-current" />
@@ -273,8 +273,8 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={toggleShuffle}
-            className={`p-1.5 rounded transition-colors cursor-pointer ${
-              isShuffle ? 'text-dawGreen bg-dawGreen/15 border border-dawGreen/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
+            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              isShuffle ? 'text-primary bg-primary/15 border border-primary/25 shadow-[var(--shadow-warm)]' : 'text-text-muted hover:text-text-main hover:bg-surface-2'
             }`}
             title="Smart Shuffle (S)"
           >
@@ -283,7 +283,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
           <button
             onClick={prev}
-            className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            className="text-text-muted hover:text-text-main p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
             title="Previous (Shift+Left)"
           >
             <SkipBack className="w-4 h-4 fill-current" />
@@ -292,19 +292,19 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           <button
             onClick={togglePlay}
             disabled={!currentTrack}
-            className="w-8 h-8 rounded bg-dawGreen text-black flex items-center justify-center hover:bg-[#12ffaa] shadow-md disabled:opacity-40 cursor-pointer transition-transform active:scale-95"
+            className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center hover:opacity-95 shadow-[var(--shadow-warm)] disabled:opacity-40 cursor-pointer transition-transform active:scale-95"
             title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 fill-black" />
+              <Pause className="w-4 h-4 fill-white" />
             ) : (
-              <Play className="w-4 h-4 fill-black ml-0.5" />
+              <Play className="w-4 h-4 fill-white ml-0.5" />
             )}
           </button>
 
           <button
             onClick={next}
-            className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            className="text-text-muted hover:text-text-main p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
             title="Next (Shift+Right)"
           >
             <SkipForward className="w-4 h-4 fill-current" />
@@ -312,8 +312,8 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
           <button
             onClick={cycleRepeat}
-            className={`p-1.5 rounded transition-colors cursor-pointer ${
-              repeatMode > 0 ? 'text-dawAmber bg-dawAmber/15 border border-dawAmber/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
+            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+              repeatMode > 0 ? 'text-primary bg-primary/15 border border-primary/25 shadow-[var(--shadow-warm)]' : 'text-text-muted hover:text-text-main hover:bg-surface-2'
             }`}
             title="Repeat (R)"
           >
@@ -344,14 +344,14 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             onPointerCancel={handleScrubberPointerUp}
             className="relative py-2 flex-1 cursor-pointer select-none group touch-none flex items-center"
           >
-            <div className="w-full h-1.5 hover:h-2 bg-dawBg border border-dawBorder rounded-full relative transition-all overflow-hidden">
+            <div className="w-full h-1.5 hover:h-2 bg-bg border border-border rounded-full relative transition-all overflow-hidden">
               <div
                 style={{ width: `${displayScrubberPercent}%` }}
-                className="bg-dawCyan absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
+                className="bg-primary shadow-[0_0_10px_var(--color-primary)] absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
               />
             </div>
           </div>
-          <span className="w-8 text-dawMuted">{formatTime(duration)}</span>
+          <span className="w-8 text-text-muted">{formatTime(duration)}</span>
         </div>
       </div>
 
@@ -360,7 +360,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         {/* Mini-Player HUD Toggle */}
         <button
           onClick={() => useStudioStore.getState().toggleMiniPlayer()}
-          className="text-dawMuted hover:text-dawCyan p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          className="text-text-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
           title="Toggle Floating Mini-Player HUD"
         >
           <AppWindow className="w-4 h-4" />
@@ -369,7 +369,7 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         {/* Equalizer Toggle */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('nonimsong:open-equalizer'))}
-          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          className="text-text-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
           title="Studio Equalizer"
         >
           <Sliders className="w-4 h-4" />
@@ -380,21 +380,21 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           onClick={() => {
             window.dispatchEvent(new CustomEvent('nonimsong:open-sleep-timer'));
           }}
-          className={`relative p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer ${
-            sleepTimerActive ? 'text-dawAmber' : 'text-dawMuted hover:text-white'
+          className={`relative p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer ${
+            sleepTimerActive ? 'text-primary' : 'text-text-muted hover:text-text-main'
           }`}
           title="Sleep Timer"
         >
           <Moon className="w-4 h-4" />
           {sleepTimerActive && (
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-dawAmber animate-pulse" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           )}
         </button>
 
         {/* Theater / Fullscreen */}
         <button
           onClick={() => setFullscreenOpen(true)}
-          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          className="text-text-muted hover:text-primary p-1.5 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
           title="Fullscreen Mode (F)"
         >
           <Maximize2 className="w-4 h-4" />
@@ -404,11 +404,11 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
         <div className="flex items-center gap-1 ml-1" onWheel={handleVolumeWheel}>
           <button
             onClick={toggleMute}
-            className="text-dawMuted hover:text-white p-1 cursor-pointer"
+            className="text-text-muted hover:text-text-main p-1 cursor-pointer"
             title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-dawRed" />
+              <VolumeX className="w-4 h-4 text-red-500" />
             ) : (
               <Volume2 className="w-4 h-4" />
             )}
@@ -429,14 +429,14 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             className="relative py-2 w-14 lg:w-20 cursor-pointer select-none group touch-none flex items-center"
             title={`Volume: ${effectiveVolume}%`}
           >
-            <div className="w-full h-1.5 bg-dawBg border border-dawBorder rounded-full relative overflow-hidden">
+            <div className="w-full h-1.5 bg-bg border border-border rounded-full relative overflow-hidden">
               <div
                 style={{ width: `${effectiveVolume}%` }}
-                className="bg-dawGreen absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
+                className="bg-primary shadow-[0_0_8px_var(--color-primary)] absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
               />
             </div>
           </div>
-          <span className="text-[10px] text-dawMuted font-mono w-7 text-right">
+          <span className="text-[10px] text-text-muted font-mono w-7 text-right">
             {effectiveVolume}%
           </span>
         </div>

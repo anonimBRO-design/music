@@ -2,49 +2,243 @@
 @tailwind components;
 @tailwind utilities;
 
-:root,
-[data-theme='dark'] {
-  --bg-base: #040408;
-  --bg-surface: #0c0c16;
-  --bg-elevated: #141424;
-  --bg-card: rgba(255, 255, 255, 0.04);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
-  --neon-green: #30d158;
-  --neon-green-dim: rgba(48, 209, 88, 0.15);
-  --spotify-green: #1db954;
-  --ios-blue: #0a84ff;
-  --ios-indigo: #5e5ce6;
-  --pink: #ff375f;
-  --purple: #bf5af2;
-  --cyan: #64d2ff;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0b8;
-  --text-muted: #686882;
-  --text-dim: #44445a;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-bright: rgba(255, 255, 255, 0.22);
+:root {
+  /* Brand scale - default Coral Ember #E56A4A */
+  --color-brand-50: #fdf1ed;
+  --color-brand-100: #fadccf;
+  --color-brand-200: #f4b59c;
+  --color-brand-300: #ee8d6a;
+  --color-brand-400: #ea7855;
+  --color-brand-500: #E56A4A;
+  --color-brand-600: #cc5236;
+  --color-brand-700: #a64027;
+  --color-brand-800: #7a2f1d;
+  --color-brand-900: #4d1e12;
+
+  --color-primary: var(--color-brand-500);
+  --color-primary-hover: var(--color-brand-600);
+
+  /* Light base */
+  --color-bg: #FDFAF6;
+  --color-bg-alt: #F7F3EE;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f5;
+  --color-surface-3: #e7e7e9;
+  --color-sidebar: rgba(244, 241, 236, 0.85);
+
+  --color-border: #e5e7eb;
+  --color-border-subtle: #f1f1f3;
+
+  --color-text: #0a0a0a;
+  --color-text-main: #0a0a0a;
+  --color-text-muted: #6B7280;
+  --color-text-subtle: #9CA3AF;
+
+  --shadow-soft: 0 1px 2px 0 rgba(0,0,0,0.04);
+  --shadow-warm: 0 2px 14px -2px color-mix(in srgb, var(--color-primary) 24%, transparent);
+  --shadow-elevated: 0 12px 28px -4px rgba(60, 50, 45, 0.06);
+  --shadow-elev:
+    inset 0 1px 0 0 rgba(255,255,255,0.8),
+    0 1px 2px rgba(15,23,42,0.04),
+    0 12px 36px -8px rgba(15,23,42,0.10);
+
+  /* iOS Legacy Bridge Tokens */
+  --bg-base: var(--color-bg);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-surface-2);
+  --bg-card: var(--color-surface);
+  --bg-card-hover: var(--color-surface-2);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-muted);
+  --text-muted: var(--color-text-subtle);
+  --border: var(--color-border);
+  --border-bright: var(--color-border);
+  --neon-green: var(--color-primary);
+  --spotify-green: var(--color-primary);
 }
 
-[data-theme='light'] {
-  --bg-base: #e8f1f8;
-  --bg-surface: #ffffff;
-  --bg-elevated: #f4f8fc;
-  --bg-card: rgba(255, 255, 255, 0.65);
-  --bg-card-hover: rgba(255, 255, 255, 0.85);
-  --neon-green: #248a3d;
-  --neon-green-dim: rgba(36, 138, 61, 0.15);
-  --spotify-green: #1db954;
-  --ios-blue: #0071e3;
-  --ios-indigo: #4b48d6;
-  --pink: #d70035;
-  --purple: #9a35cc;
-  --cyan: #0091cc;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
-  --text-dim: #9ca3af;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-bright: rgba(0, 0, 0, 0.15);
+.dark,
+:root[data-theme='dark'] {
+  --color-brand-50: #fdf1ed;
+  --color-brand-100: #fadccf;
+  --color-brand-200: #f4b59c;
+  --color-brand-300: #ee8d6a;
+  --color-brand-400: #ea7855;
+  --color-brand-500: #E56A4A;
+  --color-brand-600: #cc5236;
+  --color-brand-700: #a64027;
+  --color-brand-800: #7a2f1d;
+  --color-brand-900: #4d1e12;
+
+  --color-primary: var(--color-brand-500);
+  --color-primary-hover: var(--color-brand-600);
+
+  /* Obsidian dark glass */
+  --color-bg: #08090c;
+  --color-bg-alt: #0d0f15;
+  --color-surface: rgba(18, 20, 29, 0.78);
+  --color-surface-2: rgba(26, 29, 41, 0.68);
+  --color-surface-3: rgba(38, 43, 60, 0.65);
+  --color-sidebar: rgba(11, 13, 19, 0.88);
+
+  --color-border: rgba(255, 255, 255, 0.085);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+
+  --color-text: #e2e8f0;
+  --color-text-main: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-subtle: #64748b;
+
+  --shadow-soft: 0 2px 10px 0 rgba(0, 0, 0, 0.45);
+  --shadow-warm: 0 0 24px -2px color-mix(in srgb, var(--color-primary) 36%, transparent), 0 2px 8px -2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  --shadow-elevated: 0 20px 48px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  --shadow-elev:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.65),
+    0 16px 48px -8px rgba(0, 0, 0, 0.75);
+
+  /* iOS Legacy Bridge Tokens */
+  --bg-base: var(--color-bg);
+  --bg-surface: var(--color-surface);
+  --bg-elevated: var(--color-surface-2);
+  --bg-card: var(--color-surface);
+  --bg-card-hover: var(--color-surface-2);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-muted);
+  --text-muted: var(--color-text-subtle);
+  --border: var(--color-border);
+  --border-bright: var(--color-border);
+  --neon-green: var(--color-primary);
+  --spotify-green: var(--color-primary);
+}
+
+/* Multi-Accent Themes (Coral / Emerald / Cyber / Violet) */
+:root[data-accent="coral"],
+:root[data-accent="orange"],
+.dark[data-accent="coral"],
+.dark[data-accent="orange"] {
+  --color-brand-50: #fdf1ed;
+  --color-brand-100: #fadccf;
+  --color-brand-200: #f4b59c;
+  --color-brand-300: #ee8d6a;
+  --color-brand-400: #ea7855;
+  --color-brand-500: #E56A4A;
+  --color-brand-600: #cc5236;
+  --color-brand-700: #a64027;
+  --color-brand-800: #7a2f1d;
+  --color-brand-900: #4d1e12;
+  --color-primary: #E56A4A;
+  --color-primary-hover: #cc5236;
+}
+
+:root[data-accent="emerald"],
+.dark[data-accent="emerald"] {
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+}
+
+:root[data-accent="cyber"],
+.dark[data-accent="cyber"] {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+  --color-primary: #38bdf8;
+  --color-primary-hover: #0ea5e9;
+}
+
+:root[data-accent="violet"],
+.dark[data-accent="violet"] {
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
+}
+
+/* 9Router Dot Grid Pattern */
+.dot-grid-bg {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, transparent 40%);
+}
+.dark .dot-grid-bg,
+[data-theme='dark'] .dot-grid-bg {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 70% 45% at 50% 0%, color-mix(in srgb, var(--color-primary) 14%, transparent) 0%, transparent 70%),
+    radial-gradient(circle at 95% 95%, color-mix(in srgb, var(--color-primary) 5%, transparent) 0%, transparent 50%);
+  background-size: 24px 24px, 100% 100%, 100% 100%;
+}
+
+/* macOS Traffic Lights */
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.traffic-light:hover {
+  filter: brightness(1.15);
+  transform: scale(1.08);
+}
+.traffic-light.red { background: #FF5F56; }
+.traffic-light.yellow { background: #FFBD2E; }
+.traffic-light.green { background: #27C93F; }
+
+/* 9Router Card Classes */
+.card-soft {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+.card-elev {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-elev);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+/* macOS Vibrancy */
+.bg-vibrancy {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.72);
+}
+.dark .bg-vibrancy,
+[data-theme='dark'] .bg-vibrancy {
+  background: rgba(11, 13, 19, 0.88);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -1085,28 +1279,28 @@ input[type='range'].neu-range-overlay::-moz-range-track {
 }
 
 /* ==========================================================================
-   DAW STUDIO / ABLETON HIGH-CONTRAST SYSTEM
+   DAW STUDIO / 9ROUTER HIGH-CONTRAST SYSTEM
    ========================================================================== */
 .daw-shell {
-  background-color: #0e1015;
-  color: #f1f4f9;
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
 }
 
 .daw-panel {
-  background-color: #14171f;
-  border: 1px solid #272c3a;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-elev);
 }
 
 .daw-panel-subtle {
-  background-color: #171b24;
-  border: 1px solid #2c3242;
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .daw-header {
   height: 38px;
-  background-color: #161922;
-  border-bottom: 1px solid #272c3a;
+  background-color: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1115,19 +1309,13 @@ input[type='range'].neu-range-overlay::-moz-range-track {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8f9ba8;
+  color: var(--color-text-muted);
 }
 
-.daw-header-amber {
-  border-left: 3px solid #ffb800;
-}
-
-.daw-header-green {
-  border-left: 3px solid #00e599;
-}
-
+.daw-header-amber,
+.daw-header-green,
 .daw-header-cyan {
-  border-left: 3px solid #00d4ff;
+  border-left: 3px solid var(--color-primary);
 }
 
 .daw-badge {
@@ -1139,17 +1327,17 @@ input[type='range'].neu-range-overlay::-moz-range-track {
 }
 
 .daw-row {
-  border-bottom: 1px solid #1e222c;
+  border-bottom: 1px solid var(--color-border-subtle);
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .daw-row:hover {
-  background-color: #1a1e28;
+  background-color: var(--color-surface-2);
 }
 
 .daw-row-active {
-  background-color: #1d2331 !important;
-  border-left: 3px solid #00e599;
+  background-color: var(--color-surface-3) !important;
+  border-left: 3px solid var(--color-primary);
 }
 
 .daw-meter-bar {
@@ -1161,7 +1349,7 @@ input[type='range'].neu-range-overlay::-moz-range-track {
 
 .daw-meter-col {
   width: 2.5px;
-  background-color: #00e599;
+  background-color: var(--color-primary);
   border-radius: 1px;
   animation: daw-vu 0.8s ease-in-out infinite alternate;
 }

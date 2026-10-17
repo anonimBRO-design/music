@@ -71,9 +71,7 @@ export const MainLayout = ({
   }, []);
 
   return (
-    <div className={`daw-shell relative h-screen w-screen flex overflow-hidden font-syne antialiased selection:bg-dawCyan selection:text-black transition-colors duration-300 ${
-      theme === 'light' ? 'text-zinc-900 bg-[#eef2f7]' : 'text-white bg-dawBg'
-    }`}>
+    <div className="dot-grid-bg relative h-screen w-screen flex overflow-hidden font-sans text-text-main antialiased selection:bg-primary/30 selection:text-primary transition-colors duration-300">
 
       {/* Hidden Persistent Audio Engine */}
       <AudioEngine />
@@ -113,7 +111,7 @@ export const MainLayout = ({
       <PlayerBar isSidebarCollapsed={isSidebarCollapsed} />
 
       {/* Mobile Floating Bottom Navigation Bar */}
-      <nav className="fixed bottom-2.5 left-3 right-3 h-14 ios-glass-dock rounded-[22px] z-50 md:hidden flex items-center justify-around px-2 shadow-2xl">
+      <nav className="fixed bottom-2.5 left-3 right-3 h-14 bg-sidebar/90 backdrop-blur-2xl border border-border rounded-2xl z-50 md:hidden flex items-center justify-around px-2 shadow-elevated">
         {[
           { id: 'home', label: 'Home', icon: Home },
           { id: 'search', label: 'Search', icon: Search },
@@ -130,14 +128,14 @@ export const MainLayout = ({
                 if (item.isSettings) setIsSettingsOpen(true);
                 else onSelectTab(item.id);
               }}
-              className={`relative flex flex-col items-center justify-center gap-0.5 w-12 h-11 rounded-xl transition-all ios-btn-spring cursor-pointer ${
-                active ? 'text-iosEmerald font-bold scale-105 bg-white/10 shadow-sm' : 'text-zinc-400 hover:text-white'
+              className={`relative flex flex-col items-center justify-center gap-0.5 w-12 h-11 rounded-xl transition-all cursor-pointer ${
+                active ? 'text-primary font-bold scale-105 bg-primary/10 shadow-sm' : 'text-text-muted hover:text-text-main'
               }`}
             >
-              <Icon className={`w-4 h-4 transition-transform duration-200 ${active ? 'scale-110 text-iosEmerald' : ''}`} />
+              <Icon className={`w-4 h-4 transition-transform duration-200 ${active ? 'scale-110 text-primary' : ''}`} />
               <span className="text-[9px] tracking-tight">{item.label}</span>
               {active && (
-                <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-iosEmerald shadow-[0_0_8px_rgba(48,209,88,0.8)]" />
+                <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
               )}
             </button>
           );

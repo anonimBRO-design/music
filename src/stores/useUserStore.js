@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { Storage, KEYS } from '../services/storage';
 import { useTasteStore } from './useTasteStore';
 
+export const ACCENT_THEMES = [
+  { id: 'coral', label: 'Coral Ember', color: '#E56A4A', ring: 'ring-[#E56A4A]' },
+  { id: 'emerald', label: 'Matrix Emerald', color: '#10B981', ring: 'ring-[#10B981]' },
+  { id: 'cyber', label: 'Cyber Blue', color: '#38BDF8', ring: 'ring-[#38BDF8]' },
+  { id: 'violet', label: 'Nebula Violet', color: '#8B5CF6', ring: 'ring-[#8B5CF6]' }
+];
+
 function applyThemeToDOM(theme) {
   if (typeof document !== 'undefined') {
     if (theme === 'light') {
@@ -16,11 +23,20 @@ function applyThemeToDOM(theme) {
   }
 }
 
+function applyAccentToDOM(accent = 'coral') {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-accent', accent || 'coral');
+  }
+}
+
 const initialTheme = Storage.get(KEYS.THEME, 'dark');
+const initialAccent = Storage.get(KEYS.ACCENT, 'coral');
 applyThemeToDOM(initialTheme);
+applyAccentToDOM(initialAccent);
 
 export const useUserStore = create((set, get) => ({
   theme: initialTheme,
+  accent: initialAccent,
   likedSongs: Storage.get(KEYS.LIKED, []),
   history: Storage.get(KEYS.HISTORY, []),
   profile: Storage.get(KEYS.PROFILE, {
@@ -39,6 +55,12 @@ export const useUserStore = create((set, get) => ({
     Storage.set(KEYS.THEME, theme);
     applyThemeToDOM(theme);
     set({ theme });
+  },
+
+  setAccent: (accent) => {
+    Storage.set(KEYS.ACCENT, accent);
+    applyAccentToDOM(accent);
+    set({ accent });
   },
 
   toggleTheme: () => {
