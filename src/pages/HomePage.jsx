@@ -90,7 +90,7 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
         </p>
       </div>
 
-      {/* iOS Category Filter Pills */}
+      {/* 9Router Category Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {CATEGORY_PILLS.map((pill) => {
           const isActive = activePill === pill.id;
@@ -98,10 +98,10 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
             <button
               key={pill.id}
               onClick={() => setActivePill(pill.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ios-pill-spring cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? 'neu-selected-pill text-white scale-105'
-                  : 'bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white'
+                  ? 'bg-primary/15 text-primary border border-primary/25 shadow-[var(--shadow-warm)] font-semibold'
+                  : 'bg-surface-2 hover:bg-surface-3 border border-border text-text-muted hover:text-text-main'
               }`}
             >
               {pill.label}

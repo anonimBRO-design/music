@@ -41,8 +41,8 @@ export const LyricsPanel = ({ className = '' }) => {
   if (isLoading) {
     return (
       <div className={`flex flex-col items-center justify-center h-full gap-3 ${className}`}>
-        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-        <span className="text-xs text-zinc-400 font-medium">Searching lyrics...</span>
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-xs text-text-muted font-medium">Searching lyrics...</span>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export const LyricsPanel = ({ className = '' }) => {
     return (
       <div
         ref={containerRef}
-        className={`overflow-y-auto h-full px-4 py-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent ${className}`}
+        className={`overflow-y-auto h-full px-4 py-8 custom-scrollbar ${className}`}
       >
         <div className="space-y-1 pb-32 pt-16">
           {lyrics.map((line, idx) => {
@@ -64,12 +64,12 @@ export const LyricsPanel = ({ className = '' }) => {
                 key={`${idx}-${line.time}`}
                 ref={isActive ? activeLineRef : null}
                 onClick={() => seekTo(line.time)}
-                className={`block w-full text-left px-3 py-2.5 rounded-xl transition-all duration-300 cursor-pointer hover:bg-white/5 active:scale-[0.98] ${
+                className={`block w-full text-left px-3.5 py-2.5 rounded-xl transition-all duration-300 cursor-pointer hover:bg-surface-2 active:scale-[0.98] ${
                   isActive
-                    ? 'text-white text-xl md:text-2xl font-extrabold scale-[1.02] bg-white/[0.03]'
+                    ? 'text-primary text-xl md:text-2xl font-extrabold scale-[1.02] bg-primary/10 shadow-[var(--shadow-warm)] border border-primary/25'
                     : isPast
-                    ? 'text-zinc-600 text-base md:text-lg font-semibold'
-                    : 'text-zinc-500 text-base md:text-lg font-semibold hover:text-zinc-300'
+                    ? 'text-text-subtle text-base md:text-lg font-medium'
+                    : 'text-text-muted text-base md:text-lg font-medium hover:text-text-main'
                 }`}
               >
                 {line.text}

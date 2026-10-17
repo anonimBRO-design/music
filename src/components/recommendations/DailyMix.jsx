@@ -37,31 +37,31 @@ export const DailyMix = ({ mix, index = 0 }) => {
   };
 
   return (
-    <div className="relative group p-4 md:p-5 rounded-[26px] ios-card flex flex-col justify-between overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl">
+    <div className="relative group p-4 md:p-5 rounded-2xl card-soft border border-border flex flex-col justify-between overflow-hidden shadow-soft transition-all duration-300 hover:shadow-elevated hover:bg-surface-2">
       {/* Dynamic Background Glow - pointer-events-none to prevent blocking clicks */}
-      <div className={`absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br ${gradient} opacity-20 rounded-full blur-3xl group-hover:opacity-35 transition-opacity pointer-events-none`} />
+      <div className={`absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-br ${gradient} opacity-15 rounded-full blur-3xl group-hover:opacity-25 transition-opacity pointer-events-none`} />
 
       <div className="relative z-10">
         {/* Header Title & Play Pill */}
         <div className="flex items-start justify-between gap-2.5 mb-3.5">
           <div className="flex-1 min-w-0 pr-1">
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-iosEmerald mb-1">
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
               <Disc className="w-3.5 h-3.5 shrink-0" />
               <span>Personalized</span>
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight line-clamp-1">
+            <h3 className="text-sm sm:text-base font-bold text-text-main tracking-tight line-clamp-1">
               {mix.title}
             </h3>
-            <p className="text-[10px] sm:text-[11px] text-zinc-400 line-clamp-1 mt-0.5">{mix.subtitle}</p>
+            <p className="text-[10px] sm:text-[11px] text-text-muted line-clamp-1 mt-0.5">{mix.subtitle}</p>
           </div>
 
           <button
             type="button"
             onClick={handlePlayAll}
-            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-xl ios-btn-spring transition-all shrink-0 cursor-pointer relative z-20 ${
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-[var(--shadow-warm)] transition-all shrink-0 cursor-pointer relative z-20 ${
               isMixPlaying
-                ? 'bg-iosEmerald text-black scale-105'
-                : 'bg-white text-black hover:scale-105 hover:bg-zinc-200'
+                ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white scale-105'
+                : 'bg-gradient-to-br from-brand-500 to-brand-700 text-white hover:scale-105 hover:opacity-95'
             }`}
             title={isMixPlaying ? 'Pause Mix' : 'Play Mix'}
           >
