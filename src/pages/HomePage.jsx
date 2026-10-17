@@ -79,13 +79,13 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
     : [...likedSongs.slice(0, 3), ...history.slice(0, 3)];
 
   return (
-    <div className="space-y-6 md:space-y-8 p-3.5 sm:p-5 md:p-8 font-syne select-none">
+    <div className="space-y-6 md:space-y-8 p-3.5 sm:p-5 md:p-8 font-sans select-none">
       {/* Hero Welcome */}
       <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-white tracking-tight">
-          {greeting()}, <span className="text-white">{profile.username || 'Listener'}</span>
+        <h1 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-text-main tracking-tight">
+          {greeting()}, <span className="text-primary">{profile.username || 'Listener'}</span>
         </h1>
-        <p className="text-[11px] md:text-sm text-zinc-400">
+        <p className="text-[11px] md:text-sm text-text-muted">
           Spatial acoustics curated dynamically to your vector taste.
         </p>
       </div>
@@ -151,16 +151,16 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                           e.stopPropagation();
                           playTrack(track, pillSection.tracks, { type: 'pill_section', title: pillSection.title });
                         }}
-                        className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.5)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary cursor-pointer"
+                        className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-[var(--shadow-warm)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-current ml-0.5" />
                       </button>
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white truncate group-hover:text-iosEmerald transition-colors">
+                      <div className="text-xs font-bold text-text-main truncate group-hover:text-primary transition-colors">
                         {track.title}
                       </div>
-                      <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
+                      <div className="text-[11px] text-text-muted truncate mt-0.5">{track.artist}</div>
                     </div>
                   </div>
                 ))}
@@ -177,14 +177,14 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
           {/* 2. Personalized Daily Mixes (1, 2, 3) */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Disc className="w-5 h-5 text-iosEmerald" />
-              <h2 className="text-xl font-bold text-white tracking-tight">Made For You</h2>
+              <Disc className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold text-text-main tracking-tight">Made For You</h2>
             </div>
 
             {isLoadingTaste && !tasteSections.dailyMix1?.tracks?.length ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-64 rounded-[26px] bg-white/5 animate-pulse" />
+                  <div key={i} className="h-64 rounded-2xl bg-surface-2 animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -214,8 +214,8 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
           {tasteSections.dailyMix1?.tracks?.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-rose-400" />
-                <h2 className="text-lg font-bold text-white tracking-wide">
+                <Flame className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-bold text-text-main tracking-wide">
                   Top Recommended Tracks
                 </h2>
               </div>
@@ -229,9 +229,9 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                       e.preventDefault();
                       if (onOpenContextMenu) onOpenContextMenu(e, track);
                     }}
-                    className="group relative p-3 rounded-2xl ios-card cursor-pointer shadow-lg flex flex-col justify-between ios-btn-spring"
+                    className="group relative p-3 rounded-2xl card-soft hover:card-elev hover:border-primary/40 border border-border cursor-pointer shadow-sm flex flex-col justify-between transition-all"
                   >
-                    <div className="relative aspect-square mb-2.5 overflow-hidden rounded-xl bg-zinc-900 shadow">
+                    <div className="relative aspect-square mb-2.5 overflow-hidden rounded-xl bg-surface-3 shadow">
                       <img
                         src={track.thumbnail || `https://i.ytimg.com/vi/${track.id}/mqdefault.jpg`}
                         alt=""
@@ -246,16 +246,16 @@ export const HomePage = ({ onNavigateSearch, onOpenContextMenu }) => {
                           e.stopPropagation();
                           playTrack(track, tasteSections.dailyMix1.tracks, { type: 'daily_mix', title: tasteSections.dailyMix1.title });
                         }}
-                        className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary cursor-pointer"
+                        className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-[var(--shadow-warm)] opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all duration-200 cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                       </button>
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white truncate group-hover:text-iosEmerald transition-colors">
+                      <div className="text-xs font-bold text-text-main truncate group-hover:text-primary transition-colors">
                         {track.title}
                       </div>
-                      <div className="text-[11px] text-zinc-400 truncate mt-0.5">{track.artist}</div>
+                      <div className="text-[11px] text-text-muted truncate mt-0.5">{track.artist}</div>
                     </div>
                   </div>
                 ))}

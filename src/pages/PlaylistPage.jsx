@@ -63,73 +63,78 @@ export const PlaylistPage = ({ playlistId, onNavigateLibrary, onOpenContextMenu 
   ];
 
   return (
-    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-4 sm:p-6 md:p-8 max-w-6xl mx-auto select-none font-sans">
       {/* Playlist Hero */}
-      <div className="flex flex-col md:flex-row items-center md:items-end gap-6 pb-6 border-b border-white/5">
-        <div
-          style={{ background: !playlist.image ? (playlist.color || '#7928ca') : 'transparent' }}
-          className="w-48 h-48 md:w-56 md:h-56 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl shadow-black/60 overflow-hidden bg-zinc-900"
-        >
-          {playlist.image ? (
-            <img src={playlist.image} alt={playlist.name} className="w-full h-full object-cover" />
-          ) : (
-            <Music className="w-24 h-24 text-white/90" />
-          )}
-        </div>
+      <div className="relative card-elev p-6 sm:p-8 rounded-2xl border border-border overflow-hidden">
+        {/* Ambient primary glow */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-        <div className="flex-1 text-center md:text-left space-y-3 min-w-0">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 bg-white/10 px-3 py-1 rounded-full">
-            Public Playlist
-          </span>
-          <h1 className="text-3xl md:text-5xl font-black text-white leading-tight truncate">
-            {playlist.name}
-          </h1>
-          {playlist.description && (
-            <p className="text-xs md:text-sm text-zinc-400 max-w-2xl">{playlist.description}</p>
-          )}
-          <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 font-medium">
-            <span className="font-bold text-white">{profile.username || 'Listener'}</span>
-            <span>•</span>
-            <span>
-              {totalTracks} song{totalTracks !== 1 ? 's' : ''}
-              {totalMinutes > 0 ? `, about ${totalMinutes} min` : ''}
-            </span>
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
+          <div
+            style={{ background: !playlist.image ? (playlist.color || 'var(--color-primary)') : 'transparent' }}
+            className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl flex items-center justify-center shrink-0 shadow-[var(--shadow-warm)] overflow-hidden bg-surface-2 border border-border"
+          >
+            {playlist.image ? (
+              <img src={playlist.image} alt={playlist.name} className="w-full h-full object-cover" />
+            ) : (
+              <Music className="w-20 h-20 text-white/90" />
+            )}
           </div>
 
-          {/* Hero Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
-            <button
-              onClick={() => playCollection('playlist', playlist.id)}
-              disabled={totalTracks === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
-            >
-              <Play className="w-4 h-4 fill-current" /> Play
-            </button>
-            <button
-              onClick={() => shuffleCollection('playlist', playlist.id)}
-              disabled={totalTracks === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all ios-btn-spring cursor-pointer"
-            >
-              <Shuffle className="w-4 h-4" /> Shuffle
-            </button>
-            <button
-              onClick={() => openEditModal(playlist.id)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold border border-white/10 transition-all ios-btn-spring cursor-pointer"
-            >
-              <Edit3 className="w-3.5 h-3.5" /> Edit Details
-            </button>
-            <button
-              onClick={() => {
-                if (window.confirm(`Delete playlist "${playlist.name}"?`)) {
-                  deletePlaylist(playlist.id);
-                  showToast(`Playlist "${playlist.name}" deleted`, 'info');
-                  onNavigateLibrary();
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-rose-400 hover:bg-rose-500/15 text-xs font-bold border border-rose-500/30 transition-all ios-btn-spring cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
-            </button>
+          <div className="flex-1 text-center md:text-left space-y-3 min-w-0">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+              User Playlist
+            </span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-text-main leading-tight truncate tracking-tight">
+              {playlist.name}
+            </h1>
+            {playlist.description && (
+              <p className="text-xs md:text-sm text-text-muted max-w-2xl">{playlist.description}</p>
+            )}
+            <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-text-muted font-medium">
+              <span className="font-bold text-text-main">{profile.username || 'Studio Listener'}</span>
+              <span>•</span>
+              <span className="font-mono">
+                {totalTracks} track{totalTracks !== 1 ? 's' : ''}
+                {totalMinutes > 0 ? `, about ${totalMinutes} min` : ''}
+              </span>
+            </div>
+
+            {/* Hero Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-2">
+              <button
+                onClick={() => playCollection('playlist', playlist.id)}
+                disabled={totalTracks === 0}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-40 text-white font-semibold text-xs transition-all shadow-[var(--shadow-warm)] cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-current" /> Play
+              </button>
+              <button
+                onClick={() => shuffleCollection('playlist', playlist.id)}
+                disabled={totalTracks === 0}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 disabled:opacity-40 text-text-main font-semibold text-xs border border-border transition-all cursor-pointer shadow-sm"
+              >
+                <Shuffle className="w-4 h-4 text-text-muted" /> Shuffle
+              </button>
+              <button
+                onClick={() => openEditModal(playlist.id)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-text-main text-xs font-semibold border border-border transition-all cursor-pointer shadow-sm"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-text-muted" /> Edit Details
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Delete playlist "${playlist.name}"?`)) {
+                    deletePlaylist(playlist.id);
+                    showToast(`Playlist "${playlist.name}" deleted`, 'info');
+                    onNavigateLibrary();
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 text-xs font-semibold border border-red-500/30 transition-all cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete
+              </button>
+            </div>
 
             {totalTracks > 0 && (
               <div className="relative ml-auto w-full md:w-56 mt-2 md:mt-0">

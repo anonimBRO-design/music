@@ -2,7 +2,7 @@ import React from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import { usePlayerStore } from '../stores/usePlayerStore';
 import { PlaylistTable } from '../components/playlist/PlaylistTable';
-import { Heart, Play, Shuffle } from 'lucide-react';
+import { Heart, Play, Shuffle, Sparkles, Music2 } from 'lucide-react';
 
 export const LikedPage = ({ onOpenContextMenu }) => {
   const likedSongs = useUserStore((s) => s.likedSongs);
@@ -11,56 +11,70 @@ export const LikedPage = ({ onOpenContextMenu }) => {
   const shuffleCollection = usePlayerStore((s) => s.shuffleCollection);
 
   return (
-    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-4 sm:p-6 md:p-8 max-w-6xl mx-auto select-none font-sans">
       {/* Header Hero */}
-      <div className="flex flex-col md:flex-row items-center md:items-end gap-6 pb-6 border-b border-white/5">
-        <div className="w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-gradient-to-br from-pink-600 to-purple-800 flex items-center justify-center shrink-0 shadow-2xl shadow-pink-900/30">
-          <Heart className="w-24 h-24 text-white fill-white" />
-        </div>
+      <div className="relative card-elev p-6 sm:p-8 rounded-2xl border border-border overflow-hidden">
+        {/* Ambient primary glow */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-        <div className="flex-1 text-center md:text-left space-y-3">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-pink-400 bg-pink-500/10 px-3 py-1 rounded-full">
-            Collection
-          </span>
-          <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">Liked Songs</h1>
-          <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 font-medium">
-            <span className="font-bold text-white">{profile.username || 'Listener'}</span>
-            <span>•</span>
-            <span>{likedSongs.length} song{likedSongs.length !== 1 ? 's' : ''}</span>
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
+          <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-brand-400 p-[2px] shrink-0 shadow-[var(--shadow-warm)]">
+            <div className="w-full h-full rounded-[14px] bg-surface flex items-center justify-center">
+              <Heart className="w-20 h-20 text-primary fill-primary/25" />
+            </div>
           </div>
 
-          <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
-            <button
-              onClick={() => playCollection('liked', 'liked')}
-              disabled={likedSongs.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-40 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
-            >
-              <Play className="w-4 h-4 fill-current" /> Play
-            </button>
-            <button
-              onClick={() => shuffleCollection('liked', 'liked')}
-              disabled={likedSongs.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white font-bold text-xs border border-white/10 transition-all ios-btn-spring cursor-pointer"
-            >
-              <Shuffle className="w-4 h-4" /> Shuffle
-            </button>
+          <div className="flex-1 text-center md:text-left space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+              <Sparkles className="w-3 h-3 text-primary" />
+              Permanent Collection
+            </span>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-text-main tracking-tight leading-tight">
+              Liked Songs
+            </h1>
+
+            <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-text-muted font-medium">
+              <span className="font-bold text-text-main">{profile.username || 'Studio Listener'}</span>
+              <span>•</span>
+              <span className="font-mono">{likedSongs.length} track{likedSongs.length !== 1 ? 's' : ''} saved</span>
+            </div>
+
+            <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
+              <button
+                onClick={() => playCollection('liked', 'liked')}
+                disabled={likedSongs.length === 0}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-40 text-white font-semibold text-xs transition-all shadow-[var(--shadow-warm)] cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-current" /> Play All
+              </button>
+              <button
+                onClick={() => shuffleCollection('liked', 'liked')}
+                disabled={likedSongs.length === 0}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 disabled:opacity-40 text-text-main font-semibold text-xs border border-border transition-all cursor-pointer shadow-sm"
+              >
+                <Shuffle className="w-4 h-4 text-text-muted" /> Shuffle
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tracks Table */}
       {likedSongs.length === 0 ? (
-        <div className="text-center py-24 space-y-3">
-          <Heart className="w-12 h-12 text-zinc-600 mx-auto stroke-1" />
-          <h3 className="text-lg font-bold text-white">Songs you like will appear here</h3>
-          <p className="text-xs text-zinc-500">Save songs by tapping the heart icon on any track.</p>
+        <div className="text-center py-24 space-y-3 card-soft border border-border p-8 rounded-2xl">
+          <Heart className="w-12 h-12 text-text-subtle mx-auto stroke-1" />
+          <h3 className="text-base font-bold text-text-main">Your collection is empty</h3>
+          <p className="text-xs text-text-muted">Tap the heart icon on any track to save it to your permanent studio vault.</p>
         </div>
       ) : (
-        <PlaylistTable
-          tracks={likedSongs}
-          collectionTitle="Liked Songs"
-          onOpenContextMenu={onOpenContextMenu}
-        />
+        <div className="card-soft border border-border rounded-2xl overflow-hidden p-2 sm:p-4">
+          <PlaylistTable
+            tracks={likedSongs}
+            collectionTitle="Liked Songs"
+            onOpenContextMenu={onOpenContextMenu}
+          />
+        </div>
       )}
     </div>
   );

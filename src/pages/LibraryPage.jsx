@@ -15,22 +15,22 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
   const showToast = useToastStore((s) => s.showToast);
 
   return (
-    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-4 sm:p-6 md:p-8 max-w-6xl mx-auto select-none font-sans">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-4xl font-extrabold text-white">Your Library</h1>
-          <p className="text-xs md:text-sm text-zinc-400 mt-1">Manage your custom playlists and albums.</p>
+          <h1 className="text-2xl md:text-4xl font-extrabold text-text-main tracking-tight">Your Audio Library</h1>
+          <p className="text-xs md:text-sm text-text-muted mt-1">Manage custom playlist crates and studio collections.</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={openSpotifyImport}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-all ios-btn-spring cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-2 hover:bg-surface-3 text-text-main font-semibold text-xs border border-border transition-all cursor-pointer shadow-sm"
           >
-            <Download className="w-4 h-4" /> Import Spotify
+            <Download className="w-4 h-4 text-text-muted" /> Import Spotify
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-400 hover:bg-emerald-300 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/20 ios-btn-primary cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-xs transition-all shadow-[var(--shadow-warm)] cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Create Playlist
           </button>
@@ -38,31 +38,31 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
       </div>
 
       {playlists.length === 0 ? (
-        <div className="text-center py-24 space-y-4 max-w-sm mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto text-3xl shadow-inner">
+        <div className="text-center py-24 space-y-4 max-w-sm mx-auto card-soft border border-border p-8 rounded-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center mx-auto text-3xl shadow-inner border border-border">
             🎵
           </div>
-          <h3 className="text-xl font-bold text-white">Create your first playlist</h3>
-          <p className="text-xs text-zinc-400">Organize your favorite music into custom themes and vibes.</p>
+          <h3 className="text-lg font-bold text-text-main">Create your first playlist</h3>
+          <p className="text-xs text-text-muted">Organize your favorite music into custom themes and vibes.</p>
           <button
             onClick={openCreateModal}
-            className="px-6 py-2.5 rounded-full bg-emerald-400 text-black font-bold text-xs ios-btn-primary cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-xs shadow-[var(--shadow-warm)] cursor-pointer"
           >
             + Create Playlist
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {playlists.map((pl) => (
             <div
               key={pl.id}
               onClick={() => onSelectPlaylist(pl.id)}
-              className="group relative p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-lg hover:shadow-2xl flex flex-col justify-between ios-btn-spring"
+              className="group relative p-4 rounded-2xl card-soft hover:card-elev hover:border-primary/40 border border-border transition-all cursor-pointer shadow-sm flex flex-col justify-between"
             >
               <div>
                 <div
-                  style={{ background: !pl.image ? (pl.color || '#7928ca') : 'transparent' }}
-                  className="relative aspect-square mb-3.5 rounded-xl flex items-center justify-center shadow-md overflow-hidden bg-zinc-900"
+                  style={{ background: !pl.image ? (pl.color || 'var(--color-primary)') : 'transparent' }}
+                  className="relative aspect-square mb-3.5 rounded-xl flex items-center justify-center shadow-md overflow-hidden bg-surface-2 border border-border"
                 >
                   {pl.image ? (
                     <img src={pl.image} alt={pl.name} className="w-full h-full object-cover" />
@@ -75,27 +75,27 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
                         e.stopPropagation();
                         playCollection('playlist', pl.id);
                       }}
-                      className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-400 text-black flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 ios-btn-primary"
+                      className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-[var(--shadow-warm)] opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 cursor-pointer"
                     >
                       <Play className="w-4 h-4 fill-current ml-0.5" />
                     </button>
                   )}
                 </div>
-                <div className="text-sm font-bold text-white truncate group-hover:text-emerald-400 transition-colors">
+                <div className="text-sm font-bold text-text-main truncate group-hover:text-primary transition-colors">
                   {pl.name}
                 </div>
-                <div className="text-xs text-zinc-400 truncate mt-0.5">
+                <div className="text-xs text-text-muted truncate mt-0.5 font-mono">
                   Playlist · {pl.tracks?.length || 0} songs
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-1.5 pt-3 mt-3 border-t border-white/5">
+              <div className="flex items-center justify-end gap-1.5 pt-3 mt-3 border-t border-border">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     openEditModal(pl.id);
                   }}
-                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors ios-btn-icon"
+                  className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-2 transition-colors cursor-pointer"
                   title="Edit details"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -108,7 +108,7 @@ export const LibraryPage = ({ onSelectPlaylist }) => {
                       showToast(`Playlist "${pl.name}" deleted`, 'info');
                     }
                   }}
-                  className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors ios-btn-icon"
+                  className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

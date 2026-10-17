@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { YouTubeAPI } from '../services/youtubeApi';
 import { PlaylistTable } from '../components/playlist/PlaylistTable';
-import { Search as SearchIcon, Compass, Sparkles, Flame, Music, Radio, Coffee, Zap, Disc, Mic2 } from 'lucide-react';
+import { Search as SearchIcon, Compass, Sparkles, Flame, Music, Radio, Coffee, Zap, Disc, Mic2, ArrowLeft } from 'lucide-react';
 
 const CATEGORIES = [
   { name: 'Pop Hits', query: 'top global pop hits official audio', icon: Flame },
@@ -48,22 +48,22 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
   };
 
   return (
-    <div className="space-y-8 p-6 md:p-8 font-syne select-none">
+    <div className="space-y-8 p-4 sm:p-6 md:p-8 max-w-6xl mx-auto select-none font-sans">
       {/* Search Header Bar */}
       <div className="relative max-w-xl">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="What do you want to listen to?"
-          className="w-full bg-white/[0.06] border border-white/10 rounded-full pl-12 pr-28 py-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-iosBlue/70 focus:bg-white/[0.09] focus:shadow-[0_0_25px_rgba(10,132,255,0.25)] transition-all font-syne shadow-2xl"
+          className="w-full bg-surface border border-border rounded-xl pl-11 pr-28 py-3 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
           autoFocus={!initialQuery}
         />
         <button
           onClick={() => performSearch(query)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full text-xs font-bold bg-white text-black hover:bg-zinc-200 ios-btn-primary ios-btn-spring transition-all shadow-md cursor-pointer"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-all shadow-[var(--shadow-warm)] cursor-pointer"
         >
           Search
         </button>
@@ -72,15 +72,15 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
       {/* Results or Categories */}
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-iosEmerald/20 border-t-iosEmerald animate-spin" />
-          <span className="text-xs text-zinc-400 font-semibold">Searching music catalogue...</span>
+          <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          <span className="text-xs text-text-muted font-medium">Searching music catalogue...</span>
         </div>
       ) : searched ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-extrabold text-white tracking-wide">Results for "{query}"</h2>
-              <span className="text-xs text-zinc-400">{results.length} songs found</span>
+              <h2 className="text-xl font-extrabold text-text-main tracking-tight">Results for "{query}"</h2>
+              <span className="text-xs text-text-muted font-mono">{results.length} songs found</span>
             </div>
             <button
               onClick={() => {
@@ -88,32 +88,34 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
                 setQuery('');
                 setResults([]);
               }}
-              className="text-xs font-bold text-iosEmerald hover:underline ios-btn-spring cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
             >
-              ← Back to Categories
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Categories
             </button>
           </div>
 
           {results.length === 0 ? (
-            <div className="text-center py-20 text-sm text-zinc-500">
-              No results found for "{query}". Try a different keyword!
+            <div className="text-center py-20 text-sm text-text-muted card-soft p-8 rounded-2xl border border-border">
+              No results found for "{query}". Try a different keyword or artist.
             </div>
           ) : (
-            <PlaylistTable
-              tracks={results}
-              collectionTitle={`Search: ${query}`}
-              onOpenContextMenu={onOpenContextMenu}
-            />
+            <div className="card-soft border border-border rounded-2xl overflow-hidden p-2 sm:p-4">
+              <PlaylistTable
+                tracks={results}
+                collectionTitle={`Search: ${query}`}
+                onOpenContextMenu={onOpenContextMenu}
+              />
+            </div>
           )}
         </div>
       ) : (
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-1">
           <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-iosEmerald" />
-            <h2 className="text-xl font-extrabold text-white tracking-wide">Browse All Categories</h2>
+            <Compass className="w-5 h-5 text-primary" />
+            <h2 className="text-lg sm:text-xl font-extrabold text-text-main tracking-tight">Browse Genres & Moods</h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 sm:gap-4">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon || Sparkles;
               return (
@@ -123,12 +125,12 @@ export const SearchPage = ({ initialQuery = '', onOpenContextMenu }) => {
                     setQuery(cat.name);
                     performSearch(cat.query);
                   }}
-                  className="neu-category-tile p-5 rounded-[24px] transition-all cursor-pointer group relative overflow-hidden h-36 flex flex-col justify-between ios-btn-spring"
+                  className="card-soft hover:card-elev hover:border-primary/40 p-5 rounded-2xl transition-all cursor-pointer group relative overflow-hidden h-32 sm:h-36 flex flex-col justify-between border border-border"
                 >
-                  <span className="text-base md:text-lg font-black text-white leading-tight group-hover:text-iosEmerald transition-colors">
+                  <span className="text-sm sm:text-base font-bold text-text-main group-hover:text-primary transition-colors leading-tight">
                     {cat.name}
                   </span>
-                  <div className="neu-category-icon self-end p-2.5 rounded-full transition-all transform group-hover:scale-110">
+                  <div className="self-end p-2.5 rounded-xl bg-surface-2 group-hover:bg-primary/10 text-text-muted group-hover:text-primary transition-all">
                     <Icon className="w-5 h-5" />
                   </div>
                 </div>

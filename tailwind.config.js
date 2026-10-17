@@ -60,9 +60,10 @@ export default {
         dawMuted: 'var(--color-text-muted)',
       },
       fontFamily: {
-        syne: ['Syne', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
-        inter: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'sans-serif'],
-        mono: ['JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        syne: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        inter: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'SF Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       borderRadius: {
         'ios-sm': '14px',

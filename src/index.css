@@ -246,7 +246,7 @@ body {
   padding: 0;
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Syne', 'Inter', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', Roboto, sans-serif;
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
