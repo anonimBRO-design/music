@@ -128,22 +128,32 @@ export const FullscreenPlayer = () => {
     `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-dawBg/98 flex flex-col justify-between p-6 md:p-12 animate-in fade-in zoom-in-95 duration-200 font-mono select-none overflow-hidden">
-      {/* Blurred Album Art Background Ambient Glow */}
+    <div
+      style={{ backgroundColor: 'var(--color-bg)' }}
+      className="fixed inset-0 z-[100] dot-grid-bg flex flex-col justify-between p-6 md:p-12 animate-in fade-in zoom-in-95 duration-200 select-none overflow-hidden text-text-main"
+    >
+      {/* Blurred Ambient Album Art Glow */}
       <div
         style={{ backgroundImage: `url(${trackThumbnail})` }}
-        className="absolute inset-0 bg-cover bg-center blur-3xl opacity-15 scale-125 pointer-events-none"
+        className="absolute inset-0 bg-cover bg-center blur-[120px] opacity-25 scale-125 pointer-events-none"
       />
+      {/* Dark overlay ensuring 100% opacity over the underlying page */}
+      <div className="absolute inset-0 bg-[#08090c]/85 pointer-events-none" />
 
       {/* Top Header Bar */}
-      <div className="relative z-10 flex items-center justify-between border-b border-dawBorder pb-4">
+      <div className="relative z-10 flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-3">
-          <span className="w-2 h-2 rounded-sm bg-dawAmber" />
-          <span className="text-xs font-bold uppercase tracking-wider text-white">
-            STUDIO THEATER // MONITOR
+          <div className="flex items-center gap-2">
+            <div className="traffic-light red" onClick={() => setOpen(false)} />
+            <div className="traffic-light yellow" />
+            <div className="traffic-light green" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-text-main ml-2 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
+            Theater Mode
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-dawPanel border border-dawBorder text-dawGreen font-bold hidden sm:inline">
-            LIVE 48.0 kHz
+          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-semibold hidden sm:inline">
+            Live Stream
           </span>
         </div>
 
@@ -151,25 +161,25 @@ export const FullscreenPlayer = () => {
           {/* Lyrics Toggle */}
           <button
             onClick={() => setShowLyrics(!showLyrics)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs transition-colors cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
               showLyrics
-                ? 'bg-dawCyan text-black border-dawCyan font-bold'
-                : 'bg-dawPanel hover:bg-dawHover text-dawMuted hover:text-white border-dawBorder'
+                ? 'bg-primary/15 text-primary border-primary/30 shadow-[var(--shadow-warm)] font-semibold'
+                : 'bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-text-main border-border'
             }`}
             title="Toggle Live Lyrics"
           >
             <Mic2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Lyrics</span>
+            <span>Lyrics</span>
           </button>
 
           {/* Exit / Close Button */}
           <button
             onClick={() => setOpen(false)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-dawPanel hover:bg-dawHover border border-dawBorder text-dawMuted hover:text-white text-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 border border-border text-text-muted hover:text-text-main text-xs font-medium transition-colors cursor-pointer"
             title="Close Theater Mode (Esc)"
           >
             <X className="w-4 h-4" />
-            <span className="text-[10px] text-dawMuted">ESC</span>
+            <span className="text-[10px] font-mono text-text-muted">ESC</span>
           </button>
         </div>
       </div>
@@ -181,7 +191,7 @@ export const FullscreenPlayer = () => {
           <div className="flex flex-col md:flex-row items-center md:items-stretch gap-8 w-full h-full max-h-[65vh]">
             {/* Small Artwork + Info */}
             <div className="flex flex-col items-center gap-4 shrink-0 md:w-72 justify-center">
-              <div className="p-1 rounded bg-dawPanel border border-dawBorder shadow-2xl">
+              <div className="p-2 rounded-2xl card-elev border border-border shadow-elevated">
                 <img
                   src={trackThumbnail}
                   alt=""
@@ -189,30 +199,30 @@ export const FullscreenPlayer = () => {
                   onError={(e) => {
                     e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
                   }}
-                  className={`w-48 h-48 md:w-60 md:h-60 rounded object-cover bg-dawBg ${
-                    isPlaying ? 'border border-dawGreen/60' : 'opacity-80'
+                  className={`w-48 h-48 md:w-60 md:h-60 rounded-xl object-cover bg-surface-3 ${
+                    isPlaying ? 'border border-primary/50 shadow-[var(--shadow-warm)]' : 'opacity-80'
                   }`}
                 />
               </div>
               <div className="text-center space-y-1 max-w-[16rem]">
-                <div className="text-base font-bold text-white leading-tight truncate">
+                <div className="text-base font-bold text-text-main leading-tight truncate">
                   {currentTrack.title}
                 </div>
-                <div className="text-xs text-dawMuted font-medium truncate">
+                <div className="text-xs text-text-muted font-medium truncate">
                   {currentTrack.artist}
                 </div>
               </div>
             </div>
 
-            {/* Lyrics Panel */}
-            <div className="flex-1 min-h-0 overflow-hidden rounded border border-dawBorder bg-dawSurface/80 p-4">
+            {/* Lyrics Panel Card */}
+            <div className="flex-1 min-h-0 overflow-hidden rounded-2xl border border-border bg-surface/85 backdrop-blur-xl p-4 shadow-elevated">
               <LyricsPanel className="h-full" />
             </div>
           </div>
         ) : (
           /* Standard Mode: Big Artwork + Telemetry + Info */
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full">
-            <div className="p-2 rounded bg-dawPanel border border-dawBorder shadow-2xl shrink-0">
+            <div className="p-3 rounded-3xl card-elev border border-border shadow-elevated shrink-0 group">
               <img
                 src={trackThumbnail}
                 alt=""
@@ -220,53 +230,54 @@ export const FullscreenPlayer = () => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
                 }}
-                className={`w-64 h-64 md:w-88 md:h-88 rounded object-cover transition-all duration-300 bg-dawBg ${
-                  isPlaying ? 'border-2 border-dawGreen shadow-[0_0_30px_rgba(0,229,153,0.2)]' : 'opacity-85'
+                className={`w-64 h-64 md:w-88 md:h-88 rounded-2xl object-cover transition-all duration-300 bg-surface-3 ${
+                  isPlaying ? 'border border-primary/40 shadow-[var(--shadow-warm)] scale-[1.01]' : 'opacity-85'
                 }`}
               />
             </div>
 
-            <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md space-y-4">
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold text-dawAmber tracking-widest">
-                  NOW PLAYING
+            <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md space-y-5">
+              <div className="space-y-1.5">
+                <span className="text-[11px] uppercase font-bold text-primary tracking-widest flex items-center gap-2 justify-center md:justify-start">
+                  <span className={`w-1.5 h-1.5 rounded-full bg-primary ${isPlaying ? 'animate-pulse' : ''}`} />
+                  Now Playing
                 </span>
-                <div className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
+                <div className="text-2xl md:text-4xl font-extrabold text-text-main leading-tight tracking-tight">
                   {currentTrack.title}
                 </div>
-                <div className="text-sm md:text-base text-dawMuted font-semibold">
+                <div className="text-sm md:text-base text-text-muted font-medium">
                   {currentTrack.artist}
                 </div>
               </div>
 
-              {/* Audio Telemetry Spec Card */}
-              <div className="w-full p-3 rounded bg-dawPanel border border-dawBorder space-y-1.5 text-[11px] font-mono">
-                <div className="flex items-center justify-between text-dawMuted">
-                  <span>STREAM TYPE</span>
-                  <span className="text-white font-bold">OPUS STEREO</span>
+              {/* 9Router Telemetry Spec Card */}
+              <div className="w-full p-4 rounded-2xl card-soft border border-border space-y-2.5 text-xs shadow-soft">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="font-medium">Audio Engine</span>
+                  <span className="text-text-main font-semibold">Opus / Lossless 48kHz</span>
                 </div>
-                <div className="flex items-center justify-between text-dawMuted">
-                  <span>DSP BITRATE</span>
-                  <span className="text-dawCyan font-bold">256 KBPS VBR</span>
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="font-medium">Bitrate Quality</span>
+                  <span className="text-primary font-mono font-semibold">HQ Studio DSP</span>
                 </div>
-                <div className="flex items-center justify-between text-dawMuted">
-                  <span>STATUS</span>
-                  <span className={isPlaying ? 'text-dawGreen font-bold' : 'text-dawAmber'}>
-                    {isPlaying ? 'ACTIVE MONITOR' : 'PAUSED'}
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="font-medium">Playback State</span>
+                  <span className={`font-semibold ${isPlaying ? 'text-primary' : 'text-text-muted'}`}>
+                    {isPlaying ? 'Live Streaming' : 'Paused'}
                   </span>
                 </div>
               </div>
 
               <button
                 onClick={() => toggleLike(currentTrack)}
-                className={`flex items-center gap-2 px-4 py-2 rounded border text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shadow-soft ${
                   liked
-                    ? 'bg-dawRed/15 border-dawRed text-dawRed'
-                    : 'bg-dawPanel border-dawBorder text-dawMuted hover:text-white hover:bg-dawHover'
+                    ? 'bg-red-500/15 border-red-500/30 text-red-500'
+                    : 'bg-surface-2 border-border text-text-muted hover:text-text-main hover:bg-surface-3'
                 }`}
               >
-                <Heart className={`w-4 h-4 ${liked ? 'fill-dawRed' : ''}`} />
-                <span>{liked ? 'SAVED TO LIKED SONGS' : 'SAVE TO LIKED SONGS'}</span>
+                <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
+                <span>{liked ? 'Saved to Liked Songs' : 'Save to Liked Songs'}</span>
               </button>
             </div>
           </div>
@@ -274,9 +285,9 @@ export const FullscreenPlayer = () => {
       </div>
 
       {/* Bottom Transport Controls */}
-      <div className="relative z-10 max-w-2xl mx-auto w-full space-y-3 border-t border-dawBorder pt-4">
+      <div className="relative z-10 max-w-2xl mx-auto w-full space-y-3 border-t border-border pt-4">
         {/* Scrubber */}
-        <div className="space-y-1 font-mono">
+        <div className="space-y-1">
           <div
             ref={scrubberTrackRef}
             role="slider"
@@ -291,15 +302,15 @@ export const FullscreenPlayer = () => {
             onPointerCancel={handleScrubberPointerUp}
             className="py-2 cursor-pointer select-none group touch-none relative flex items-center"
           >
-            <div className="w-full h-1.5 hover:h-2 bg-dawSurface border border-dawBorder rounded-full relative transition-all overflow-hidden">
+            <div className="w-full h-1.5 hover:h-2 bg-surface-2 border border-border rounded-full relative transition-all overflow-hidden">
               <div
                 style={{ width: `${displayScrubberPercent}%` }}
-                className="bg-dawCyan absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
+                className="bg-primary shadow-[0_0_12px_var(--color-primary)] absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
               />
             </div>
           </div>
-          <div className="flex justify-between text-xs text-dawMuted font-mono">
-            <span className="font-bold text-white">
+          <div className="flex justify-between text-xs text-text-muted font-mono">
+            <span className="font-bold text-text-main">
               {formatTime(
                 isDraggingScrubber && scrubberDragPercent !== null
                   ? (scrubberDragPercent / 100) * duration
@@ -314,8 +325,8 @@ export const FullscreenPlayer = () => {
         <div className="flex items-center justify-between pt-1">
           <button
             onClick={toggleShuffle}
-            className={`p-2 rounded transition-colors cursor-pointer ${
-              isShuffle ? 'text-dawGreen bg-dawGreen/15 border border-dawGreen/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
+            className={`p-2 rounded-xl transition-all cursor-pointer ${
+              isShuffle ? 'text-primary bg-primary/15 border border-primary/25 shadow-[var(--shadow-warm)]' : 'text-text-muted hover:text-text-main hover:bg-surface-2'
             }`}
             title="Shuffle"
           >
@@ -324,7 +335,7 @@ export const FullscreenPlayer = () => {
 
           <button
             onClick={prev}
-            className="text-dawMuted hover:text-white p-2 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            className="text-text-muted hover:text-text-main p-2 rounded-xl hover:bg-surface-2 transition-colors cursor-pointer"
             title="Previous"
           >
             <SkipBack className="w-5 h-5 fill-current" />
@@ -332,15 +343,15 @@ export const FullscreenPlayer = () => {
 
           <button
             onClick={togglePlay}
-            className="w-12 h-12 rounded bg-dawGreen text-black flex items-center justify-center font-bold hover:bg-[#12ffaa] shadow-lg cursor-pointer transition-transform active:scale-95"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center shadow-[var(--shadow-warm)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title={isPlaying ? 'Pause' : 'Play'}
           >
-            {isPlaying ? <Pause className="w-6 h-6 fill-black" /> : <Play className="w-6 h-6 fill-black ml-0.5" />}
+            {isPlaying ? <Pause className="w-6 h-6 fill-white" /> : <Play className="w-6 h-6 fill-white ml-0.5" />}
           </button>
 
           <button
             onClick={next}
-            className="text-dawMuted hover:text-white p-2 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            className="text-text-muted hover:text-text-main p-2 rounded-xl hover:bg-surface-2 transition-colors cursor-pointer"
             title="Next"
           >
             <SkipForward className="w-5 h-5 fill-current" />
@@ -348,8 +359,8 @@ export const FullscreenPlayer = () => {
 
           <button
             onClick={cycleRepeat}
-            className={`p-2 rounded transition-colors cursor-pointer ${
-              repeatMode > 0 ? 'text-dawAmber bg-dawAmber/15 border border-dawAmber/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
+            className={`p-2 rounded-xl transition-all cursor-pointer ${
+              repeatMode > 0 ? 'text-primary bg-primary/15 border border-primary/25 shadow-[var(--shadow-warm)]' : 'text-text-muted hover:text-text-main hover:bg-surface-2'
             }`}
             title="Repeat"
           >
