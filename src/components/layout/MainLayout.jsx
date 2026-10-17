@@ -17,6 +17,7 @@ import { ShortcutHelpModal } from '../modals/ShortcutHelpModal';
 import { MiniPlayer } from '../player/MiniPlayer';
 import { ContextMenu } from '../ui/ContextMenu';
 import { ToastContainer } from '../ui/ToastContainer';
+import { ErrorBoundary } from '../ui/ErrorBoundary';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useEqualizerStore } from '../../stores/useEqualizerStore';
 import { useUserStore } from '../../stores/useUserStore';
@@ -147,7 +148,9 @@ export const MainLayout = ({
       <QueuePanel />
 
       {/* Fullscreen Overlay Player */}
-      <FullscreenPlayer />
+      <ErrorBoundary>
+        <FullscreenPlayer />
+      </ErrorBoundary>
 
       {/* Global Modals */}
       <PlaylistEditModal />
