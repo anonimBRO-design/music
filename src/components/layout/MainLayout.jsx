@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { StudioInspector } from './StudioInspector';
 import { PlayerBar } from '../player/PlayerBar';
 import { FullscreenPlayer } from '../player/FullscreenPlayer';
 import { AudioEngine } from '../player/AudioEngine';
@@ -11,6 +12,9 @@ import { SettingsModal } from '../modals/SettingsModal';
 import { SleepTimerModal } from '../modals/SleepTimerModal';
 import { EqualizerModal } from '../modals/EqualizerModal';
 import { SpotifyImportModal } from '../modals/SpotifyImportModal';
+import { CommandPaletteModal } from '../modals/CommandPaletteModal';
+import { ShortcutHelpModal } from '../modals/ShortcutHelpModal';
+import { MiniPlayer } from '../player/MiniPlayer';
 import { ContextMenu } from '../ui/ContextMenu';
 import { ToastContainer } from '../ui/ToastContainer';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -66,8 +70,8 @@ export const MainLayout = ({
   }, []);
 
   return (
-    <div className={`neu-app-shell relative h-screen w-screen flex overflow-hidden font-syne antialiased selection:bg-iosBlue selection:text-white transition-colors duration-500 ${
-      theme === 'light' ? 'text-zinc-900' : 'text-white'
+    <div className={`daw-shell relative h-screen w-screen flex overflow-hidden font-syne antialiased selection:bg-dawCyan selection:text-black transition-colors duration-300 ${
+      theme === 'light' ? 'text-zinc-900 bg-[#eef2f7]' : 'text-white bg-dawBg'
     }`}>
 
       {/* Hidden Persistent Audio Engine */}
@@ -84,8 +88,8 @@ export const MainLayout = ({
 
       {/* Main Container */}
       <div
-        className={`relative z-10 flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
-          isSidebarCollapsed ? 'pl-0 md:pl-20' : 'pl-0 md:pl-64'
+        className={`relative z-10 flex-1 flex flex-col h-screen overflow-hidden transition-all duration-200 ${
+          isSidebarCollapsed ? 'pl-0 md:pl-16' : 'pl-0 md:pl-60'
         }`}
       >
         {/* Sticky Topbar */}
@@ -95,10 +99,13 @@ export const MainLayout = ({
           onNavigateProfile={() => onSelectTab('profile')}
         />
 
-        {/* Scrollable View Content */}
-        <main className="flex-1 overflow-y-auto pb-44 md:pb-32">
-          {children}
-        </main>
+        {/* 3-Column Studio Workspace (Center Main + Right Inspector) */}
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 overflow-y-auto pb-44 md:pb-28">
+            {children}
+          </main>
+          <StudioInspector />
+        </div>
       </div>
 
       {/* Bottom Floating Island Player Bar */}
@@ -160,6 +167,11 @@ export const MainLayout = ({
       <SleepTimerModal isOpen={isSleepTimerOpen} onClose={() => setIsSleepTimerOpen(false)} />
       <EqualizerModal isOpen={isEqOpen} onClose={() => setEqOpen(false)} />
       <SpotifyImportModal />
+
+      {/* Pro DAW Overlays */}
+      <MiniPlayer />
+      <CommandPaletteModal onSelectTab={onSelectTab} onNavigateSearch={onNavigateSearch} />
+      <ShortcutHelpModal />
 
       {/* Context Menu & Notifications */}
       <ContextMenu state={contextMenuState} onClose={onCloseContextMenu} />

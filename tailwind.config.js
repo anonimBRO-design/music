@@ -31,10 +31,23 @@ export default {
         iosPurple: '#A99BD8',
         iosPink: '#E88B8B',
         iosIndigo: '#7D9ACC',
+        // DAW Studio / Ableton Tokens
+        dawBg: '#0e1015',
+        dawSurface: '#14171f',
+        dawPanel: '#191d26',
+        dawHover: '#202531',
+        dawBorder: '#272c3a',
+        dawBorderBright: '#3b4358',
+        dawAmber: '#ffb800',
+        dawGreen: '#00e599',
+        dawCyan: '#00d4ff',
+        dawRed: '#ff4b4b',
+        dawMuted: '#687187',
       },
       fontFamily: {
         syne: ['Syne', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
         inter: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       borderRadius: {
         'ios-sm': '14px',

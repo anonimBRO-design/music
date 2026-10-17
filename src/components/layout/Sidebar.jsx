@@ -37,36 +37,39 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
 
   return (
     <aside
-      className={`fixed top-0 left-0 bottom-0 ios-glass-panel z-30 hidden md:flex flex-col transition-all duration-300 select-none font-syne ${
-        isCollapsed ? 'w-20' : 'w-64'
+      className={`fixed top-0 left-0 bottom-0 bg-dawSurface border-r border-dawBorder z-30 hidden md:flex flex-col transition-all duration-200 select-none font-mono ${
+        isCollapsed ? 'w-16' : 'w-60'
       }`}
     >
-      {/* Brand Logo */}
+      {/* Brand Header */}
       <div
         onClick={() => onSelectTab('home')}
-        className="flex items-center p-4 px-5 border-b border-white/[0.08] cursor-pointer hover:opacity-90 transition-opacity active:scale-95 transition-transform"
+        className="h-13 flex items-center px-4 border-b border-dawBorder cursor-pointer hover:bg-dawHover/60 transition-colors"
       >
         {!isCollapsed ? (
-          <img
-            src={logoBanner}
-            alt="NONIMSONG"
-            className="h-8 max-w-[170px] object-contain drop-shadow-[0_2px_12px_rgba(10,132,255,0.25)]"
-          />
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded bg-dawAmber text-black flex items-center justify-center font-bold text-xs shadow">
+              N
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-black tracking-wider text-white">NONIMSONG</span>
+              <span className="text-[9px] text-dawAmber tracking-widest uppercase">STUDIO PRO</span>
+            </div>
+          </div>
         ) : (
-          <div className="mx-auto">
-            <img
-              src={logoIcon}
-              alt="NONIMSONG"
-              className="w-9 h-9 rounded-2xl object-contain shadow-lg"
-            />
+          <div className="mx-auto w-7 h-7 rounded bg-dawAmber text-black flex items-center justify-center font-bold text-xs shadow">
+            N
           </div>
         )}
       </div>
 
-      {/* Navigation List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {/* Main Links */}
-        <div className="space-y-1.5">
+      {/* Navigation Modules */}
+      <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-dawBorder scrollbar-track-transparent">
+        {/* Main Explorer */}
+        <div className="space-y-0.5">
+          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-dawMuted ${isCollapsed ? 'hidden' : 'block'}`}>
+            Explorer
+          </div>
           {mainNav.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
@@ -74,22 +77,28 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer relative overflow-hidden ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer relative ${
                   active
-                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10 tab-active-glow pl-4'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
+                    ? 'bg-dawPanel text-dawGreen border border-dawBorderBright font-bold'
+                    : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${active ? 'scale-110 text-iosEmerald' : ''}`} />
-                {!isCollapsed && <span>{item.label}</span>}
+                {active && !isCollapsed && (
+                  <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-dawGreen rounded-r" />
+                )}
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-dawGreen' : ''}`} />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* Features Links */}
-        <div className="space-y-1.5">
+        {/* Modules / Social */}
+        <div className="space-y-0.5">
+          <div className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-dawMuted ${isCollapsed ? 'hidden' : 'block'}`}>
+            Features
+          </div>
           {socialNav.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
@@ -97,15 +106,18 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ios-btn-spring cursor-pointer relative overflow-hidden ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-xs transition-colors cursor-pointer relative ${
                   active
-                    ? 'bg-white/10 text-iosEmerald shadow-sm border border-white/10 tab-active-glow pl-4'
-                    : item.color || 'text-zinc-400 hover:text-white hover:bg-white/[0.06]'
+                    ? 'bg-dawPanel text-dawAmber border border-dawBorderBright font-bold'
+                    : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
                 } ${isCollapsed ? 'justify-center px-0' : ''}`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${active ? 'scale-110' : ''}`} />
-                {!isCollapsed && <span>{item.label}</span>}
+                {active && !isCollapsed && (
+                  <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-dawAmber rounded-r" />
+                )}
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-dawAmber' : ''}`} />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
               </button>
             );
           })}
@@ -113,68 +125,67 @@ export const Sidebar = ({ activeTab, onSelectTab, isCollapsed, setIsCollapsed, o
 
         {/* User Playlists */}
         {!isCollapsed && (
-          <div className="pt-4 border-t border-white/[0.08]">
-            <div className="flex items-center justify-between px-3.5 mb-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                Playlists
+          <div className="pt-2 border-t border-dawBorder space-y-1">
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-dawMuted">
+                Playlists ({playlists.length})
               </span>
               <button
                 onClick={openCreateModal}
-                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
+                className="text-dawMuted hover:text-white p-0.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
                 title="Create Playlist"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="space-y-1">
-              {playlists.map((pl) => (
-                <button
-                  key={pl.id}
-                  onClick={() => onSelectTab(`playlist:${pl.id}`)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-left transition-all truncate group ios-btn-spring cursor-pointer relative overflow-hidden ${
-                    activeTab === `playlist:${pl.id}`
-                      ? 'bg-white/10 text-white border border-white/10 tab-active-glow pl-4'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <div
-                    style={{ background: !pl.image ? (pl.color || '#5e5ce6') : 'transparent' }}
-                    className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center shadow overflow-hidden bg-zinc-900"
+            <div className="space-y-0.5">
+              {playlists.map((pl) => {
+                const active = activeTab === `playlist:${pl.id}`;
+                return (
+                  <button
+                    key={pl.id}
+                    onClick={() => onSelectTab(`playlist:${pl.id}`)}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors group cursor-pointer ${
+                      active
+                        ? 'bg-dawPanel text-dawCyan border border-dawBorderBright font-bold'
+                        : 'text-dawMuted hover:text-white hover:bg-dawHover/60'
+                    }`}
                   >
-                    {pl.image ? (
-                      <img src={pl.image} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Music className="w-2.5 h-2.5 text-white/90" />
-                    )}
-                  </div>
-                  <span className="truncate">{pl.name}</span>
-                </button>
-              ))}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Music className={`w-3 h-3 shrink-0 ${active ? 'text-dawCyan' : 'text-dawMuted'}`} />
+                      <span className="truncate text-[11px]">{pl.name}</span>
+                    </div>
+                    <span className="text-[10px] text-dawMuted/60 font-mono group-hover:text-dawMuted">
+                      {pl.tracks?.length || 0}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer Settings & Collapse */}
-      <div className="p-3 pb-24 md:pb-28 border-t border-white/[0.08] flex items-center justify-between gap-2">
+      {/* Footer / System */}
+      <div className="p-2 border-t border-dawBorder flex items-center justify-between gap-1 bg-dawSurface shrink-0">
         <button
           onClick={onOpenSettings}
-          className={`flex items-center gap-3 px-3 py-2 rounded-2xl text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/[0.06] ios-btn-spring transition-colors ${
+          className={`flex items-center gap-2 p-1.5 rounded text-xs text-dawMuted hover:text-white hover:bg-dawHover transition-colors cursor-pointer ${
             isCollapsed ? 'mx-auto' : ''
           }`}
           title="Settings"
         >
-          <Settings className="w-4 h-4 shrink-0" />
-          {!isCollapsed && <span>Settings</span>}
+          <Settings className="w-3.5 h-3.5 shrink-0" />
+          {!isCollapsed && <span className="text-[11px]">Settings</span>}
         </button>
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-zinc-500 hover:text-white p-2 rounded-xl hover:bg-white/[0.06] ios-btn-spring transition-colors hidden md:block"
+          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors hidden md:block cursor-pointer"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>
       </div>
     </aside>

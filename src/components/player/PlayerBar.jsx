@@ -3,6 +3,7 @@ import { usePlayerStore } from '../../stores/usePlayerStore';
 import { useQueueStore } from '../../stores/useQueueStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useSleepTimerStore } from '../../stores/useSleepTimerStore';
+import { useStudioStore } from '../../stores/useStudioStore';
 import {
   Play,
   Pause,
@@ -17,7 +18,9 @@ import {
   ListMusic,
   Maximize2,
   Mic2,
-  Moon
+  Moon,
+  AppWindow,
+  Sliders
 } from 'lucide-react';
 
 export const PlayerBar = ({ isSidebarCollapsed = false }) => {
@@ -173,25 +176,23 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
 
   return (
     <footer
-      className={`fixed bottom-[74px] md:bottom-3 left-3.5 right-3.5 ${
-        isSidebarCollapsed ? 'md:left-[96px] md:right-6' : 'md:left-[276px] md:right-6'
-      } h-14 md:h-[78px] ios-glass-dock rounded-[22px] md:rounded-[26px] z-40 px-3 md:px-5 flex items-center justify-between font-syne select-none transition-all duration-300 shadow-2xl overflow-hidden`}
+      className="fixed bottom-[60px] md:bottom-0 left-0 right-0 h-16 md:h-18 bg-dawSurface border-t border-dawBorder z-40 px-3 md:px-5 flex items-center justify-between font-mono select-none shadow-2xl overflow-hidden"
     >
       {/* Mobile Top Progress Line */}
-      <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-white/10 md:hidden overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-dawBg md:hidden overflow-hidden">
         <div
           style={{ width: `${progressPercent}%` }}
-          className="h-full bg-gradient-to-r from-iosBlue to-iosEmerald rounded-full transition-all"
+          className="h-full bg-dawGreen transition-all"
         />
       </div>
 
       {/* 1. Track Info (Left) */}
-      <div className="flex items-center gap-2.5 md:gap-3 flex-1 md:w-48 lg:w-60 md:flex-initial min-w-0">
+      <div className="flex items-center gap-2.5 md:gap-3 flex-1 md:w-56 lg:w-72 md:flex-initial min-w-0">
         {currentTrack ? (
           <>
             <div
               onClick={() => setFullscreenOpen(true)}
-              className="relative group shrink-0 cursor-pointer active:scale-95 transition-transform"
+              className="relative group shrink-0 cursor-pointer"
             >
               <img
                 src={currentTrack.thumbnail || `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`}
@@ -200,10 +201,8 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
                 onError={(e) => {
                   e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/mqdefault.jpg`;
                 }}
-                className={`w-9 h-9 md:w-14 md:h-14 rounded-xl md:rounded-2xl object-cover shadow-md transition-all duration-300 bg-zinc-900 ${
-                  isPlaying
-                    ? 'ring-2 ring-iosEmerald/60 shadow-[0_0_20px_rgba(48,209,88,0.35)] scale-100'
-                    : 'opacity-85'
+                className={`w-9 h-9 md:w-11 md:h-11 rounded object-cover border transition-all bg-dawBg ${
+                  isPlaying ? 'border-dawGreen shadow-[0_0_10px_rgba(0,229,153,0.3)]' : 'border-dawBorder'
                 }`}
               />
             </div>
@@ -211,29 +210,32 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
               onClick={() => setFullscreenOpen(true)}
               className="min-w-0 flex-1 cursor-pointer"
             >
-              <div className="text-xs md:text-sm font-bold text-white truncate hover:text-iosEmerald transition-colors">
+              <div className="text-xs font-bold text-white truncate hover:text-dawCyan transition-colors">
                 {currentTrack.title}
               </div>
-              <div className="text-[10px] md:text-xs text-zinc-400 truncate hover:text-zinc-200 transition-colors">
-                {currentTrack.artist}
+              <div className="text-[10px] text-dawMuted truncate flex items-center gap-1.5">
+                <span>{currentTrack.artist}</span>
+                <span className="hidden lg:inline text-[9px] px-1 py-0.2 rounded bg-dawPanel border border-dawBorder text-dawAmber">
+                  AAC
+                </span>
               </div>
             </div>
             <button
               onClick={() => toggleLike(currentTrack)}
-              className="text-zinc-400 hover:text-white p-1 md:p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors shrink-0 hidden sm:block"
+              className="text-dawMuted hover:text-white p-1 rounded hover:bg-dawHover transition-colors shrink-0 hidden sm:block cursor-pointer"
               title={liked ? 'Unlike' : 'Like'}
             >
               <Heart
-                className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${
-                  liked ? 'text-iosPink fill-iosPink animate-heart-pop' : 'text-zinc-400 hover:scale-110'
+                className={`w-4 h-4 transition-transform ${
+                  liked ? 'text-dawRed fill-dawRed' : 'text-dawMuted hover:scale-110'
                 }`}
               />
             </button>
           </>
         ) : (
-          <div className="text-xs text-zinc-500 italic flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-zinc-700 animate-pulse" />
-            No track selected
+          <div className="text-xs text-dawMuted flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-dawMuted animate-pulse" />
+            NO TRACK LOADED
           </div>
         )}
       </div>
@@ -242,94 +244,86 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
       <div className="flex items-center gap-2 md:hidden shrink-0">
         <button
           onClick={() => toggleLike(currentTrack)}
-          className="text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors shrink-0"
+          className="text-dawMuted hover:text-white p-1 rounded shrink-0 cursor-pointer"
           title={liked ? 'Unlike' : 'Like'}
         >
-          <Heart
-            className={`w-4 h-4 transition-transform ${
-              liked ? 'text-iosPink fill-iosPink animate-heart-pop' : 'text-zinc-400'
-            }`}
-          />
+          <Heart className={`w-4 h-4 ${liked ? 'text-dawRed fill-dawRed' : 'text-dawMuted'}`} />
         </button>
 
         <button
           onClick={togglePlay}
           disabled={!currentTrack}
-          className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-lg disabled:opacity-40 disabled:cursor-not-allowed ios-btn-primary cursor-pointer"
+          className="w-8 h-8 rounded bg-dawGreen text-black flex items-center justify-center font-bold disabled:opacity-40 cursor-pointer"
           title={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? (
-            <Pause className="w-4 h-4 fill-current" />
-          ) : (
-            <Play className="w-4 h-4 fill-current ml-0.5" />
-          )}
+          {isPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black ml-0.5" />}
         </button>
 
         <button
           onClick={next}
-          className="text-zinc-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
+          className="text-dawMuted hover:text-white p-1 cursor-pointer"
           title="Next"
         >
           <SkipForward className="w-4 h-4 fill-current" />
         </button>
       </div>
 
-      {/* 2. Desktop Playback Controls & Scrubber (Center - Hidden on Mobile) */}
-      <div className="hidden md:flex flex-col items-center gap-1.5 max-w-sm lg:max-w-lg flex-1 px-2 lg:px-6">
-        <div className="flex items-center gap-3 md:gap-4 lg:gap-5">
+      {/* 2. Desktop Playback Controls & Scrubber (Center) */}
+      <div className="hidden md:flex flex-col items-center gap-1 max-w-sm lg:max-w-lg flex-1 px-3 lg:px-6">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={toggleShuffle}
-            className={`p-2 rounded-full ios-btn-icon ios-btn-spring transition-all ${
-              isShuffle ? 'text-iosEmerald bg-iosEmerald/15 shadow-[0_0_12px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            className={`p-1.5 rounded transition-colors cursor-pointer ${
+              isShuffle ? 'text-dawGreen bg-dawGreen/15 border border-dawGreen/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
             }`}
-            title="Smart Shuffle"
+            title="Smart Shuffle (S)"
           >
-            <Shuffle className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <Shuffle className="w-3.5 h-3.5" />
           </button>
 
           <button
             onClick={prev}
-            className="text-zinc-300 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
-            title="Previous"
+            className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            title="Previous (Shift+Left)"
           >
-            <SkipBack className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+            <SkipBack className="w-4 h-4 fill-current" />
           </button>
 
           <button
             onClick={togglePlay}
             disabled={!currentTrack}
-            className="w-10 h-10 md:w-11 md:h-11 lg:w-12 lg:h-12 rounded-full bg-white text-black flex items-center justify-center shadow-[0_4px_25px_rgba(255,255,255,0.35)] disabled:opacity-40 disabled:cursor-not-allowed ios-btn-primary cursor-pointer"
-            title={isPlaying ? 'Pause' : 'Play'}
+            className="w-8 h-8 rounded bg-dawGreen text-black flex items-center justify-center hover:bg-[#12ffaa] shadow-md disabled:opacity-40 cursor-pointer transition-transform active:scale-95"
+            title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+              <Pause className="w-4 h-4 fill-black" />
             ) : (
-              <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />
+              <Play className="w-4 h-4 fill-black ml-0.5" />
             )}
           </button>
 
           <button
             onClick={next}
-            className="text-zinc-300 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-icon ios-btn-spring transition-colors cursor-pointer"
-            title="Next"
+            className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+            title="Next (Shift+Right)"
           >
-            <SkipForward className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+            <SkipForward className="w-4 h-4 fill-current" />
           </button>
 
           <button
             onClick={cycleRepeat}
-            className={`p-2 rounded-full ios-btn-icon ios-btn-spring transition-all ${
-              repeatMode > 0 ? 'text-iosEmerald bg-iosEmerald/15 shadow-[0_0_12px_rgba(48,209,88,0.3)]' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            className={`p-1.5 rounded transition-colors cursor-pointer ${
+              repeatMode > 0 ? 'text-dawAmber bg-dawAmber/15 border border-dawAmber/30' : 'text-dawMuted hover:text-white hover:bg-dawHover'
             }`}
-            title="Repeat"
+            title="Repeat (R)"
           >
-            {repeatMode === 2 ? <Repeat1 className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Repeat className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+            {repeatMode === 2 ? <Repeat1 className="w-3.5 h-3.5" /> : <Repeat className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        {/* Neumorphic Scrubber Progress Bar */}
-        <div className="w-full flex items-center gap-2 text-[10px] md:text-[11px] text-zinc-400 font-mono">
-          <span className="w-7 md:w-8 text-right font-medium">
+        {/* Precision Scrubber Progress Bar */}
+        <div className="w-full flex items-center gap-2 text-[10px] text-dawMuted font-mono">
+          <span className="w-8 text-right font-bold text-white">
             {formatTime(
               isDraggingScrubber && scrubberDragPercent !== null
                 ? (scrubberDragPercent / 100) * duration
@@ -350,36 +344,35 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             onPointerCancel={handleScrubberPointerUp}
             className="relative py-2 flex-1 cursor-pointer select-none group touch-none flex items-center"
           >
-            <div className="w-full h-2 hover:h-2.5 neu-slider-track rounded-full relative transition-all overflow-visible">
+            <div className="w-full h-1.5 hover:h-2 bg-dawBg border border-dawBorder rounded-full relative transition-all overflow-hidden">
               <div
                 style={{ width: `${displayScrubberPercent}%` }}
-                className={`neu-slider-fill absolute left-0 top-0 bottom-0 rounded-full pointer-events-none ${
-                  isDraggingScrubber ? 'transition-none' : 'transition-[width] duration-150'
-                }`}
-              />
-              <div
-                style={{ left: `${displayScrubberPercent}%` }}
-                className={`neu-slider-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full shadow-md pointer-events-none transition-transform ${
-                  isDraggingScrubber ? 'scale-125' : 'group-hover:scale-110'
-                }`}
+                className="bg-dawCyan absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
               />
             </div>
           </div>
-          <span className="w-7 md:w-8 font-medium">{formatTime(duration)}</span>
+          <span className="w-8 text-dawMuted">{formatTime(duration)}</span>
         </div>
       </div>
 
-      {/* 3. Desktop Volume & Extras (Right - Hidden on Mobile) */}
-      <div className="hidden md:flex items-center justify-end gap-1.5 lg:gap-2.5 md:w-44 lg:w-60 min-w-0 shrink-0">
-        {/* Lyrics Button */}
+      {/* 3. Desktop Volume & Extras (Right) */}
+      <div className="hidden md:flex items-center justify-end gap-1.5 md:w-56 lg:w-72 min-w-0 shrink-0">
+        {/* Mini-Player HUD Toggle */}
         <button
-          onClick={() => {
-            usePlayerStore.getState().setFullscreenOpen(true);
-          }}
-          className="text-zinc-400 hover:text-white p-1.5 lg:p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden xl:block"
-          title="Lyrics"
+          onClick={() => useStudioStore.getState().toggleMiniPlayer()}
+          className="text-dawMuted hover:text-dawCyan p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          title="Toggle Floating Mini-Player HUD"
         >
-          <Mic2 className="w-4 h-4" />
+          <AppWindow className="w-4 h-4" />
+        </button>
+
+        {/* Equalizer Toggle */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('nonimsong:open-equalizer'))}
+          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          title="Studio Equalizer"
+        >
+          <Sliders className="w-4 h-4" />
         </button>
 
         {/* Sleep Timer Button */}
@@ -387,49 +380,35 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
           onClick={() => {
             window.dispatchEvent(new CustomEvent('nonimsong:open-sleep-timer'));
           }}
-          className={`relative p-1.5 lg:p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden sm:block ${
-            sleepTimerActive ? 'text-iosIndigo bg-iosIndigo/10' : 'text-zinc-400 hover:text-white'
+          className={`relative p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer ${
+            sleepTimerActive ? 'text-dawAmber' : 'text-dawMuted hover:text-white'
           }`}
           title="Sleep Timer"
         >
           <Moon className="w-4 h-4" />
           {sleepTimerActive && (
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-iosIndigo animate-pulse" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-dawAmber animate-pulse" />
           )}
         </button>
 
-        {/* Queue */}
-        <button
-          onClick={toggleQueue}
-          className={`relative p-1.5 lg:p-2 rounded-2xl ios-btn-spring transition-colors ${
-            isQueueOpen ? 'text-iosEmerald bg-white/10' : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`}
-          title="Queue"
-        >
-          <ListMusic className="w-4 h-4 md:w-5 md:h-5" />
-          {userQueue.length > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-iosEmerald shadow-sm animate-pulse" />
-          )}
-        </button>
-
-        {/* Fullscreen */}
+        {/* Theater / Fullscreen */}
         <button
           onClick={() => setFullscreenOpen(true)}
-          className="text-zinc-400 hover:text-white p-2 rounded-full hover:bg-white/5 ios-btn-spring transition-colors hidden sm:block"
-          title="Fullscreen Player"
+          className="text-dawMuted hover:text-white p-1.5 rounded hover:bg-dawHover transition-colors cursor-pointer"
+          title="Fullscreen Mode (F)"
         >
           <Maximize2 className="w-4 h-4" />
         </button>
 
-        {/* Neumorphic Volume Slider with Smooth Drag */}
-        <div className="flex items-center gap-1.5 ml-1" onWheel={handleVolumeWheel}>
+        {/* Volume Slider & Telemetry readout */}
+        <div className="flex items-center gap-1 ml-1" onWheel={handleVolumeWheel}>
           <button
             onClick={toggleMute}
-            className="text-zinc-400 hover:text-white p-1 ios-btn-spring cursor-pointer"
-            title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+            className="text-dawMuted hover:text-white p-1 cursor-pointer"
+            title={isMuted || volume === 0 ? 'Unmute (M)' : 'Mute (M)'}
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-iosPink" />
+              <VolumeX className="w-4 h-4 text-dawRed" />
             ) : (
               <Volume2 className="w-4 h-4" />
             )}
@@ -447,24 +426,19 @@ export const PlayerBar = ({ isSidebarCollapsed = false }) => {
             onPointerUp={handleVolumePointerUp}
             onPointerCancel={handleVolumePointerUp}
             onKeyDown={handleVolumeKeyDown}
-            className="relative py-2 w-16 md:w-20 lg:w-24 cursor-pointer select-none group touch-none flex items-center"
-            title={`Volume: ${effectiveVolume}% (Slide left/right or scroll)`}
+            className="relative py-2 w-14 lg:w-20 cursor-pointer select-none group touch-none flex items-center"
+            title={`Volume: ${effectiveVolume}%`}
           >
-            <div className="w-full h-2 hover:h-2.5 neu-slider-track rounded-full relative transition-all overflow-visible">
+            <div className="w-full h-1.5 bg-dawBg border border-dawBorder rounded-full relative overflow-hidden">
               <div
                 style={{ width: `${effectiveVolume}%` }}
-                className={`neu-slider-fill absolute left-0 top-0 bottom-0 rounded-full pointer-events-none ${
-                  isDraggingVolume ? 'transition-none' : 'transition-[width] duration-150'
-                }`}
-              />
-              <div
-                style={{ left: `${effectiveVolume}%` }}
-                className={`neu-slider-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full shadow-md pointer-events-none transition-transform ${
-                  isDraggingVolume ? 'scale-125' : 'group-hover:scale-110'
-                }`}
+                className="bg-dawGreen absolute left-0 top-0 bottom-0 rounded-full pointer-events-none"
               />
             </div>
           </div>
+          <span className="text-[10px] text-dawMuted font-mono w-7 text-right">
+            {effectiveVolume}%
+          </span>
         </div>
       </div>
     </footer>

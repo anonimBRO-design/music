@@ -3,16 +3,36 @@ import { usePlayerStore } from '../stores/usePlayerStore';
 import { useUserStore } from '../stores/useUserStore';
 import { useQueueStore } from '../stores/useQueueStore';
 import { useToastStore } from '../stores/useToastStore';
+import { useStudioStore } from '../stores/useStudioStore';
 
 const IGNORED_ELEMENTS = ['INPUT', 'TEXTAREA', 'SELECT'];
 
 export function useKeyboardShortcuts() {
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ignore if typing in form fields
+      // Global hotkeys even when in input
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
+        e.preventDefault();
+        useStudioStore.getState().toggleCommandPalette();
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.code === 'KeyI') {
+        e.preventDefault();
+        useStudioStore.getState().toggleInspector();
+        return;
+      }
+
+      // Ignore standard single-key shortcuts if typing in form fields
       const tag = e.target?.tagName;
       if (IGNORED_ELEMENTS.includes(tag)) return;
       if (e.target?.isContentEditable) return;
+
+      if (e.code === 'Slash' && e.shiftKey) {
+        e.preventDefault();
+        useStudioStore.getState().toggleShortcuts();
+        return;
+      }
 
       const player = usePlayerStore.getState();
 
